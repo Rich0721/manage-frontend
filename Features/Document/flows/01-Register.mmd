@@ -1,0 +1,45 @@
+flowchart TD
+
+    %% Nodes
+    StartPoint(使用者進入註冊頁面)
+    EndPoint(使用者完成註冊)
+    UserKeyInName(使用者輸入姓名)
+    CheckNameFormat{檢查姓名格式}
+    DisplayNameFormatError(顯示姓名格式錯誤訊息)
+    UserKeyInEmail(使用者輸入 Email)
+    CheckEmailFormat{檢查 Email 格式}
+    DisplayEmailFormatError(顯示 Email 格式錯誤訊息)
+    UserKeyInPassword(使用者輸入密碼)
+    DisplayPasswordFormatError(顯示密碼格式錯誤訊息)
+    CheckPasswordFormat{檢查密碼格式}
+    UserKeyInPasswordConfirmation(使用者輸入確認密碼)
+    CheckPasswordMatch{檢查密碼是否一致}
+    DisplayPasswordMismatchError(顯示密碼不一致錯誤訊息)
+    SubmitRegistration(提交註冊資訊)
+    PasswordAndConfirmationHashed(密碼與確認密碼雜湊處理)
+    CheckRegistrationResult(檢查註冊結果)
+    ToLoginPage(導向登入頁面)
+    DisplayRegistrationFailure(顯示註冊失敗訊息)
+
+    %% Flow
+    StartPoint --> UserKeyInName
+    UserKeyInName --> CheckNameFormat
+    CheckNameFormat -->|格式正確| UserKeyInEmail
+    CheckNameFormat -->|格式錯誤| DisplayNameFormatError
+    UserKeyInEmail --> CheckEmailFormat
+    CheckEmailFormat -->|格式正確| UserKeyInPassword
+    CheckEmailFormat -->|格式錯誤| DisplayEmailFormatError
+    UserKeyInPassword --> CheckPasswordFormat
+    CheckPasswordFormat -->|格式正確| UserKeyInPasswordConfirmation
+    CheckPasswordFormat -->|格式錯誤| DisplayPasswordFormatError
+    UserKeyInPasswordConfirmation --> CheckPasswordMatch
+    CheckPasswordMatch -->|一致| PasswordAndConfirmationHashed
+    PasswordAndConfirmationHashed --> SubmitRegistration
+    CheckPasswordMatch -->|不一致| DisplayPasswordMismatchError
+    SubmitRegistration --> CheckRegistrationResult
+    CheckRegistrationResult -->|成功| ToLoginPage
+    CheckRegistrationResult -->|失敗| DisplayRegistrationFailure
+    DisplayNameFormatError --> UserKeyInName
+    DisplayEmailFormatError --> UserKeyInEmail
+    DisplayPasswordFormatError --> UserKeyInPassword
+    DisplayPasswordMismatchError --> UserKeyInPasswordConfirmation
