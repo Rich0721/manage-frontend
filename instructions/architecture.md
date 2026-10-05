@@ -110,24 +110,31 @@ Service
 ```text
 pages/
 ├── LoginPage.tsx
+├── LoginPage.test.tsx
 ├── ProductPage.tsx
-└── UserPage.tsx
+├── ProductPage.test.tsx
+├── UserPage.tsx
+└── UserPage.test.tsx   
 ```
 禁止將所有UI實作集中於單一Page內，應將可重用的UI抽離至`components`資料夾。
 
 
 #### Components
 
-`components`負責可重用的 UI Component，而不會負責`page`層的業務邏輯，應保持 UI 的純粹性。
+`components`負責可重用的 UI Component，而不會負責`page`層的業務邏輯，應保持 UI 的純粹性，並且需要將對應的樣式與測試文件與組件保持在同一資料夾內。
 
 例如：
 
 ```text
 components/
-├── ProductTable.tsx
-├── ProductForm.tsx
-├── Button.tsx
-└── Modal.tsx
+├── ProductCard
+|  ├── ProductCard.css
+|  └── ProductCard.tsx
+|  └── ProductCard.test.tsx
+├── ProductTable
+│  ├── ProductTable.css
+│  └── ProductTable.tsx
+│  └── ProductTable.test.tsx
 ```
 
 
@@ -291,3 +298,18 @@ interface Product {
 ```text
 types/product.ts
 ```
+
+## Unit Test
+
+`*.test.tsx` 負責放置所有單元測試文件，通常與被測試的模組保持相同的目錄結構，相關測試規範請參考*Unit Test Skill Guide*。
+
+例如：
+
+```text
+components/
+├── ProductCard
+│  ├── ProductCard.css
+|  ├── ProductCard.tsx
+│  └── ProductCard.test.tsx
+```
+
