@@ -1,0 +1,27 @@
+.auth-tabs {
+  display: flex;
+  justify-content: space-between;
+  width: min(310px, 100%);
+  margin: 0 auto;
+}
+
+.auth-tabs__button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 0 4px 4px;
+  color: #171317;
+  cursor: pointer;
+  font: inherit;
+  font-size: 25px;
+}
+
+.auth-tabs__button--active {
+  border-bottom-color: currentColor;
+  font-weight: 700;
+}
+
+.auth-tabs__button:focus-visible {
+  outline: 2px solid #53344c;
+  outline-offset: 4px;
+}

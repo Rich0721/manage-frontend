@@ -83,7 +83,7 @@ Feature: 使用者於前端註冊
       Examples:
         | 測試條件 | Email |
         | 14 個字元 | a@bcdefghijklm |
-        | 251 個字元 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com |
+        | 251 個字元 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com |
 
     Scenario Outline: 密碼長度不合法時顯示錯誤
       When 使用者將「密碼」與「確認密碼」欄位均修改為 "<密碼>"
@@ -134,7 +134,7 @@ Feature: 使用者於前端註冊
         | 一般有效資料 | user123 | user@example.com | ValidPass123 |
         | 姓名下限 2 個字元 | ab | user@example.com | ValidPass123 |
         | 姓名上限 50 個字元 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | user@example.com | ValidPass123 |
-        | Email 上限 250 個字元 | user123 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com | ValidPass123 |
+        | Email 上限 250 個字元 | user123 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com | ValidPass123 |
         | 密碼下限 8 個字元 | user123 | user@example.com | Ab123456 |
         | 密碼上限 20 個字元 | user123 | user@example.com | Ab111111111111111111 |
 
@@ -203,7 +203,7 @@ Feature: 使用者於前端註冊
         | 姓名太長 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | user@example.com | ValidPass123 | ValidPass123 |
         | Email 格式錯誤 | user123 | invalid-email | ValidPass123 | ValidPass123 |
         | Email 長度不足 | user123 | a@bc | ValidPass123 | ValidPass123 |
-        | Email 太長 | user123 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com | ValidPass123 | ValidPass123 |
+        | Email 太長 | user123 | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com | ValidPass123 | ValidPass123 |
         | 密碼太短 | user123 | user@example.com | Ab12345 | Ab12345 |
         | 密碼太長 | user123 | user@example.com | Ab1111111111111111111 | Ab1111111111111111111 |
         | 密碼缺少大寫 | user123 | user@example.com | validpass123 | validpass123 |

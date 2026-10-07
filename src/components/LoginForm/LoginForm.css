@@ -1,0 +1,29 @@
+.login-form {
+  display: grid;
+  gap: clamp(22px, 5.2vh, 56px);
+  padding-top: clamp(40px, 8.3vh, 90px);
+}
+
+.login-form__submit {
+  justify-self: end;
+  position: relative;
+  right: -19.5%;
+  min-width: clamp(95px, 9.32vw, 179px);
+  min-height: clamp(40px, 3.85vw, 74px);
+  margin-top: clamp(-15px, -1.4vh, -8px);
+  border: 0;
+  border-radius: clamp(16px, 1.56vw, 30px);
+  background: #00fc00;
+  color: #171317;
+  font: inherit;
+  font-size: clamp(16px, 1.56vw, 30px);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.login-form__notice {
+  justify-self: end;
+  margin: -20px 0 0;
+  color: #4b3d49;
+  font-size: 13px;
+}

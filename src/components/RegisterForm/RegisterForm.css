@@ -1,0 +1,31 @@
+.register-form {
+  display: grid;
+  gap: clamp(14px, 4.1vh, 44px);
+  padding-top: clamp(44px, 10.7vh, 116px);
+}
+
+.register-form__submit {
+  justify-self: end;
+  position: relative;
+  right: -19.5%;
+  min-width: clamp(95px, 9.32vw, 179px);
+  min-height: clamp(40px, 3.85vw, 74px);
+  margin-top: clamp(24px, 10.7vh, 116px);
+  border: 0;
+  border-radius: clamp(16px, 1.56vw, 30px);
+  background: #00fc00;
+  color: #171317;
+  font: inherit;
+  font-size: clamp(16px, 1.56vw, 30px);
+  cursor: pointer;
+}
+
+.register-form__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.register-form__submit:focus-visible {
+  outline: 2px solid #53344c;
+  outline-offset: 3px;
+}
