@@ -102,6 +102,27 @@ describe('registerUser', () => {
     })
   })
 
+  it('accepts a retry success with different header casing and an empty info object', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        header: { Status: 'Failed', Message: '帳號已存在' },
+        body: { info: {} },
+      }), { status: 409 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        header: { status: 'success', message: '註冊成功' },
+        body: { info: {} },
+      }), { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(registerUser(values, new AbortController().signal)).rejects.toMatchObject({
+      kind: 'http',
+      message: '帳號已存在',
+    })
+    await expect(registerUser({ ...values, email: 'new@example.com' }, new AbortController().signal))
+      .resolves.toEqual({ status: 'success', message: '註冊成功' })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('does not send a request after caller cancellation', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)

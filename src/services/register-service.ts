@@ -1,5 +1,5 @@
 import type { RegisterFormValues, RegisterResult } from '../types/register'
-import { getApiResponseMessage } from './api-response'
+import { getApiResponseMessage, getApiResponseStatus } from './api-response'
 import { sha256 } from '../utils/sha256'
 
 const REGISTER_ENDPOINT = '/userController/register'
@@ -21,33 +21,16 @@ export class RegisterServiceError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 function getApiResult(value: unknown): RegisterResult {
-  if (!isRecord(value) || !isRecord(value.header)) {
-    throw new RegisterServiceError('protocol', 'Malformed registration response.')
-  }
-
-  const { Status } = value.header
+  const status = getApiResponseStatus(value)
   const message = getApiResponseMessage(value)
-  if (!message) {
-    throw new RegisterServiceError('protocol', 'Registration response has no message.')
-  }
-
-  if (Status === 'Failed') return { status: 'failed', message }
-
-  if (Status !== 'Success' || !isRecord(value.body) || !isRecord(value.body.info)) {
+  if (!status || !message) {
     throw new RegisterServiceError('protocol', 'Malformed registration response.')
   }
 
-  const { uid, email, username } = value.body.info
-  if (
-    typeof uid !== 'string' ||
-    typeof email !== 'string' ||
-    typeof username !== 'string'
-  ) {
+  if (status === 'failed') return { status: 'failed', message }
+
+  if (status !== 'success') {
     throw new RegisterServiceError('protocol', 'Malformed registration response.')
   }
 
