@@ -142,11 +142,11 @@ App → HomePage（mode、表單 state、請求流程）
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 開發 API Proxy 與測試工具 | MODIFY | 2026-10-07 | DEVELOPED DONE | 2026-10-07 | — |
+| TASK-001 | 開發 API Proxy 與測試工具 | MODIFY | 2026-10-07 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-002 | HomePage 與登入／註冊切換 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-003 | 註冊型別與欄位驗證 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-004 | 共用欄位與認證頁籤 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
-| TASK-005 | SHA-256 與註冊 API Service | MODIFY | 2026-10-07 | DEVELOPED DONE | 2026-10-07 | — |
+| TASK-005 | SHA-256 與註冊 API Service | MODIFY | 2026-10-07 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-006 | 註冊表單與 HomePage 狀態生命週期 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 
 目前任務實作順序：先處理影響實作的 Open Questions 與 Plan Review；TASK-001 → TASK-002／003／004／005 → TASK-006。TASK-003 與 TASK-005 共用型別，TASK-005 應在型別確定後實作。整合測試與交付檢查延至主要任務開發完成後再依測試結果確認是否需要新增任務。

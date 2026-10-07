@@ -1,6 +1,6 @@
 # TASK-005 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -8,7 +8,7 @@ TASK-005
 
 ## Review Result
 
-最新實作符合已更新計畫的 request body、共用回應解析與非 2xx 訊息處理。仍缺一項計畫明確要求的回歸案例，因此需要 Programmer 補測試。
+複查通過。最新實作符合已更新計畫的 request body、共用回應解析與非 2xx 訊息處理；新增測試補足缺少 `body.info` 時仍判定成功的回歸案例。
 
 ## Implementation Plan
 
@@ -41,4 +41,13 @@ TASK-005
 
 ## Resolution
 
-Status: OPEN。待補上 body.info 未提供時的成功回歸案例並重新審查。
+複查通過。`src/services/register-service.test.tsx` 現在以 2xx、有效 success status/message 且完全省略 `body` 的回應執行 `registerUser`，並斷言回傳成功結果；符合成功判斷不依賴 `body.info` 的計畫要求。Review 無未結項目。
+
+Status: RESOLVED
+
+## Re-review Verification
+
+- `npm run test -- src/vite-proxy.test.tsx src/services/register-service.test.tsx`：2 個測試檔、13 個測試通過。
+- `npm run test`：10 個測試檔、58 個測試通過。
+- `npm run build`：通過。
+- `npm run lint`：通過。

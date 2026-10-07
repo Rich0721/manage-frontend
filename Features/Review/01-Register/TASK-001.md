@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -8,7 +8,7 @@ TASK-001
 
 ## Review Result
 
-原 Review 指出的開發 proxy 缺少可重現轉送測試已修正。重新檢視發現 API_UPSTREAM 預設行為與最新 Implementation Plan 不一致，屬 System Design 問題。
+複查通過。更新後的計畫已明確定義 `http://localhost:8000` 預設值、`API_UPSTREAM` 覆寫方式與無效值拒絕行為；新增測試覆蓋設定分支，既有受控後端轉送測試仍驗證 POST URI 與 JSON body。
 
 ## Existing Implementation
 
@@ -30,4 +30,13 @@ Implementation Plan 應明確定義開發 proxy 的預設值及覆寫方式，�
 
 ## Resolution
 
-原「缺少開發代理轉送測試」項目已由受控後端測試補齊；本 Review 因新發現的 System Design Issue 維持 OPEN，待計畫確認後再審查。
+原計畫差異已由 System Design 於 2026-10-07 更新計畫並結案 Implementation Issue。複查確認未設定、空字串、全空白採預設 upstream；有效設定可覆寫；無效非空值會被拒絕；受控後端測試保留轉送驗證。Review 無未結項目。
+
+Status: RESOLVED
+
+## Verification
+
+- `npm run test -- src/vite-proxy.test.tsx src/services/register-service.test.tsx`：2 個測試檔、13 個測試通過。
+- `npm run test`：10 個測試檔、58 個測試通過。
+- `npm run build`：通過。
+- `npm run lint`：通過。
