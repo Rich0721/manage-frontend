@@ -26,7 +26,7 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 - 更新日期：2026-10-05。
 - 已確認 Delta：四個欄位自動去除前後空白；確認密碼套用與密碼相同的必填、長度與字元種類規則，再檢查一致性；連線中斷或伺服器無回應時提示連線異常並保留輸入；後端接收長度 64 的密碼雜湊，長度不足直接回傳失敗。
 - OQ-006 技術映射：前端採 UTF-8 輸入、SHA-256 digest 轉 64 字元小寫十六進位字串。64 字元長度是使用者確認的後端要求；小寫 hex 是本計畫的序列化選擇，不代表後端另行確認了大小寫限制。
-- 影響範圍：TASK-002 至 TASK-007 為 `PLAN UPDATED`；尚未實作應用程式碼，TASK-001 維持 `TODO`。
+- 初版計畫影響範圍：TASK-002 至 TASK-007 為 `PLAN UPDATED`；當時尚未實作應用程式碼，TASK-001 維持 `TODO`。
 - OQ-002 已確認：以單一 `HomePage` 呈現共用導覽與登入／註冊區塊，透過頁籤切換顯示不同表單結構。成功後的「導向登入」對應同頁切換為登入模式。
 - 原計畫到新計畫的 Delta：兩個獨立頁面與 URL 導航改為單頁局部 mode state；頁面重載清理改為模式切換時清理、取消請求與忽略過期回應；登入區塊顯示設計稿的 Email、密碼與按鈕結構。登入 API 合約尚未列入此需求。
 - 使用者已表示其他 OQ 可進行確認；已明確的技術方案納入下列決定，仍存在的測試資料不一致與工具／部署環境限制分別列明，不將其當作已驗證通過。
@@ -39,6 +39,12 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 - TASK-005 改為 PLAN UPDATED，清除舊開發與審查日期；其餘 Task 狀態維持。共用型別調整歸 TASK-005。
 - TASK-005 Issue 的設計疑義已解決。此項計畫修訂為 Awaiting Review；全功能既有 Review Failed 結果保留，不表示本次實作已完成。
 - 已核對 File／Target、最小影響範圍、契約、相容策略、錯誤處理及驗收案例；無新增依賴、DB 或部署變更。
+
+### 2026-10-07 整合任務延期
+
+- 依使用者指示，從目前 Requirement List 移除原 TASK-007；目前不建立該項的 Implementation Status 或 Development Date。
+- 整合測試、Docker/nginx、瀏覽器與交付說明檢查保留於「後續整合測試與交付檢查」，待 TASK-001 至 TASK-006 開發完成及實際整合測試結果出爐後，再決定是否需要新增任務或修改文件。
+- 同步更新實作順序、TASK-001／006 驗證說明、OQ-002 與 Handoff，避免將延期事項誤認為目前待開發 Task。
 
 ### Context 與 Source of Truth
 
@@ -123,7 +129,7 @@ App → HomePage（mode、表單 state、請求流程）
 
 ## III. Requirement List
 
-以下皆為尚未初次實作的功能任務。Development Date 與 Code Review Date 在對應角色完成工作前留空。
+以下列出本需求目前納入管理的實作任務與狀態。Development Date 與 Code Review Date 依對應角色的完成進度更新。
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
@@ -133,9 +139,8 @@ App → HomePage（mode、表單 state、請求流程）
 | TASK-004 | 共用欄位與認證頁籤 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-005 | SHA-256 與註冊 API Service | MODIFY | 2026-10-07 | DEVELOPED DONE | 2026-10-07 | — |
 | TASK-006 | 註冊表單與 HomePage 狀態生命週期 | ADD | 2026-10-05 | DEVELOPED DONE | 2026-10-07 | 2026-10-07 |
-| TASK-007 | 整合驗證與交付說明 | MODIFY | 2026-10-05 | PLAN UPDATED | — | — |
 
-實作順序：先處理影響實作的 Open Questions 與 Plan Review；TASK-001 → TASK-002／003／004／005 → TASK-006 → TASK-007。TASK-003 與 TASK-005 共用型別，TASK-005 應在型別確定後實作。
+目前任務實作順序：先處理影響實作的 Open Questions 與 Plan Review；TASK-001 → TASK-002／003／004／005 → TASK-006。TASK-003 與 TASK-005 共用型別，TASK-005 應在型別確定後實作。整合測試與交付檢查延至主要任務開發完成後再依測試結果確認是否需要新增任務。
 
 ## IV. Technical Stack
 
@@ -173,7 +178,7 @@ App → HomePage（mode、表單 state、請求流程）
 - **Implementation**：透過 Vite `loadEnv` 讀取僅伺服器使用的 `API_UPSTREAM`，在明確設定後將 `/userController` 代理到該 origin，保留路徑；不要把部署設定作為 VITE_ 客戶端環境值公開。未設定時 README 明確說明無開發後端代理。保留 React plugin。Vitest 使用 jsdom、setup 與明確的 `*.test.tsx` discovery；scripts 提供 `test`（run）與 `test:watch`。安裝並鎖定前節列示的測試依賴，同步更新 package-lock。沿用現有 Docker `npm ci --no-audit --no-fund` 與 nginx 代理合約。
 - **Reuse / Impact**：沿用 Vite、npm、現有 Docker/nginx 與 TS strict；不建立新架構資料夾。測試型別以檔案 import 提供，避免不必要的全域 compiler 設定。
 - **Error Handling**：不合法 origin 明確回報設定錯誤；不將未知後端位址或 proxy 失敗當成註冊成功。
-- **Testing**：確認測試可以 discovery 與執行；`npm run build`、`npm run lint`；以可控制後端檢查 dev proxy POST 原始 URI／JSON body。Docker/nginx 驗證歸 TASK-007。
+- **Testing**：確認測試可以 discovery 與執行；`npm run build`、`npm run lint`；以可控制後端檢查 dev proxy POST 原始 URI／JSON body。Docker/nginx 驗證延至後續整合階段。
 
 ### TASK-002 HomePage 與登入／註冊切換
 
@@ -292,20 +297,14 @@ HTTP request header：`Content-Type: application/json`。
 - **Reuse / Impact**：TASK-002 的 HomePage、TASK-003 normalizer／validator、TASK-004 UI、TASK-005 Service。HomePage 管理模式與業務流程，Form Component 保持呈現職責。
 - **Error Handling**：無效或非 register 模式提交不發 API；頁籤切換的取消不顯示連線異常；真正逾時提示並保留資料；不記錄密碼、雜湊或完整個資請求。
 - **Testing**：HomePage 測試驗證初始、blur、即時 disabled、密碼相依、直接 submit 再驗證、成功 Alert 後顯示登入欄位、failed 四欄保留及重試。RegisterForm 測試檢查可見欄位、錯誤關聯及事件傳遞，不重複測試 validator 演算法。
-- **Delta Testing**：同一掛載中的 HomePage 切換後清空表單與錯誤；重複點目前模式保持輸入；註冊中切登入再切回並發新請求，舊請求的 resolve／reject／finally 都不得干擾；切換 URL 不變。另驗證 trim 規則、確認密碼格式、斷線／無回應提示與恢復重試。使用可控制 Service Promise 與 Alert 邊界，實際瀏覽器整合歸 TASK-007。
+- **Delta Testing**：同一掛載中的 HomePage 切換後清空表單與錯誤；重複點目前模式保持輸入；註冊中切登入再切回並發新請求，舊請求的 resolve／reject／finally 都不得干擾；切換 URL 不變。另驗證 trim 規則、確認密碼格式、斷線／無回應提示與恢復重試。實際瀏覽器整合延至後續整合階段。
 
-### TASK-007 整合驗證與交付說明
+### 後續整合測試與交付檢查（暫不列入任務）
 
-- **File**：MODIFY `README.md`、本 Plan 的對應 Task Status；測試修正限於 TASK-001 至 006 已列檔案。
-- **Target**：需求追蹤、整合 smoke check、部署說明與驗證紀錄。
-- **Plan Type**：MODIFY。
-- **Current Behavior**：只有 scaffold 說明與本輪 nginx 配置，無註冊操作／測試說明。
-- **Expected Behavior**：Reviewer 能重現本需求，區分已驗證與環境限制。
-- **Implementation**：README 記錄 npm scripts、開發 proxy origin、Docker API_UPSTREAM、Node／依賴實際版本、secure context 條件及尚無登入業務實作。以 Gherkin 每條 Rule 對應相關單元／元件／瀏覽器驗證，不變更 Business Requirement。Task 完成後依 Programmer workflow 更新狀態與日期，不能將未執行的檢查記成通過。
-- **Reuse / Impact**：使用現有 build/lint 與 TASK-001 的 test，不新增只測文件或 CSS 常數的無效測試。
-- **Error Handling**：測試執行環境、Figma、實際 backend origin、Docker/nginx 不可用時記錄具體未驗證項目，不捏造端對端結果。
-- **Testing**：`npm run test`、`npm run build`、`npm run lint`。瀏覽器驗證桌面／窄螢幕、focus、頁籤樣式、填寫／失敗保留／成功切登入／切換返回清除／bfcache，並確認模式切換無 URL 變更或文件重載。容器執行 `nginx -t`、GET `/` 與重新整理 HomePage、檢查建置靜態資源與前端回退；透過可控制後端驗證 POST 原始 URI、JSON envelope。nginx 上游錯誤不能回 SPA HTML 當成功。依 get_design_context 截圖核對兩種模式，共用 header 與 panel 保持一致；真實 API 驗證使用提供的測試環境，不以 mock 取代實際整合結果。
-- **Delta Testing**：整合核對 trim → 格式與一致性驗證 → 64 字元 SHA-256 → API 的資料流，以及斷線／逾時保留資料與重試；原始需求與 Scenario 的差異須如實記錄。
+- **執行時機**：TASK-001 至 TASK-006 開發完成後再進行整合測試；依實際測試結果確認是否需補充任務或修改交付說明。目前不建立任務狀態或開發日期。
+- **範圍**：更新 `README.md` 的 npm scripts、開發 proxy origin、Docker API_UPSTREAM、Node／依賴版本、secure context 與尚未開放的登入功能；以 Gherkin 規則核對單元、元件與瀏覽器驗證結果，記錄已驗證項目和環境限制。
+- **驗證**：執行 `npm run test`、`npm run build`、`npm run lint`；瀏覽器檢查桌面／窄螢幕、focus、頁籤、成功／失敗／重試／清除、bfcache 及 URL 不變；Docker/nginx 執行 `nginx -t`、GET `/`、前端路由重新整理、靜態資源與 API 上游代理。以可控制後端檢查 POST 原始 URI 與 JSON body，並確認上游錯誤不回傳 SPA HTML 作為成功結果。依指定 `get_design_context` 核對畫面；真實 API 驗證須使用提供的測試環境。
+- **資料流核對**：trim → 格式與一致性驗證 → 64 字元 SHA-256 → API；覆蓋斷線／逾時保留資料與重試，並如實記錄需求文件與 Scenario 的差異。
 
 ## VI. Review Status
 
@@ -321,7 +320,7 @@ HTTP request header：`Content-Type: application/json`。
 | ID | 待確認項目 | 影響 / 處理 |
 |---|---|---|
 | OQ-001（已解決） | 使用者要求確認已改為 React 18 的套件相依版本 | 2026-10-05 已確認 React / React DOM 18.3.1，修正 @types/react 為 18.3.31、@types/react-dom 為 18.3.7，TypeScript 固定 5.9.3；npm 安裝與相依樹檢查、TypeScript／Vite build、ESLint 均通過，驗證環境 Node 24.15.0。新增測試套件仍需依 React 18 核對相容性。 |
-| OQ-002（已確認） | 使用者指定單一 HomePage，切換登入／註冊顯示不同表單結構 | TASK-002／004／006／007 已改為 mode state、回呼切換、明確清理及成功後切回登入。兩種表單為 Component，Page 僅 HomePage；登入版面納入、API 合約待獨立登入需求。 |
+| OQ-002（已確認） | 使用者指定單一 HomePage，切換登入／註冊顯示不同表單結構 | TASK-002／004／006 已改為 mode state、回呼切換、明確清理及成功後切回登入。兩種表單為 Component，Page 僅 HomePage；登入版面納入、API 合約待獨立登入需求。 |
 | OQ-003（畫面已取得；指定工具待補） | 已能透過 Edge 看到設計，但新增規範要求 get_design_context | 已觀察 node 1:84 的 Register Frame（1920 × 1080）及 Login Frame；目前工具清單無 get_design_context。後續 UI 實作前須按最新 project.md 取得指定工具回傳，不將瀏覽器截圖當成已滿足該規範。此限制不妨礙完成使用者已確認的單頁結構規劃。 |
 | OQ-004（主要案例已修正；另兩筆待修正） | 重新計算所有相關 Email 長度邊界資料 | 『表單提交事件不能略過前端驗證／Email 太長』已為 **251**，符合預期；但『Email 長度超出允許範圍／251 個字元』實為 **250**，『所有欄位有效／Email 上限 250 個字元』實為 **249**。後兩筆仍需各補 1 字元；前者會造成錯誤的預期失敗，後者未涵蓋上限。原需求／Scenario 保持使用者版本，測試以真正 250／251 邊界驗證並註明差異。 |
 | OQ-005（已確認規劃） | 四欄 trim、確認密碼完整規則與前端驗證方案 | 先 trim 再驗證／比對／雜湊；Email 採 TASK-003 明定 predicate，長度以 Unicode code point 計數。這些技術細節作為本次可實作規劃，不增加 Email 域名白名單或縮短明訂長度。 |
@@ -344,4 +343,4 @@ HTTP request header：`Content-Type: application/json`。
 
 ### Handoff
 
-交付 PM／Reviewer 審查本 Plan。後續允許實作時，Programmer 以本 Plan 及最新 Task Status 為依據，範圍為 nginx 現況延伸、單一 HomePage、登入／註冊表單切換、註冊 API 與必要測試。UI 依指定 get_design_context 取得設計後核對；登入 API／驗證另依登入需求定義。不得自行變更 Requirement、後端／DB 或無關架構；不能執行的設計事項以 `Features/Issue/01-Register/<Task ID>.md` 回報 System Design Agent。
+交付 PM／Reviewer 審查本 Plan。Programmer 以本 Plan 及最新 Task Status 執行 TASK-001 至 TASK-006。主要任務完成後再進行整合測試，依結果決定是否建立後續整合任務與更新交付說明。UI 依指定 get_design_context 取得設計後核對；登入 API／驗證另依登入需求定義。不得自行變更 Requirement、後端／DB 或無關架構；不能執行的設計事項以 `Features/Issue/01-Register/<Task ID>.md` 回報 System Design Agent。
