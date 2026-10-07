@@ -8,28 +8,26 @@ TASK-001
 
 ## Review Result
 
-Missing Test：開發伺服器代理的轉發行為尚無可重現的驗證紀錄。
-
-## Implementation Plan
-
-TASK-001 要求以可控制的後端確認 Vite proxy 會將 POST 的原始 `/userController/register` URI 與 JSON body 轉發至後端；Docker/nginx 驗證另屬 TASK-007。
+原 Review 指出的開發 proxy 缺少可重現轉送測試已修正。重新檢視發現 API_UPSTREAM 預設行為與最新 Implementation Plan 不一致，屬 System Design 問題。
 
 ## Existing Implementation
 
-`vite.config.ts` 已設定 `/userController` proxy；現有測試檔案均未啟動 Vite 與可控制的後端來確認轉發。`npm run test` 的 45 項測試未涵蓋這項行為。
+`src/vite-proxy.test.tsx` 啟動實際 Vite 設定與本機受控後端，斷言 POST method、原始 URI（含 query）與 JSON body。測試使用臨時 API_UPSTREAM，沒有覆蓋未設定環境值時的預設行為。
+
+`vite.config.ts` 預設 API_UPSTREAM 為 `http://localhost:8000`；README 也將該值記為 npm run dev 的預設上游。
 
 ## Review Issue
 
-目前只能確認 proxy 設定存在，無法依 TASK-001 的 Testing 項目確認實際 POST 轉發後的 URI 與 body。若路徑或上游設定錯誤，元件與 Service 單元測試仍可能通過。
+TASK-001 計畫仍寫明只有明確設定 API_UPSTREAM 才代理，未設定時不提供開發 proxy。現有程式採用預設值，與使用者先前明確提出 npm run dev 應有預設值的要求相符，卻不符合目前計畫。
 
 ## Expected Behavior
 
-提供可重現的驗證結果，確認開發伺服器收到註冊 POST 後將原始 URI 與 JSON body 送至設定的 API 上游。
+Implementation Plan 應明確定義開發 proxy 的預設值及覆寫方式，再依更新後計畫確認設定與測試。
 
-## Suggested Area To Fix
+## Review Routing
 
-檢查 `vite.config.ts` 的代理設定，補齊 TASK-001 所要求的受控後端驗證或可重現的測試紀錄；保留實際執行結果。
+此為 Plan／Requirement 對齊問題，已建立 `Features/Issue/01-Register/TASK-001.md` 交由 System Design Agent 確認。未要求 Programmer 直接調整程式碼。
 
 ## Resolution
 
-Status: OPEN。待補齊驗證後重新審查。
+原「缺少開發代理轉送測試」項目已由受控後端測試補齊；本 Review 因新發現的 System Design Issue 維持 OPEN，待計畫確認後再審查。

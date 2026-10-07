@@ -1,6 +1,6 @@
 # TASK-006 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-006 與註冊 Gherkin 要求第一次失敗後保留表單，修改 Email �
 
 ## Resolution
 
-Status: OPEN。待補齊回歸測試後重新審查。
+Status: RESOLVED。確認失敗後修改 Email，再次提交時第二次 registerUser 收到 newuser@example.com，且後續登入畫面及 Alert 只依第二次成功結果呈現。

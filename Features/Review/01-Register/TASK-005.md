@@ -8,28 +8,37 @@ TASK-005
 
 ## Review Result
 
-Implementation Error：註冊請求 JSON envelope 與已定義的 API request 合約不符；完整測試因此失敗。
+最新實作符合已更新計畫的 request body、共用回應解析與非 2xx 訊息處理。仍缺一項計畫明確要求的回歸案例，因此需要 Programmer 補測試。
 
 ## Implementation Plan
 
-TASK-005 要求 Request Body 同時包含 `header.Content-Type` 與 `body.info`，姓名應映射成 `body.info.username`。HTTP `Content-Type` header 不能取代 Request Body 的 `header`。
+- HTTP Content-Type 只放在 fetch 的 HTTP headers；JSON 只含 body.info，姓名 key 為 userName。
+- 共用解析器支援最新 headers.status/message 與既有 header.Status/Message／小寫格式。
+- 註冊成功以狀態與訊息判定；body.info 缺少或為空不應單獨使成功回應變成 protocol error。
+- 測試應驗證成功回應含完整 info、空 info、未提供 info 均依狀態與訊息判定。
 
 ## Existing Implementation
 
-`src/services/register-service.ts` 第 81 至 91 行僅序列化 `body.info`，缺少 JSON `header`，並將姓名序列化為 `userName`。`src/types/register.ts` 中的 `RegisterRequestBody` 已定義正確的 `header` 與 `username`。
+`src/services/register-service.ts` 使用 fetch headers 設 Content-Type，將只含 body.info 的 RegisterRequestBody 序列化；姓名映射到 userName。共用解析器依計畫優先讀取 JSON headers，支援舊 header 格式。Service 測試確認新格式成功／失敗、非 2xx 訊息、舊格式與空 info 成功回應。
 
 ## Review Issue
 
-`npm run test` 在 `src/services/register-service.test.tsx:49` 因 `payload.header` 為 `undefined` 失敗。即使補上 `header`，下一個 `payload.body.info.username` 斷言仍會因實際欄位為 `userName` 而失敗。後端收到的 request body 不符合 Requirement 與 Gherkin 指定格式。
+`src/services/register-service.test.tsx` 有驗證成功回應含完整 info，並在重試案例驗證空的 `body.info: {}` 可成功；目前沒有成功回應完全省略 `body.info`（或 body）的案例。此行為在 TASK-005 Testing 明確列出，缺少回歸測試無法防止日後又把未使用的 response body 欄位加入成功門檻。
 
 ## Expected Behavior
 
-POST `/userController/register` 的 JSON body 應含 `header.Content-Type: application/json`，並以 `body.info.username` 傳送正規化後的姓名；兩個密碼仍需為 SHA-256 hex。
+新增 Service 測試：HTTP 2xx 回應具有效 success status 與 message，但未提供 body.info 時，仍回傳成功結果。
 
 ## Suggested Area To Fix
 
-檢查 `src/services/register-service.ts` 的 request body mapping，並以既有 `src/services/register-service.test.tsx` 及相關回歸測試確認完整 envelope。
+只需補強 `src/services/register-service.test.tsx` 的成功回應案例，使用可控制 fetch response，並斷言 registerUser 回傳成功。完成後重跑相關測試及專案必要檢查。
+
+## Verification
+
+- `npm run test`：10 個測試檔、52 個測試通過。
+- `npm run lint`：通過。
+- `npm run build`：通過。
 
 ## Resolution
 
-Status: OPEN。待修正實作且完整測試通過後重新審查。
+Status: OPEN。待補上 body.info 未提供時的成功回歸案例並重新審查。

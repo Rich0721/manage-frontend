@@ -1,6 +1,6 @@
 # TASK-003 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-003 要求對密碼及確認密碼分別驗證 7／8／20／21 字元邊界
 
 ## Resolution
 
-Status: OPEN。待補齊測試後重新審查。
+Status: RESOLVED。確認新增確認密碼 7／8／20／21 字元案例，以及 Unicode 姓名 50／51 code point 邊界案例；修正內容符合 TASK-003 計畫。
