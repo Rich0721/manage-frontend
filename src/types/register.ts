@@ -12,42 +12,41 @@ export type RegisterValidationErrors = Partial<
 >
 
 export interface RegisterRequestBody {
-  header: {
-    'Content-Type': 'application/json'
-  }
   body: {
     info: {
       email: string
-      username: string
+      userName: string
       password: string
       confirmPassword: string
     }
   }
 }
 
+export interface RegisterResponseHeaders {
+  status?: 'success' | 'failed' | string
+  message?: string
+  Status?: 'Success' | 'Failed' | string
+  Message?: string
+  'Content-Type'?: string
+}
+
 export interface RegisterSuccessResponse {
-  header: {
-    'Content-Type': string
-    Status: 'Success'
-    Message: string
-  }
-  body: {
-    info: {
-      uid: string
-      email: string
-      username: string
+  headers?: RegisterResponseHeaders
+  header?: RegisterResponseHeaders
+  body?: {
+    info?: {
+      uid?: string
+      email?: string
+      userName?: string
     }
   }
 }
 
 export interface RegisterFailedResponse {
-  header: {
-    'Content-Type'?: string
-    Status: 'Failed'
-    Message: string
-  }
+  headers?: RegisterResponseHeaders
+  header?: RegisterResponseHeaders
   body?: {
-    info: Record<string, unknown>
+    info?: Record<string, unknown>
   }
 }
 

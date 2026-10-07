@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { registerUser } from './register-service'
-import type { RegisterFormValues } from '../types/register'
+import type { RegisterFormValues, RegisterRequestBody } from '../types/register'
 import * as sha256Module from '../utils/sha256'
 
 const values: RegisterFormValues = {
@@ -11,13 +11,13 @@ const values: RegisterFormValues = {
 }
 
 const successResponse = {
-  header: {
+  headers: {
     'Content-Type': 'application/json',
-    Status: 'Success',
-    Message: 'User registered successfully',
+    status: 'success',
+    message: 'User registered successfully',
   },
   body: {
-    info: { uid: 'user-id', email: 'user@example.com', username: 'user123' },
+    info: { uid: 'user-id', email: 'user@example.com', userName: 'user123' },
   },
 }
 
@@ -27,7 +27,7 @@ afterEach(() => {
 })
 
 describe('registerUser', () => {
-  it('posts a JSON envelope with hashes and maps name to username', async () => {
+  it('sends only the API payload in JSON and keeps Content-Type in HTTP headers', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify(successResponse), { status: 200 }),
     )
@@ -39,25 +39,35 @@ describe('registerUser', () => {
     })
 
     const [uri, request] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const payload = JSON.parse(request.body as string) as {
-      header: { 'Content-Type': string }
-      body: { info: Record<string, string> }
-    }
+    const payload = JSON.parse(request.body as string) as RegisterRequestBody
     expect(uri).toBe('/userController/register')
     expect(request.method).toBe('POST')
     expect(request.headers).toEqual({ 'Content-Type': 'application/json' })
-    expect(payload.header['Content-Type']).toBe('application/json')
+    expect(payload).toEqual({
+      body: {
+        info: {
+          email: values.email,
+          userName: values.name,
+          password: expect.stringMatching(/^[0-9a-f]{64}$/),
+          confirmPassword: expect.stringMatching(/^[0-9a-f]{64}$/),
+        },
+      },
+    })
     expect(payload.body.info.email).toBe(values.email)
-    expect(payload.body.info.username).toBe(values.name)
+    expect(payload.body.info.userName).toBe(values.name)
     expect(payload.body.info.password).toMatch(/^[0-9a-f]{64}$/)
     expect(payload.body.info.confirmPassword).toBe(payload.body.info.password)
     expect(JSON.stringify(payload)).not.toContain(values.password)
+    expect(payload).not.toHaveProperty('header')
+    expect(payload).not.toHaveProperty('headers')
+    expect(payload.body.info).not.toHaveProperty('username')
+    expect(payload.body.info).not.toHaveProperty('Content-Type')
   })
 
   it('returns API messages for failed and non-2xx responses and rejects malformed responses', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(
       new Response(JSON.stringify({
-        header: { Status: 'Failed', Message: '此帳號已存在' },
+        headers: { status: 'failed', message: '此帳號已存在' },
         body: { info: {} },
       }), { status: 200 }),
     ))
@@ -69,7 +79,7 @@ describe('registerUser', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          header: { Status: 'Failed', Message: '帳號已存在' },
+          headers: { status: 'failed', message: '帳號已存在' },
           body: { info: {} },
         }),
         { status: 409 },
@@ -89,7 +99,7 @@ describe('registerUser', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(JSON.stringify({
-        header: { Status: 'unknown', Message: 'unexpected' },
+        headers: { status: 'unknown', message: 'unexpected' },
       }), { status: 200 }),
     ))
     await expect(registerUser(values, new AbortController().signal)).rejects.toMatchObject({

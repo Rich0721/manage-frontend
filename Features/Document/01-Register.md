@@ -17,7 +17,7 @@ Method: POST
 Request Body:
 ```json
 {
-    "header": {
+    "headers": {
         "Content-Type": "application/json"
     },
     "body": {
@@ -33,7 +33,7 @@ Request Body:
 Response Body:
 ```json
 {
-    "header": {
+    "headers": {
         "Content-Type": "application/json",
         "status": "success",
         "message": "User registered successfully"

@@ -31,6 +31,15 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 - 原計畫到新計畫的 Delta：兩個獨立頁面與 URL 導航改為單頁局部 mode state；頁面重載清理改為模式切換時清理、取消請求與忽略過期回應；登入區塊顯示設計稿的 Email、密碼與按鈕結構。登入 API 合約尚未列入此需求。
 - 使用者已表示其他 OQ 可進行確認；已明確的技術方案納入下列決定，仍存在的測試資料不一致與工具／部署環境限制分別列明，不將其當作已驗證通過。
 
+### 2026-10-07 TASK-005 契約更新
+
+- Requirement Type：Requirement Change；來源為最新需求文件與使用者本輪關於 fetch headers／JSON body 的明確說明。
+- Delta：姓名 key 改為 userName；Content-Type 僅設定於 HTTP headers，JSON 僅保留 body.info；共用回應解析器支援最新 headers.status/message，並保留已提供實際回應的相容格式。
+- Request 文件仍以「Request Body」展示 headers/body，標題易造成整體序列化的誤解；實作以本輪澄清與 TASK-005 電文範例為準。需求原文保留，供 PM 同步說明。
+- TASK-005 改為 PLAN UPDATED，清除舊開發與審查日期；其餘 Task 狀態維持。共用型別調整歸 TASK-005。
+- TASK-005 Issue 的設計疑義已解決。此項計畫修訂為 Awaiting Review；全功能既有 Review Failed 結果保留，不表示本次實作已完成。
+- 已核對 File／Target、最小影響範圍、契約、相容策略、錯誤處理及驗收案例；無新增依賴、DB 或部署變更。
+
 ### Context 與 Source of Truth
 
 - Role / Workflow：`AGENTS.md`、`agents/system-design-agent.md`。
@@ -82,15 +91,15 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 
 | 欄位 / 行為 | 已確認規則 |
 |---|---|
-| 姓名 | 去除前後空白後必填，2–50 個字元；送出時對應 API `username` |
+| 姓名 | 去除前後空白後必填，2–50 個字元；送出時對應 API `userName` |
 | Email | 去除前後空白後必填，符合 Email 格式，15–250 個字元，包含 @ 與域名 |
 | 密碼 | 去除前後空白後必填，8–20 個字元，包含大寫字母、小寫字母與數字 |
 | 確認密碼 | 去除前後空白後套用與密碼相同的必填、長度與字元種類規則，且兩欄正規化後須相同 |
 | 按鈕 | 任一欄位不合法時 disabled；修改時即時計算，不等待 blur |
 | 欄位錯誤 | 使用者操作欄位後 blur 才顯示；修正後依目前驗證結果清除 |
 | 提交 | 再次驗證，不依賴 disabled 或 HTML 限制保護 API |
-| API 成功 | `header.status === "success"`，提示成功並切換 HomePage 為登入模式 |
-| API 失敗 | `header.status === "failed"`，Alert 顯示 `header.message` 並保留已填寫資訊（密碼維持文字值，不以雜湊取代） |
+| API 成功 | 共用解析後 status 為 success，提示成功並切換 HomePage 為登入模式 |
+| API 失敗 | 共用解析後 status 為 failed，Alert 顯示後端 message 並保留已填資訊 |
 | 連線異常 | 網路中斷或伺服器無回應時提示連線異常，保留已填資訊並允許重送 |
 | 雜湊長度 | 兩個密碼欄位皆送出 64 字元 SHA-256 hex；後端對不足 64 字元的資訊回傳失敗 |
 | 頁面切換 | 本需求對應同頁模式切換：清除兩種表單輸入、touched、欄位錯誤、紅框及舊結果提示，取消進行中的註冊請求 |
@@ -122,7 +131,7 @@ App → HomePage（mode、表單 state、請求流程）
 | TASK-002 | HomePage 與登入／註冊切換 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-003 | 註冊型別與欄位驗證 | ADD | 2026-10-05 | DEVELOPED DONE | 2026-10-07 | 2026-10-07 |
 | TASK-004 | 共用欄位與認證頁籤 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
-| TASK-005 | SHA-256 與註冊 API Service | ADD | 2026-10-05 | REVIEW FIX | 2026-10-07 | 2026-10-07 |
+| TASK-005 | SHA-256 與註冊 API Service | MODIFY | 2026-10-07 | DEVELOPED DONE | 2026-10-07 | — |
 | TASK-006 | 註冊表單與 HomePage 狀態生命週期 | ADD | 2026-10-05 | DEVELOPED DONE | 2026-10-07 | 2026-10-07 |
 | TASK-007 | 整合驗證與交付說明 | MODIFY | 2026-10-05 | PLAN UPDATED | — | — |
 
@@ -187,7 +196,7 @@ App → HomePage（mode、表單 state、請求流程）
 - **Plan Type**：ADD。
 - **Current Behavior**：無本功能型別或驗證。
 - **Expected Behavior**：相同驗證結果同時用於按鈕 enabled、blur 錯誤與提交驗證，避免三套規則分歧。
-- **Implementation**：四個受控欄位保持 string。`normalizeRegisterForm` 對四欄各自使用 trim 去除前後空白、保留中間字元，不修改傳入 object；`validateRegisterForm` 以相同正規化結果驗證，回傳每欄位錯誤或無錯誤，不寫 React state、不呼叫 API。長度與格式依 II 節規則，常數只定義一次。姓名以 username 對應 API。必填先於長度／格式；確認密碼也檢查 8–20、大寫、小寫與數字，最後比較正規化後的兩欄。全空白視為空字串。Email predicate 採 `^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$`，即非空 local、單一 @、至少兩個非空 domain 區段且無空白；全部長度以 Unicode code point 計數。此為 OQ-005 的前端技術決定，不進行大小寫轉換、域名 allowlist 或縮短 Email 上限。驗證的是去除前後空白後的密碼文字，雜湊不作為表單值。特定業務驗證放 pages，不放 feature-independent utils；共用型別放 types，不以 any 逃避 API 型別檢查。
+- **Implementation**：四個受控欄位保持 string。`normalizeRegisterForm` 對四欄各自使用 trim 去除前後空白、保留中間字元，不修改傳入 object；`validateRegisterForm` 以相同正規化結果驗證，回傳每欄位錯誤或無錯誤，不寫 React state、不呼叫 API。長度與格式依 II 節規則，常數只定義一次。姓名以 userName 對應 API（型別與 mapping 更新歸 TASK-005）。必填先於長度／格式；確認密碼也檢查 8–20、大寫、小寫與數字，最後比較正規化後的兩欄。全空白視為空字串。Email predicate 採 `^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$`，即非空 local、單一 @、至少兩個非空 domain 區段且無空白；全部長度以 Unicode code point 計數。此為 OQ-005 的前端技術決定，不進行大小寫轉換、域名 allowlist 或縮短 Email 上限。驗證的是去除前後空白後的密碼文字，雜湊不作為表單值。特定業務驗證放 pages，不放 feature-independent utils；共用型別放 types，不以 any 逃避 API 型別檢查。
 - **Reuse / Impact**：HomePage、RegisterForm 與 Service 共用 request／form 型別；無 DB 影響。
 - **Error Handling**：依需求顯示繁體中文必填、長度、Email 格式與密碼不一致訊息。
 - **Testing**：Gherkin 的四個必填；姓名 1／2／50／51；Email 14／15／250／251 與三個錯誤格式；密碼與確認密碼各自 7／8／20／21、缺大寫／小寫／數字及不一致。新增四欄前後空白去除、全空白必填失敗、trim 後再算長度／格式／一致性、中間字元保持、正規化不修改輸入及 Unicode code point 邊界案例。Email 多個 @、空域名區段、內含空白應失敗。使用明確 fixture，不以待測 validator 產生預期結果。『Email 太長』已修正為 251；另兩筆 boundary fixture 與標示不符，依 OQ-004 記錄處理。測試以 `'a'.repeat(238) + '@example.com'` 與 `'a'.repeat(239) + '@example.com'` 建立真正 250／251 邊界並先確認長度，不使用錯誤 fixture 假裝已驗收。
@@ -206,35 +215,65 @@ App → HomePage（mode、表單 state、請求流程）
 
 ### TASK-005 SHA-256 與註冊 API Service
 
-- **File**：ADD `src/utils/sha256.ts`、`src/utils/sha256.test.tsx`、`src/services/register-service.ts`、`src/services/register-service.test.tsx`；使用 TASK-003 `src/types/register.ts`。
-- **Target**：新增 `sha256(value): Promise<string>` 與 `registerUser(values, signal): Promise<RegisterResult>`。
-- **Plan Type**：ADD。
-- **Current Behavior**：無請求與雜湊處理。
-- **Expected Behavior**：兩個密碼均為 SHA-256，請求 URI、HTTP method 與 JSON envelope 完全符合需求；Page 收到可區分的業務結果／技術失敗。
-- **Implementation**：通用 sha256 utility 以 TextEncoder 將傳入字串 UTF-8 編碼，使用 Web Crypto digest 並轉為 64 字元小寫十六進位字串。Service 接收 TASK-003 正規化且驗證通過的 snapshot，兩個密碼各自雜湊，確認輸出皆符合 64 字元 hex 後才送出；不得補字元湊長度或截短雜湊。後端對長度不足回傳失敗，前端使用既有 failed 流程呈現。Service 明確 mapping 姓名為 username，HTTP 真正的 Content-Type 亦為 application/json。需求的 header 是 Request Body 的欄位，不能只移到 HTTP header。fetch 使用同源相對路徑，不硬編碼後端位址，不修改傳入 object。解析外部 JSON 先視為 unknown，確認 header/status/message；成功資料依需求確認 uid、email、username 型別。failed 回應無已定義 body 合約，不要求與 success 相同的 body.info。成功依 header.status 而非僅 response.ok 判斷；非 2xx、不可解析 JSON 或未知 status 都不導向登入。失敗 message 以純文字交給 Page。傳遞 AbortSignal，雜湊後、fetch 前確認未取消。
+- **File**：MODIFY `src/services/register-service.ts`、`src/services/register-service.test.tsx`、`src/services/api-response.ts`、`src/services/api-response.test.tsx`、`src/types/register.ts`；REUSE `src/utils/sha256.ts` 與既有雜湊測試。
+- **Target**：registerUser、getApiResult、getApiResponseMessage、getApiResponseStatus、RegisterRequestBody 與註冊回應型別。
+- **Plan Type**：MODIFY（2026-10-07 Requirement Change）。
+- **Current Behavior**：Service 已將 Content-Type 設於 fetch headers，JSON 僅含 body.info，姓名 key 已為 userName；型別與 Service 測試仍要求 JSON header 與 username。共用回應解析器僅支援 JSON header，尚未支援最新文件的 headers。成功處理已不依賴 body.info。
+- **Expected Behavior**：HTTP metadata 與 JSON payload 分別定義，只傳送必要資料；共用解析器支援最新回應格式與既有實際回應，保留失敗後修正並重試的行為。
 
-  無回應偵測採可調整的 30 秒前端請求逾時（技術初始值，不是後端 SLA）。計時涵蓋 fetch 與回應內容讀取；超時取消請求並回報連線異常。區分頁面離開取消與逾時，前者靜默、後者提示；finally 清除計時器與取消訂閱。
+#### Request 傳輸定義
 
-  Request 合約：
+最新需求文件仍以「Request Body」展示 headers/body 組合；依本輪使用者明確澄清，其中 Content-Type 應作為 HTTP headers。下列定義取代舊計畫將 header 放入 JSON body 的要求：
 
-  ```json
-  {
-    "header": { "Content-Type": "application/json" },
-    "body": {
-      "info": {
-        "email": "user@example.com",
-        "username": "user123",
-        "password": "<64-character SHA-256 hex of trimmed password>",
-        "confirmPassword": "<64-character SHA-256 hex of trimmed confirmPassword>"
-      }
+1. fetch options 的 headers 設為 `{ 'Content-Type': 'application/json' }`。
+2. fetch options 的 body 為 JSON.stringify(payload)；payload 僅含下列 body.info 結構，保留 body.info 路徑。
+3. JSON payload 不得加入 header、headers 或 Content-Type；不得序列化整個 fetch options，也不得將 headers 重複複製到 JSON。
+4. RegisterRequestBody 僅描述 JSON payload；HTTP headers 由 RequestInit.headers 表達。Service 建立符合 RegisterRequestBody 的 payload，使型別與電文一致。
+5. 表單 name 映射為 body.info.userName，大小寫固定；其餘 key 為 email、password、confirmPassword。舊 username mapping 與斷言須同步更新。
+6. 延用原生 fetch 與同源 URI /userController/register，不新增通用 HTTP client 或額外電文包裝層。
+
+HTTP request header：`Content-Type: application/json`。
+
+實際 JSON request body：
+
+```json
+{
+  "body": {
+    "info": {
+      "email": "user@example.com",
+      "userName": "user123",
+      "password": "<64-character SHA-256 hex of trimmed password>",
+      "confirmPassword": "<64-character SHA-256 hex of trimmed confirmPassword>"
     }
   }
-  ```
+}
+```
 
-- **Reuse / Impact**：sha256 為 feature-independent utility；Service 只負責 API mapping 與通訊，無 Alert、React state 或導航。無新 HTTP／加密套件。
-- **Error Handling**：網路、HTTP、protocol、Web Crypto 不可用或 digest 失敗由 Page 統一提示；不降級為明文提交。abort 是取消，不顯示錯誤。部署需在支援 Web Crypto 的 secure context 提供前端，例如 HTTPS 或 localhost；nginx SSL 終止點與憑證不是已確認的部署設定。
-- **Testing**：雜湊以獨立已知 SHA-256 test vector 驗證（如 abc），不呼叫待測函式產生期望值；Service 控制 fetch 邊界，檢查 POST URI、HTTP header、JSON header/body.info、username mapping、兩個密碼雜湊且無原文、success／failed mapping、非 2xx、未知 status、非 JSON／不符合 schema、取消與 hash 失敗不送請求。保留真正 digest 測試，不以 mock digest 作為雜湊正確性的證據。
-- **Delta Testing**：兩個輸出均為 64 字元 hex；雜湊輸入是去除前後空白後的密碼；錯誤長度輸出不得送出。以 fake timers 與可控制 Promise 驗證伺服器無回應、逾時後取消、計時器清理及逾時與頁面取消的不同結果。模擬後端長度檢查失敗訊息時，使用既有 failed 處理，不刻意由正式前端送出短雜湊。
+#### Response 共用解析
+
+- 最新文件的 JSON 回應節點為 headers，內含 status/message。這些業務欄位從 response.json() 讀取，不從 HTTP Response.headers 取得；回應中的 Content-Type 不作為成功判斷條件，也不回送到後續請求。
+- 保留先前使用者提供的 header.Status/Message 與既有 header.status/message 相容處理；相容性僅限讀取回應，不增加請求電文。
+- api-response.ts 接收 unknown 並檢查 object。JSON 存在 headers 時使用該節點，否則使用 header；選定節點後，小寫 status/message 優先，再相容 Status/Message。不得跨節點拼湊狀態與訊息；主要節點或欄位存在但型別無效時回報無有效值，不退回衝突資料。此為明確的解析優先順序設計。
+- status 字串正規化為小寫；message 必須是非空白字串，保留原訊息供 Page 顯示。共用模組不含註冊專屬欄位、Alert 或 React state。
+- HTTP 2xx 且 status 為 success 才回傳成功；failed 回傳業務失敗。維持既有 RegisterResult 介面。
+- 依先前「修改帳號重試後不應誤報伺服器異常」的需求，成功只依狀態與訊息判定。body.info 的 uid、email、userName 為文件中的回應資料，Page 目前不使用；缺少或空 info 不得單獨將成功判為失敗。回應型別應反映此使用邊界，姓名 key 使用 userName。
+- 非 2xx 仍先解析 JSON，使用共用 message 透過既有 http error 交給 Page；不能僅因 !response.ok 就捨棄後端訊息。非 JSON、無有效訊息或未知業務狀態依 protocol error 處理，不導向登入。
+- Request 與 Response 分別定義型別，不因節點名稱相似而共用同一電文型別。
+
+#### 保留行為與影響
+
+- Service 接收正規化且驗證通過的 snapshot；兩個密碼各自採 UTF-8／SHA-256 轉成 64 字元小寫 hex，檢查格式後才送出，不補字元、不截短、不修改輸入、不降級明文。
+- 保留 AbortSignal、雜湊後取消檢查及涵蓋 fetch／回應讀取的 30 秒 timeout；finally 清除計時器與取消訂閱。頁籤取消靜默；逾時／斷線保留輸入並允許重試。
+- 重用共用回應解析器與 SHA-256 utility；HomePage 仍負責提示及模式切換。無 DB、依賴、nginx、Vite 或 UI 變更；型別檔調整歸本 TASK，無須重做 TASK-003 的驗證邏輯。
+- 舊 Review 要求補回 JSON header／username 的結論已被本輪需求取代。Programmer 應同步過期型別與測試，不得為通過舊測試而補入多餘電文；Code Reviewer 需依最新契約複查。
+
+#### Testing
+
+- Service fetch 邊界驗證 POST URI、HTTP Content-Type；完整比對 JSON 僅含 body.info 與 email/userName/password/confirmPassword，不含 header、headers、username 或明文密碼。保留真實 SHA-256 已知向量測試。
+- 共用解析器涵蓋 headers.status/message、header.Status/Message、header.status/message、狀態大小寫、無效型別、空訊息及同時存在節點／欄位時的優先順序。
+- Service 涵蓋新格式 success／failed、非 2xx 訊息、舊格式相容、未知 status、非 JSON；成功時完整 info、空 info、未提供 info 均依狀態與訊息判定。
+- 保留失敗後修改 Email 再提交成功的回歸案例；第二次請求使用新 Email 且不重播舊提示。保留取消、雜湊失敗／格式不符不發請求、timeout 與清理驗證。
+- Programmer 完成後執行 Service／共用解析器與 HomePage 回歸測試，以及專案 test、build、lint。此次計畫更新不代表實作或新測試已通過。
 
 ### TASK-006 註冊表單與 HomePage 狀態生命週期
 

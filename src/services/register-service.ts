@@ -1,4 +1,4 @@
-import type { RegisterFormValues, RegisterResult } from '../types/register'
+import type { RegisterFormValues, RegisterRequestBody, RegisterResult } from '../types/register'
 import { getApiResponseMessage, getApiResponseStatus } from './api-response'
 import { sha256 } from '../utils/sha256'
 
@@ -73,21 +73,23 @@ export async function registerUser(
   }, REQUEST_TIMEOUT_MS)
 
   try {
+    const payload: RegisterRequestBody = {
+      body: {
+        info: {
+          email: values.email,
+          userName: values.name,
+          password: passwordHash,
+          confirmPassword: confirmPasswordHash,
+        },
+      },
+    }
+
     let response: Response
     try {
       response = await fetch(REGISTER_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          body: {
-            info: {
-              email: values.email,
-              userName: values.name,
-              password: passwordHash,
-              confirmPassword: confirmPasswordHash,
-            },
-          },
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       })
     } catch {
