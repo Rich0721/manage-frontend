@@ -1,6 +1,6 @@
 # TASK-001 Implementation Issue
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -25,3 +25,11 @@ Features/Plan/01-Register.md TASK-001 Implementation 仍描述「在明確設定
 ## Suggested Area To Review
 
 請 System Design Agent 核對既有使用者要求及目前驗證結果，更新 TASK-001 的 API_UPSTREAM 預設行為與測試定義。若計畫需修訂，請依流程將 TASK-001 設為 PLAN UPDATED；完成設計確認前，暫不判定 TASK-001 Review 通過。
+
+## Resolution（2026-10-07，System Design）
+
+- 不需要 PM 重新確認。需求依據為使用者先前明確指定後端 http://localhost:8000、API_UPSTREAM 可透過 env 設定，及「使用 npm run dev 的時候也可以有預設值」。
+- 問題屬於計畫漏同步；已將 TASK-001 更新為使用 http://localhost:8000 預設上游，env 可覆寫。未設定或 trim 後為空時使用預設值；無效非空 origin 維持明確拒絕。
+- 已核對 vite.config.ts、README.md、Dockerfile 與 src/vite-proxy.test.tsx。現有設定可重用，Programmer 的 Delta 為核對設定及補齊預設／覆寫／無效設定驗證，保留現有受控後端轉送測試。
+- TASK-001 狀態更新為 PLAN UPDATED，清除舊 Development Date／Code Review Date。此 Issue 結案代表設計已確認，Code Review 文件仍待 Reviewer 後續複查。
+- 無新增依賴、API 電文、DB 或 UI 變更；Docker/nginx 實際整合仍依既有決定延後。本輪未執行程式修改或測試。

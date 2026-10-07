@@ -46,6 +46,15 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 - 整合測試、Docker/nginx、瀏覽器與交付說明檢查保留於「後續整合測試與交付檢查」，待 TASK-001 至 TASK-006 開發完成及實際整合測試結果出爐後，再決定是否需要新增任務或修改文件。
 - 同步更新實作順序、TASK-001／006 驗證說明、OQ-002 與 Handoff，避免將延期事項誤認為目前待開發 Task。
 
+### 2026-10-07 Review 問題的 SD 判定
+
+| Task | 是否需要 PM 補需求 | SD 判定與後續 |
+|---|---|---|
+| TASK-001 | 不需要 | 使用者先前已指定後端 http://localhost:8000、env 可設定，並要求 npm run dev 有預設值。原計畫「未設定時無開發 proxy」為漏同步，現已修正。Implementation Issue 結案，Task 改為 PLAN UPDATED 並清除舊日期；Programmer 核對現有設定並補齊預設值驗證。 |
+| TASK-005 | 不需要 | 最新計畫已規定有效 success status／message 時，不因未提供 body.info 而判為失敗。Review 指出的是缺少該案例測試，屬 Programmer 修正，維持 REVIEW FIX；無須重擬業務行為或重新開啟已結案的 API 契約 Issue。 |
+
+本次分類：TASK-001 為既有需求的計畫同步修正；TASK-005 為 Missing Regression Test。TASK-001 修訂待 Review；既有 Code Review 的 OPEN 紀錄仍由 Reviewer 於後續複查結案。正式部署後端位址仍屬後續整合資訊，不影響這兩項工作的需求判定。本輪僅更新計畫與 Issue，不代表實作或測試完成。
+
 ### Context 與 Source of Truth
 
 - Role / Workflow：`AGENTS.md`、`agents/system-design-agent.md`。
@@ -91,7 +100,7 @@ Execution Scope: 本輪建立計畫與 nginx 基礎配置，不實作註冊應�
 | `nginx/default.conf.template` | SPA `try_files` 回到 index.html；`/userController/` 反向代理保留原始路徑 |
 | `README.md` | Docker 建置／啟動與 `API_UPSTREAM` 設定說明 |
 
-`API_UPSTREAM` 為 nginx 容器可連線的後端 origin，格式為 `http(s)://host:port`，不含路徑或結尾斜線。現有預設 `http://127.0.0.1:8080` 不是已確認的後端部署位址；正式部署需設定實際 origin。現有 Dockerfile 已搭配 lockfile 使用 `npm ci`。目前環境未提供 Docker 或 nginx 執行檔，未執行容器建置與 `nginx -t`；須在可用環境完成並記錄結果。
+`API_UPSTREAM` 為 nginx 容器可連線的後端 origin，格式為 `http(s)://host:port`，不含路徑或結尾斜線。現有 Dockerfile 預設 `http://localhost:8000`；此為使用者指定的開發預設值，正式部署需設定容器可連線的實際 origin。容器中的 localhost 指向該容器本身。現有 Dockerfile 已搭配 lockfile 使用 `npm ci`。目前環境未提供 Docker 或 nginx 執行檔，未執行容器建置與 `nginx -t`；須在可用環境完成並記錄結果。
 
 ### Business Rule 與資料流
 
@@ -133,7 +142,7 @@ App → HomePage（mode、表單 state、請求流程）
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 開發 API Proxy 與測試工具 | ADD | 2026-10-05 | DEVELOPED DONE | 2026-10-07 | 2026-10-07 |
+| TASK-001 | 開發 API Proxy 與測試工具 | MODIFY | 2026-10-07 | PLAN UPDATED | — | — |
 | TASK-002 | HomePage 與登入／註冊切換 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-003 | 註冊型別與欄位驗證 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
 | TASK-004 | 共用欄位與認證頁籤 | ADD | 2026-10-05 | DONE | 2026-10-07 | 2026-10-07 |
@@ -170,15 +179,15 @@ App → HomePage（mode、表單 state、請求流程）
 
 ### TASK-001 開發 API Proxy 與測試工具
 
-- **File**：MODIFY `package.json`、`package-lock.json`、`vite.config.ts`、`README.md`；ADD `vitest.config.ts`、`src/test-setup.ts`。
-- **Target**：Vite `server.proxy`、Vitest 設定與 npm scripts。
-- **Plan Type**：ADD（功能基礎配置；上述既有檔案依列示 MODIFY）。
-- **Current Behavior**：Vite 無 API proxy；沒有測試 scripts 與套件；現有應用相依已建立 lockfile。nginx 已反向代理 `/userController/`。
-- **Expected Behavior**：開發與 nginx 部署都使用相同 API URI；可執行元件與 Service 測試；依賴可重現。
-- **Implementation**：透過 Vite `loadEnv` 讀取僅伺服器使用的 `API_UPSTREAM`，在明確設定後將 `/userController` 代理到該 origin，保留路徑；不要把部署設定作為 VITE_ 客戶端環境值公開。未設定時 README 明確說明無開發後端代理。保留 React plugin。Vitest 使用 jsdom、setup 與明確的 `*.test.tsx` discovery；scripts 提供 `test`（run）與 `test:watch`。安裝並鎖定前節列示的測試依賴，同步更新 package-lock。沿用現有 Docker `npm ci --no-audit --no-fund` 與 nginx 代理合約。
-- **Reuse / Impact**：沿用 Vite、npm、現有 Docker/nginx 與 TS strict；不建立新架構資料夾。測試型別以檔案 import 提供，避免不必要的全域 compiler 設定。
-- **Error Handling**：不合法 origin 明確回報設定錯誤；不將未知後端位址或 proxy 失敗當成註冊成功。
-- **Testing**：確認測試可以 discovery 與執行；`npm run build`、`npm run lint`；以可控制後端檢查 dev proxy POST 原始 URI／JSON body。Docker/nginx 驗證延至後續整合階段。
+- **File**：核對既有 `vite.config.ts`、`README.md`；MODIFY `src/vite-proxy.test.tsx` 補齊設定案例。REUSE package.json／package-lock.json、vitest.config.ts 與 src/test-setup.ts；不新增依賴。
+- **Target**：Vite loadEnv、DEFAULT_API_UPSTREAM、server.proxy 與既有受控後端測試。
+- **Plan Type**：MODIFY（2026-10-07 同步既有使用者要求）。
+- **Current Behavior**：Vite 已在 API_UPSTREAM 未設定或 trim 後為空時使用 http://localhost:8000，README 亦如此記載。既有代理測試驗證明確指定上游後 POST 原始 URI／JSON body 的轉送；預設值案例尚未直接覆蓋。
+- **Expected Behavior**：npm run dev 無須先設定 env 即可將 /userController 代理至 http://localhost:8000；設定有效 API_UPSTREAM 時覆寫預設值，原始 URI 與 body 保留。
+- **Implementation**：沿用 loadEnv 讀取伺服器端 API_UPSTREAM；先 trim，有非空設定時使用該值，未設定、空字串或全空白時採 DEFAULT_API_UPSTREAM。有效上游使用 http(s) origin，不得含帳密、非根路徑、query 或 hash。不合法的非空設定須回報設定錯誤，不得靜默退回預設值。保留 React plugin、同源 API URI、既有 proxy 與測試 scripts；不將 API_UPSTREAM 改為 VITE_ 客戶端設定。
+- **Reuse / Impact**：現有 Vite 與 README 已符合預期，Programmer 核對後可直接重用；本次主要 Delta 是補齊預設設定的驗證。Dockerfile 既有 API_UPSTREAM 預設與 nginx 執行期環境替換保留，該值不嵌入瀏覽器 bundle；Docker/nginx 真實驗證依既有決定延至整合階段。
+- **Error Handling**：上游無法連線時呈現既有連線失敗，不將 proxy 錯誤當作註冊成功。沿用現有 origin 檢查。
+- **Testing**：在既有 src/vite-proxy.test.tsx 隔離 env／dotenv 來源，分別確認未設定、空字串、全空白時解析後的 proxy target 為 http://localhost:8000；有效 env 覆寫預設值，無效非空 origin 被拒絕。設定案例檢查實際 Vite 設定的解析結果，無須佔用固定 8000 port 或要求真實後端。保留以動態 port 受控後端驗證 POST 原始 URI／JSON body 的測試；每個案例還原環境設定並清理 server。執行對應測試與 build／lint。
 
 ### TASK-002 HomePage 與登入／註冊切換
 
