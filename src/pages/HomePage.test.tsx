@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
-import { registerUser } from '../services/register-service'
+import { registerUser, RegisterServiceError } from '../services/register-service'
 
 vi.mock('../services/register-service', () => ({
   RegisterServiceError: class RegisterServiceError extends Error {
@@ -120,6 +120,23 @@ describe('HomePage registration flow', () => {
     await user.click(registerSubmitButton())
     await screen.findByLabelText('登入表單')
     expect(registerUserMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows the API message for a non-2xx HTTP response', async () => {
+    const user = userEvent.setup()
+    registerUserMock.mockRejectedValueOnce(
+      new RegisterServiceError('http', '帳號已存在'),
+    )
+    render(<HomePage />)
+
+    await user.type(screen.getByLabelText('姓名'), 'user123')
+    await user.type(screen.getByLabelText('Email'), 'user@example.com')
+    await user.type(screen.getByLabelText('密碼'), 'ValidPass123')
+    await user.type(screen.getByLabelText('確認密碼'), 'ValidPass123')
+    await user.click(registerSubmitButton())
+
+    expect(window.alert).toHaveBeenCalledWith('帳號已存在')
+    expect(screen.getByLabelText('Email')).toHaveValue('user@example.com')
   })
 
   it('does not clear input when the selected mode is selected again', async () => {

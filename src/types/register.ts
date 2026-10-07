@@ -28,8 +28,8 @@ export interface RegisterRequestBody {
 export interface RegisterSuccessResponse {
   header: {
     'Content-Type': string
-    status: 'success'
-    message: string
+    Status: 'Success'
+    Message: string
   }
   body: {
     info: {
@@ -43,8 +43,11 @@ export interface RegisterSuccessResponse {
 export interface RegisterFailedResponse {
   header: {
     'Content-Type'?: string
-    status: 'failed'
-    message: string
+    Status: 'Failed'
+    Message: string
+  }
+  body?: {
+    info: Record<string, unknown>
   }
 }
 

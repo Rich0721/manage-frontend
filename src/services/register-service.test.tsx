@@ -13,8 +13,8 @@ const values: RegisterFormValues = {
 const successResponse = {
   header: {
     'Content-Type': 'application/json',
-    status: 'success',
-    message: 'User registered successfully',
+    Status: 'Success',
+    Message: 'User registered successfully',
   },
   body: {
     info: { uid: 'user-id', email: 'user@example.com', username: 'user123' },
@@ -54,13 +54,30 @@ describe('registerUser', () => {
     expect(JSON.stringify(payload)).not.toContain(values.password)
   })
 
-  it('returns a failed response message and rejects malformed or non-2xx responses', async () => {
+  it('returns API messages for failed and non-2xx responses and rejects malformed responses', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(
-      new Response(JSON.stringify({ header: { status: 'failed', message: '此帳號已存在' } }), { status: 200 }),
+      new Response(JSON.stringify({
+        header: { Status: 'Failed', Message: '此帳號已存在' },
+        body: { info: {} },
+      }), { status: 200 }),
     ))
     await expect(registerUser(values, new AbortController().signal)).resolves.toEqual({
       status: 'failed',
       message: '此帳號已存在',
+    })
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          header: { Status: 'Failed', Message: '帳號已存在' },
+          body: { info: {} },
+        }),
+        { status: 409 },
+      ),
+    ))
+    await expect(registerUser(values, new AbortController().signal)).rejects.toMatchObject({
+      kind: 'http',
+      message: '帳號已存在',
     })
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
@@ -71,7 +88,9 @@ describe('registerUser', () => {
     })
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ header: { status: 'unknown', message: 'unexpected' } }), { status: 200 }),
+      new Response(JSON.stringify({
+        header: { Status: 'unknown', Message: 'unexpected' },
+      }), { status: 200 }),
     ))
     await expect(registerUser(values, new AbortController().signal)).rejects.toMatchObject({
       kind: 'protocol',

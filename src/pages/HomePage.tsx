@@ -139,6 +139,8 @@ export function HomePage() {
       if (requestIdRef.current !== requestId || controller.signal.aborted) return
       if (error instanceof RegisterServiceError && error.kind === 'timeout') {
         window.alert('連線異常，請稍後再試')
+      } else if (error instanceof RegisterServiceError && error.kind === 'http') {
+        window.alert(error.message)
       } else if (error instanceof RegisterServiceError && error.kind === 'protocol') {
         window.alert('伺服器回應異常，請稍後再試')
       } else {

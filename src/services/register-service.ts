@@ -1,11 +1,12 @@
 import type { RegisterFormValues, RegisterResult } from '../types/register'
+import { getApiResponseMessage } from './api-response'
 import { sha256 } from '../utils/sha256'
 
 const REGISTER_ENDPOINT = '/userController/register'
 const REQUEST_TIMEOUT_MS = 30_000
 const SHA256_HEX_PATTERN = /^[0-9a-f]{64}$/
 
-export type RegisterServiceErrorKind = 'network' | 'timeout' | 'protocol' | 'crypto'
+export type RegisterServiceErrorKind = 'network' | 'timeout' | 'http' | 'protocol' | 'crypto'
 
 export class RegisterServiceError extends Error {
   readonly kind: RegisterServiceErrorKind
@@ -29,14 +30,15 @@ function getApiResult(value: unknown): RegisterResult {
     throw new RegisterServiceError('protocol', 'Malformed registration response.')
   }
 
-  const { status, message } = value.header
-  if (typeof message !== 'string' || !message.trim()) {
+  const { Status } = value.header
+  const message = getApiResponseMessage(value)
+  if (!message) {
     throw new RegisterServiceError('protocol', 'Registration response has no message.')
   }
 
-  if (status === 'failed') return { status, message }
+  if (Status === 'Failed') return { status: 'failed', message }
 
-  if (status !== 'success' || !isRecord(value.body) || !isRecord(value.body.info)) {
+  if (Status !== 'Success' || !isRecord(value.body) || !isRecord(value.body.info)) {
     throw new RegisterServiceError('protocol', 'Malformed registration response.')
   }
 
@@ -49,7 +51,7 @@ function getApiResult(value: unknown): RegisterResult {
     throw new RegisterServiceError('protocol', 'Malformed registration response.')
   }
 
-  return { status, message }
+  return { status: 'success', message }
 }
 
 function createAbortError(): DOMException {
@@ -116,10 +118,6 @@ export async function registerUser(
     if (timedOut) {
       throw new RegisterServiceError('timeout', 'Registration request timed out.')
     }
-    if (!response.ok) {
-      throw new RegisterServiceError('protocol', 'Registration server returned an HTTP error.')
-    }
-
     let body: unknown
     try {
       body = await response.json()
@@ -135,6 +133,17 @@ export async function registerUser(
       throw new RegisterServiceError('timeout', 'Registration request timed out.')
     }
     if (signal.aborted) throw createAbortError()
+
+    if (!response.ok) {
+      const message = getApiResponseMessage(body)
+      if (message) throw new RegisterServiceError('http', message)
+
+      throw new RegisterServiceError(
+        'protocol',
+        `Registration server returned HTTP ${response.status}.`,
+      )
+    }
+
     return getApiResult(body)
   } catch (error) {
     if (error instanceof RegisterServiceError || error instanceof DOMException) throw error
