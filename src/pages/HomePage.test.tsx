@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
 import { registerUser, RegisterServiceError } from '../services/register-service'
+import type { RegisterFormValues } from '../types/register'
 
 vi.mock('../services/register-service', () => ({
   RegisterServiceError: class RegisterServiceError extends Error {
@@ -89,7 +90,16 @@ describe('HomePage registration flow', () => {
     expect(await screen.findByDisplayValue('user123')).toBeInTheDocument()
     expect(window.alert).toHaveBeenCalledWith('此帳號已存在')
 
+    await user.clear(screen.getByLabelText('Email'))
+    await user.type(screen.getByLabelText('Email'), 'newuser@example.com')
     await user.click(registerSubmitButton())
+    expect(registerUserMock).toHaveBeenCalledTimes(2)
+    expect(registerUserMock.mock.calls[1]?.[0]).toEqual<RegisterFormValues>({
+      name: 'user123',
+      email: 'newuser@example.com',
+      password: 'ValidPass123',
+      confirmPassword: 'ValidPass123',
+    })
     await screen.findByLabelText('登入表單')
     expect(window.alert).toHaveBeenLastCalledWith('註冊成功')
     expect(screen.getByLabelText('登入表單')).toBeInTheDocument()

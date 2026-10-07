@@ -67,6 +67,10 @@ describe('register form validation', () => {
     ['password at 8 characters', 'Ab123456', undefined],
     ['password at 20 characters', 'Ab111111111111111111', undefined],
     ['password at 21 characters', 'Ab1111111111111111111', '密碼長度'],
+    ['confirm password at 7 characters', 'Ab12345', '確認密碼長度'],
+    ['confirm password at 8 characters', 'Ab123456', undefined],
+    ['confirm password at 20 characters', 'Ab111111111111111111', undefined],
+    ['confirm password at 21 characters', 'Ab1111111111111111111', '確認密碼長度'],
     ['confirm password missing uppercase', 'validpass123', '確認密碼須包含'],
     ['confirm password missing lowercase', 'VALIDPASS123', '確認密碼須包含'],
     ['confirm password missing digit', 'ValidPassword', '確認密碼須包含'],
@@ -75,7 +79,7 @@ describe('register form validation', () => {
     const error = validateRegisterForm({
       ...validValues,
       [field]: password,
-      ...(field === 'password' ? { confirmPassword: password } : {}),
+      ...(field === 'password' ? { confirmPassword: password } : { password }),
     })[field]
     if (expectedError) expect(error).toContain(expectedError)
     else expect(error).toBeUndefined()
@@ -120,6 +124,16 @@ describe('register form validation', () => {
     expect(validateRegisterForm({
       ...validValues,
       name: '😀',
+    }).name).toContain('2 至 50')
+
+    expect(validateRegisterForm({
+      ...validValues,
+      name: '😀'.repeat(50),
+    }).name).toBeUndefined()
+
+    expect(validateRegisterForm({
+      ...validValues,
+      name: '😀'.repeat(51),
     }).name).toContain('2 至 50')
   })
 })

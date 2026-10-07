@@ -23,7 +23,7 @@ Request Body:
     "body": {
         "info":{
             "email": "user@example.com",
-            "username": "user123",
+            "userName": "user123",
             "password": "userpassword",
             "confirmPassword": "userpassword"
         }
@@ -42,7 +42,7 @@ Response Body:
         "info": {
             "uid": "user-unique-id",
             "email": "user@example.com",
-            "username": "user123"
+            "userName": "user123"
         }
     }
 }
