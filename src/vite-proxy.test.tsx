@@ -65,6 +65,86 @@ function postJson(
 }
 
 describe('Vite API proxy', () => {
+  it.each([
+    { label: 'unset', value: undefined },
+    { label: 'empty', value: '' },
+    { label: 'whitespace only', value: '  \t  ' },
+  ])('uses the default upstream when API_UPSTREAM is $label', async ({ value }) => {
+    const previousUpstream = process.env.API_UPSTREAM
+    if (value === undefined) {
+      delete process.env.API_UPSTREAM
+    } else {
+      process.env.API_UPSTREAM = value
+    }
+
+    let viteServer: Awaited<ReturnType<typeof createViteServer>> | undefined
+    try {
+      viteServer = await createViteServer({
+        configFile: 'vite.config.ts',
+        mode: 'api-upstream-config-test',
+        logLevel: 'silent',
+        server: { port: 0 },
+      })
+
+      expect(viteServer.config.server.proxy).toMatchObject({
+        '/userController': { target: 'http://localhost:8000' },
+      })
+    } finally {
+      await viteServer?.close()
+      if (previousUpstream === undefined) {
+        delete process.env.API_UPSTREAM
+      } else {
+        process.env.API_UPSTREAM = previousUpstream
+      }
+    }
+  })
+
+  it('uses a valid API_UPSTREAM override', async () => {
+    const previousUpstream = process.env.API_UPSTREAM
+    process.env.API_UPSTREAM = 'https://api.example.test:9443'
+    let viteServer: Awaited<ReturnType<typeof createViteServer>> | undefined
+
+    try {
+      viteServer = await createViteServer({
+        configFile: 'vite.config.ts',
+        mode: 'api-upstream-config-test',
+        logLevel: 'silent',
+        server: { port: 0 },
+      })
+
+      expect(viteServer.config.server.proxy).toMatchObject({
+        '/userController': { target: 'https://api.example.test:9443' },
+      })
+    } finally {
+      await viteServer?.close()
+      if (previousUpstream === undefined) {
+        delete process.env.API_UPSTREAM
+      } else {
+        process.env.API_UPSTREAM = previousUpstream
+      }
+    }
+  })
+
+  it('rejects an invalid non-empty API_UPSTREAM', async () => {
+    const previousUpstream = process.env.API_UPSTREAM
+    process.env.API_UPSTREAM = 'ftp://api.example.test'
+
+    try {
+      await expect(createViteServer({
+        configFile: 'vite.config.ts',
+        mode: 'api-upstream-config-test',
+        logLevel: 'silent',
+        server: { port: 0 },
+      })).rejects.toThrow('API_UPSTREAM must be an http(s) origin')
+    } finally {
+      if (previousUpstream === undefined) {
+        delete process.env.API_UPSTREAM
+      } else {
+        process.env.API_UPSTREAM = previousUpstream
+      }
+    }
+  })
+
   it('forwards the POST URI and JSON body to API_UPSTREAM', async () => {
     const capturedRequest: CapturedRequest = {
       method: undefined,

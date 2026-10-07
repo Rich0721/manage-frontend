@@ -27,6 +27,19 @@ afterEach(() => {
 })
 
 describe('registerUser', () => {
+  it('accepts a success response when body.info is omitted', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({
+        headers: { status: 'success', message: 'User registered successfully' },
+      }), { status: 200 }),
+    ))
+
+    await expect(registerUser(values, new AbortController().signal)).resolves.toEqual({
+      status: 'success',
+      message: 'User registered successfully',
+    })
+  })
+
   it('sends only the API payload in JSON and keeps Content-Type in HTTP headers', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify(successResponse), { status: 200 }),
