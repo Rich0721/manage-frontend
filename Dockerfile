@@ -9,7 +9,7 @@ RUN npm run build
 FROM nginx:stable-alpine
 
 # Override this with the backend's reachable origin in each deployment.
-ENV API_UPSTREAM=http://127.0.0.1:8080
+ENV API_UPSTREAM=http://localhost:8000
 
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html

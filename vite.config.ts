@@ -2,9 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { loadEnv } from 'vite'
 
+const DEFAULT_API_UPSTREAM = 'http://localhost:8000'
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiUpstream = env.API_UPSTREAM?.trim()
+  const apiUpstream = env.API_UPSTREAM?.trim() || DEFAULT_API_UPSTREAM
 
   if (apiUpstream) {
     let upstreamUrl: URL
@@ -29,15 +31,13 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    server: apiUpstream
-      ? {
-          proxy: {
-            '/userController': {
-              target: apiUpstream,
-              changeOrigin: true,
-            },
-          },
-        }
-      : undefined,
+    server: {
+      proxy: {
+        '/userController': {
+          target: apiUpstream,
+          changeOrigin: true,
+        },
+      },
+    },
   }
 })

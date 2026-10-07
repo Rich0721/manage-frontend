@@ -94,11 +94,10 @@ export async function registerUser(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          header: { 'Content-Type': 'application/json' },
           body: {
             info: {
               email: values.email,
-              username: values.name,
+              userName: values.name,
               password: passwordHash,
               confirmPassword: confirmPasswordHash,
             },

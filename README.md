@@ -17,7 +17,7 @@ npm ci
 npm run dev
 ```
 
-開發伺服器預設不設定後端代理。需要連接後端時，在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會代理 `/userController` 並保留原始 URI，例如 `/userController/register`。
+開發伺服器預設將 `/userController` 代理至 `http://localhost:8000`。需要使用其他後端時，可在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會保留原始 URI，例如 `/userController/register`。
 
 PowerShell 範例：
 
@@ -46,6 +46,6 @@ docker build -t manage-frontend .
 docker run --rm -p 8080:80 -e API_UPSTREAM=http://backend:8080 manage-frontend
 ```
 
-`API_UPSTREAM` 必須是 nginx 容器可連線的後端 origin，不含路徑或結尾斜線。容器預設值 `http://127.0.0.1:8080` 僅適用於後端與 nginx 共用網路命名空間的環境；正式部署請設定實際後端位址。Web Crypto 需要安全環境，正式環境應透過 HTTPS 提供前端。
+`API_UPSTREAM` 必須是 nginx 容器可連線的後端 origin，不含路徑或結尾斜線。容器預設值為 `http://localhost:8000`；容器中的 `localhost` 指向 nginx 容器本身，若後端在其他容器或主機，請設定該環境可連線的位址。Web Crypto 需要安全環境，正式環境應透過 HTTPS 提供前端。
 
 Docker 建置使用鎖定檔執行 `npm ci`。後端位址、TLS 終止與真實 API 行為依部署環境設定；本 repository 未包含後端或資料庫。
