@@ -12,7 +12,7 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | Partial Handoff：TASK-002／003／004／006／007 已 DEVELOPED DONE；TASK-005 待瀏覽器視覺驗收；TASK-001 為 DONE |
+| Status | TASK-005 驗收計畫已調整，維持 PLAN UPDATED，交 PG 依新標準確認；TASK-002／003／004／006／007 已 DEVELOPED DONE；TASK-001 為 DONE |
 
 本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。OQ-001～007 均已解決。最新開發狀態與驗收結果記錄於 Requirement List 及 Programmer 執行紀錄；TASK-005 尚待瀏覽器視覺驗收。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
 
@@ -217,7 +217,17 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 **本次 PLAN UPDATED Delta**：MODIFY `src/pages/ProductPage.tsx`、`ProductPage.css`、`ProductPage.test.tsx`；只調整呈現結構與 CSS，保留 getProducts、錯誤與 session 回呼。移除可見大標題、以 section aria-label 保留名稱；增加右對齊 toolbar，放 Button 藍色變體的「加入商品」，`disabled`、`type="button"`，無 href/onClick。桌面 toolbar/table 依本輪 Delta 表的 1920px 座標與比例，使用自然流 flex/block，不用整頁 absolute。table 採 fixed layout 六欄等寬、完整格線、表頭灰底與置中；外框包在可水平捲動容器內，窄螢幕不壓縮欄位到不可讀。圖示於同欄的 flex wrapper 中水平置中，維持 24px／26px 原比例，仍是非互動圖片。零筆成功時保留表頭並以 colspan=6 的狀態列呈現「目前無產品」；loading／error 沿用既有區分，不顯示舊商品。確認表頭保留「價格」。現有 Product 型別實際位於 src/types/auth.ts，本輪不為此搬移型別或修改 service；下列初版 ADD 清單僅作歷史，不要求重建既有服務。
 
-**本次驗證**：ProductPage 測試涵蓋停用占位不導航／不發新增 API、單筆／多筆／零筆、既有錯誤與失效回呼；用受控 API 與虛擬授權資料於瀏覽器檢查 1920×1080 和窄螢幕，記錄實作截圖與 Figma 對照。核對所有圖示的非空檔案、來源、slot、callsite 與有效 rendered geometry；不能以 JSX 測試通過代替視覺核對。
+**驗收標準調整（2026-10-08）**：依使用者要求及目前僅有 Vitest／Testing Library／jsdom 的專案環境，將 PG 開發驗收與人工視覺驗收分開。TASK-005 保留於本功能計畫，不另建立 Playwright／Puppeteer／CUA 自動化開發 Task，也不新增測試套件、瀏覽器驅動、截圖比對或 CI 設定。原產品功能、CSS 規格與 Figma 參考要求不變；本段取代舊版「瀏覽器截圖完成後才能交審」的限制。
+
+**PG 必要驗收（DEVELOPED DONE 門檻）**：
+
+1. 對照本 Task 的 Expected Behavior 完成 ProductPage／CSS／service 自我檢查，確認六欄、文案、空資料列、Button 停用占位、圖示用途與既有元件重用符合計畫。
+2. 核對 CSS 宣告及 callsite：自然流 toolbar/table、六欄等寬、置中與格線、捲動容器、窄螢幕規則、圖示 24px／26px；確認本地圖示檔案非空、路徑與用途正確。此項為程式與資產檢查，不宣稱已驗證瀏覽器實際位置或尺寸。
+3. 既有 Vitest／Testing Library 測試驗證單筆／多筆／零筆、loading／error、401 失效回呼、一般錯誤保留 Session、取消與過期回應、停用按鈕無導航／新增 API 副作用，以及下列 service 契約與資料驗證案例；相關 App／HomePage／Button／Header 回歸須通過。
+4. 完成 `npm.cmd test`、`npm.cmd run build`、`npm.cmd run lint`。可採用同一份未再修改的程式碼已取得的可追溯結果；若程式變動、失敗或結果無法對應目前版本，須重新執行必要檢查。
+5. 記錄自檢範圍、指令結果及人工視覺驗收待辦。上述條件符合後，由 PG 將 TASK-005 設為 DEVELOPED DONE 並填 Development Date，交 Code Reviewer；不以未安裝 Playwright 或 CUA 啟動失敗作為交審阻擋，也不以單元測試代替實際視覺驗收。
+
+**人工視覺驗收（獨立追蹤，非 PG 交審門檻）**：由 PM／需求提出者驗收，開發者協助準備可用頁面與測試資料；使用一般瀏覽器即可，無須自動化工具。檢查 1920×1080 與窄螢幕（例如 375×812）的 toolbar/table 對齊、欄寬／格線／文字可讀性、圖示實際顯示、Header 換行與表格橫捲，並對照本 Plan 已確認的 Figma 規格。驗收者記錄日期、瀏覽器／視窗尺寸、結果與差異，截圖可作佐證但不強制自動產生。狀態目前為「待人工驗收」，未執行不得宣稱通過；不因 PG 或 Code Review 完成而自動改為通過。若發現明確實作缺陷，依 Review／修正流程處理；涉及需求變更則交 System Design。若未來需要自動化視覺或 E2E 驗證，再依明確需求另行規劃。
 
 - **File**：ADD `src/types/product.ts`、`src/services/product-service.ts`、`src/services/product-service.test.tsx`、`src/pages/ProductPage.tsx`、`src/pages/ProductPage.css`、`src/pages/ProductPage.test.tsx`。
 - **Target**：新增 Product、getProducts、ProductPage；Product 為 id／name／label_names: string、cost／price: number，僅映射本次顯示欄位。
@@ -258,7 +268,7 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 ### 本次 Delta 驗收
 
-執行 Button、LoginForm、RegisterForm、SiteHeader、ProductPage 相關測試與既有 HomePage／App 回歸，完成 build、lint；再以瀏覽器對照 Figma 產品頁。前次 79 個測試通過僅為歷史，不代表本次修改已驗證。
+PG 執行 Button、LoginForm、RegisterForm、SiteHeader、ProductPage 相關測試與既有 HomePage／App 回歸，完成 build、lint 及自我檢查，依 TASK-005 的「PG 必要驗收」交審。產品頁瀏覽器與 Figma 對照依「人工視覺驗收」獨立追蹤，不要求導入瀏覽器自動化。前次 79 個測試通過僅為歷史，不代表本次修改已驗證。
 
 ### 原功能驗收對應
 
@@ -272,7 +282,11 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 | 產品授權及查詢 | 004／005／006 | 授權失效與一般錯誤可區分，query／header 正確 |
 | 六欄／空資料／占位 | 004／005 | 指定欄名、目前無產品、無額外 API 副作用 |
 
-歷史實際驗證（2026-10-08，需求勘誤前）：初版曾通過 15 個測試檔、79 個測試，僅屬歷史紀錄。最新驗證（2026-10-08）：完整測試 17 個檔案、135 項測試全數通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。TASK-002／003／004／006／007 已完成最新 Plan 的程式與自動化測試驗收，狀態更新為 DEVELOPED DONE，待 Code Review。TASK-005 的元件及互動測試已通過，但 Plan 另要求在瀏覽器對照 1920×1080 與窄螢幕；CUA 瀏覽器服務持續因 `setup refresh had errors` 無法啟動，環境未安裝 Playwright／Puppeteer，故尚未完成實際畫面核對，維持 PLAN UPDATED。未連接真實後端，未執行 Docker/nginx 容器測試；代理受控整合測試已通過，容器驗證仍待可用環境。
+### 前次執行紀錄（驗收標準調整前）
+
+以下保留當時執行結果及阻擋原因；其中將瀏覽器視覺驗收作為 PG 交審門檻的敘述已被 TASK-005 新驗收標準取代。這些歷史結果不是本次重新執行的驗證。
+
+歷史實際驗證（2026-10-08，需求勘誤前）：初版曾通過 15 個測試檔、79 個測試，僅屬歷史紀錄。前次驗證（2026-10-08）：完整測試 17 個檔案、135 項測試全數通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。TASK-002／003／004／006／007 已完成當時 Plan 的程式與自動化測試驗收，狀態更新為 DEVELOPED DONE，待 Code Review。TASK-005 的元件及互動測試已通過，但當時 Plan 要求在瀏覽器對照 1920×1080 與窄螢幕；CUA 瀏覽器服務因 `setup refresh had errors` 無法啟動，未完成實際畫面核對，因此當時維持 PLAN UPDATED。未連接真實後端，未執行 Docker/nginx 容器測試；代理受控整合測試已通過，容器驗證仍待可用環境。
 
 Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ body: { info: ... } }`，補上 409 上限／取消、hash failure、timeout、錯誤 response、HTTP header 衝突與缺漏、logout failure 等測試；成功 HTTP 回應缺 Status 時，login／logout service 回報 protocol error。TASK-006 代理測試涵蓋產品 URI／query、request headers、登入 body.info 與 response headers 透傳、503 status／headers／body 透傳。TASK-003／004／007 的 HomePage、Session、Header 與 Button 案例均納入全套測試；TASK-005 ProductPage 行為與資料狀態案例通過。自我檢查確認無未提交程式變更；測試 17/17 檔、135/135 項通過，build、lint 通過。TASK-002／003／004／006／007 標為 DEVELOPED DONE，TASK-005 待瀏覽器視覺驗收後再交審。
 
@@ -280,7 +294,7 @@ Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ b
 
 ## VI. Review Status
 
-**Status: Partial Handoff — TASK-002／003／004／006／007 已 DEVELOPED DONE，可進行 Code Review；TASK-005 仍為 PLAN UPDATED，待完成瀏覽器桌面與窄螢幕視覺驗收。TASK-002 舊 Review 的電文結論由最新需求取代，錯誤分類與缺漏測試已依最新計畫補正，OPEN 狀態由 Code Reviewer 複審。**
+**Status: TASK-005 驗收計畫已調整 — TASK-005 維持 PLAN UPDATED，交 PG 依本次必要驗收清單核對並更新開發狀態；人工視覺驗收另列待辦，不再阻擋 PG 交審。TASK-002／003／004／006／007 已 DEVELOPED DONE，可進行 Code Review；原 OPEN Review 由 Code Reviewer 複審。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -294,9 +308,15 @@ Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ b
 - [x] Implementation Plan 已完成人工審核。
 - [x] 本次 TASK-002 需求勘誤已完成七項任務影響分析。
 - [ ] 本次 TASK-002 Plan Update 完成人工審核（前項人工審核僅適用舊版）。
-- [ ] 本次 Delta Development 完成；TASK-003／004／005 為 PLAN UPDATED、TASK-007 為 TODO。前次 15 個測試檔／79 個測試紀錄僅適用初版。
+- [x] TASK-005 已依使用者要求調整 PG 驗收標準，確認不需導入瀏覽器自動化；僅影響驗收分工，無 API、dependency 或其他 Task 的實作變更。
+- [ ] TASK-005 由 PG 依新標準完成自檢與狀態交接；TASK-002／003／004／006／007 已 DEVELOPED DONE。
+- [ ] TASK-005 人工視覺驗收完成（PM／需求提出者，獨立於開發與 Code Review 狀態）。
 - [ ] Code Review 通過。
 
 ### Handoff
+
+System Design（2026-10-08，驗收標準調整）：本次為使用者要求的驗收流程變更，範圍僅限 TASK-005 與本 Plan 的驗收／交接敘述，無新增功能需求。原 TASK-005 保留 PLAN UPDATED，Development／Code Review Date 維持空白；由 PG 按新清單完成核對後設為 DEVELOPED DONE。TASK-001／002／003／004／006／007 無影響。以下舊執行紀錄中的「待瀏覽器驗收後再交審」已由本次調整取代；135 項測試、build、lint 是前次執行結果，本次文件調整未重跑測試，也未宣稱人工視覺驗收通過。
+
+### 前次 Handoff（歷史紀錄）
 
 Programmer（2026-10-08）：已依最新 Plan 完成並驗證 TASK-002／003／004／006／007，均設為 DEVELOPED DONE，交 Code Reviewer 複審；TASK-002 與 TASK-006 原有 OPEN Review 文件保留，請依最新 Plan 重新審查。TASK-005 的 UI／互動程式及自動化測試已完成，但瀏覽器視覺驗收受 CUA 啟動錯誤阻擋，仍為 PLAN UPDATED。TASK-001 保持 DONE；未宣稱真實後端或 nginx 容器測試通過。加入商品仍是停用占位。
