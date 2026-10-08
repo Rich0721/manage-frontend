@@ -83,7 +83,7 @@ export async function loginUser(
   if (!DIGEST_PATTERN.test(passwordHash)) throw new AuthServiceError('crypto', 'Invalid password digest.')
 
   for (const isForceLogin of [false, true]) {
-    const payload: LoginRequestBody = { body: { email: values.email, password: passwordHash, isForceLogin } }
+    const payload: LoginRequestBody = { body: { info: { email: values.email, password: passwordHash, isForceLogin } } }
     const response = await request(LOGIN_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

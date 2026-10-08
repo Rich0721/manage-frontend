@@ -14,9 +14,11 @@ export interface AuthSession {
 
 export interface LoginRequestBody {
   body: {
-    email: string
-    password: string
-    isForceLogin: boolean
+    info: {
+      email: string
+      password: string
+      isForceLogin: boolean
+    }
   }
 }
 
