@@ -136,9 +136,16 @@ Response Body:
 | 使用者輸入錯誤的`Email`或`密碼` | 使用Alert提示錯誤訊息，並要求使用者重新輸入，並保留原本輸入的資訊 | 401         | Failed  | User login failed |
 | 使用者於其他裝置登入 | 強制重送一次登入請求，並將`isForceLogin`設為`true`，若後端驗證成功，使用者切換至`ProductPage` | 409         | Failed  | User login failed because already logged in on another device |
 
-4. Header中的`Authorization`與`Uid`需隨每次請求一併送出，以確保使用者身份驗證的有效性。
-5. `ProductPage`會直接使用Header中的`Authorization`與`Uid`進行身份驗證，確保使用者的操作權限後，自動載入所有的產品資訊。
-6. 使用Session保存登入狀態，因後端有限制登入時間，所以如果授權資訊過期，因將頁面導向`HomePage`登入頁面，並提示使用者重新登入。
+4. Headers中的`Authorization`與`Uid`需隨每次請求一併送出，以確保使用者身份驗證的有效性。
+5. `ProductPage`會直接使用Headers中的`Authorization`與`Uid`進行身份驗證，確保使用者的操作權限後，自動載入所有的產品資訊。
+6. 使用Session保存登入狀態，因後端有限制登入時間，所以如果授權資訊過期，因將頁面導向`HomePage`登入頁面，並提示使用者重新登入，Session存在後參考下列情境處理：
+
+| 情境 | 後續行為 |
+|-------------|--------|
+| Session存在，重新整理頁面後，Uid與Authorization仍有效 | 導向`ProductPage`，將Session的資訊放入`Authorization`與`Uid`中，由後端回傳結果進行下一步行為 |
+| Session存在，重新整理頁面後，Uid與Authorization已過期 | 導向`HomePage`登入頁面，移除Session中的資訊 |
+| Session不存在 | 導向`HomePage`登入頁面，無需保留任何Session資訊 |
+
 
 #### 登出流程
 1. 使用者的`Authorization`與`Uid`存在時，`登出`按鈕才會顯示，否則不顯示給使用者。
@@ -149,11 +156,11 @@ Response Body:
 - Page Header `權限管理`: 可點擊，預計會導向`PermissionPage`，可先保留為占位，後續再根據需求進行實作。
 - `ProductPage`:
     - 欄位名稱與內容對應:
-        - `商品編號` - id
-        - `商品名稱` - name
-        - `商品分類` - label_names
-        - `成本` - cost
-        - `價格` - price
+        - `商品編號` - id(String)
+        - `商品名稱` - name(String)
+        - `商品分類` - label_names(String)
+        - `成本` - cost(Number)
+        - `價格` - price(Number)
         - `編輯` - 會放入`pencil.png`和`delete.png`，用於編輯與刪除操作，可先實作前端顯示，但相關功能暫時不實作。
     - 根據產品數量動態生成表格行，若無產品則顯示提示訊息`目前無產品`。
 
