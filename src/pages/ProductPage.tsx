@@ -1,0 +1,56 @@
+import { useEffect, useState } from 'react'
+import type { AuthSession, Product } from '../types/auth'
+import { AuthServiceError } from '../services/auth-service'
+import { getProducts } from '../services/product-service'
+import { SiteHeader } from '../components/SiteHeader/SiteHeader'
+import './ProductPage.css'
+
+interface ProductPageProps {
+  session: AuthSession
+  onLogout: () => void
+  onSessionExpired: () => void
+}
+
+export function ProductPage({ session, onLogout, onSessionExpired }: ProductPageProps) {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let active = true
+    getProducts(session, controller.signal).then((result) => {
+      if (active) { setProducts(result); setError('') }
+    }).catch((reason: unknown) => {
+      if (!active || (reason instanceof DOMException && reason.name === 'AbortError')) return
+      if (reason instanceof AuthServiceError && reason.kind === 'unauthorized') {
+        onSessionExpired()
+        return
+      }
+      setError(reason instanceof AuthServiceError ? reason.message : '產品載入失敗')
+    }).finally(() => { if (active) setLoading(false) })
+    return () => { active = false; controller.abort() }
+  }, [session, onSessionExpired])
+
+  return (
+    <main className="product-page">
+      <SiteHeader authenticated activePage="products" onLogout={onLogout}
+        onPermissions={() => window.alert('權限管理尚未開放')} />
+      <section className="product-page__content" aria-label="商品管理">
+        <h1>商品管理</h1>
+        {loading ? <p role="status">載入中…</p> : null}
+        {error ? <p role="alert">{error}</p> : null}
+        {!loading && !error && products.length === 0 ? <p>目前無產品</p> : null}
+        {!loading && !error && products.length > 0 ? (
+          <div className="product-table-scroll"><table><thead><tr>
+            <th>商品編號</th><th>商品名稱</th><th>商品分類</th><th>成本</th><th>價格</th><th>編輯</th>
+          </tr></thead><tbody>{products.map((product) => <tr key={product.id}>
+            <td>{product.id}</td><td>{product.name}</td><td>{product.label_names}</td>
+            <td>{product.cost}</td><td>{product.price}</td>
+            <td><img src="/icon/pencil.png" alt="編輯" /><img src="/icon/delete.png" alt="刪除" /></td>
+          </tr>)}</tbody></table></div>
+        ) : null}
+      </section>
+    </main>
+  )
+}

@@ -33,7 +33,7 @@ export function normalizeRegisterForm(
   }
 }
 
-function getLengthError(
+export function getLengthError(
   value: string,
   minLength: number,
   maxLength: number,
@@ -46,7 +46,7 @@ function getLengthError(
   return undefined
 }
 
-function getPasswordError(value: string, label: string): string | undefined {
+export function getPasswordError(value: string, label: string): string | undefined {
   const lengthError = getLengthError(
     value,
     PASSWORD_MIN_LENGTH,
@@ -64,6 +64,12 @@ function getPasswordError(value: string, label: string): string | undefined {
   }
 
   return undefined
+}
+
+export function getEmailError(value: string): string | undefined {
+  const lengthError = getLengthError(value, EMAIL_MIN_LENGTH, EMAIL_MAX_LENGTH, 'Email')
+  if (lengthError) return lengthError
+  return EMAIL_PATTERN.test(value) ? undefined : 'Email 格式不合法'
 }
 
 export function validateRegisterForm(
@@ -88,15 +94,7 @@ export function validateRegisterForm(
   }
 
   if (normalized.email) {
-    errors.email = getLengthError(
-      normalized.email,
-      EMAIL_MIN_LENGTH,
-      EMAIL_MAX_LENGTH,
-      'Email',
-    )
-    if (!errors.email && !EMAIL_PATTERN.test(normalized.email)) {
-      errors.email = 'Email 格式不合法'
-    }
+    errors.email = getEmailError(normalized.email)
   }
 
   if (normalized.password) {

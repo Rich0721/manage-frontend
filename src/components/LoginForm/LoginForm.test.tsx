@@ -1,20 +1,28 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import type { FormEvent } from 'react'
 import { LoginForm } from './LoginForm'
 
 describe('LoginForm', () => {
-  it('shows the planned login fields and leaves login unavailable', () => {
+  it('shows login fields and submits through the form when valid', () => {
+    const onSubmit = vi.fn((event: FormEvent<HTMLFormElement>) => event.preventDefault())
     render(
       <LoginForm
         values={{ email: '', password: '' }}
+        errors={{}}
+        submitting={false}
+        canSubmit={true}
         onChange={() => undefined}
         onBlur={() => undefined}
+        onSubmit={onSubmit}
       />,
     )
 
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('密碼')).toHaveAttribute('type', 'password')
-    expect(screen.getByRole('button', { name: '登入' })).toBeDisabled()
-    expect(screen.getByText('登入功能尚未開放')).toBeInTheDocument()
+    const form = screen.getByRole('form', { name: '登入表單' })
+    fireEvent.submit(form)
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: '登入' })).toBeEnabled()
   })
 })

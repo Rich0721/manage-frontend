@@ -12,9 +12,9 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | Awaiting Review；OQ-001～007 已解決，API 契約已定稿，待 Plan Review |
+| Status | Development complete；OQ-001～007 已解決，六項任務 DEVELOPED DONE，待 Code Review |
 
-本文件於 2026-10-08 依最新需求重新確認。功能尚未初次實作，任務維持 TODO；本輪只更新 Plan，不修改需求、應用程式或測試。下列待確認事項不得視為已確認 Business Rule。角色與流程依 `agents/system-design-agent.md`，架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test Skills。任務狀態遵循角色定義，優先於範本內不一致的重設說明。
+本文件於 2026-10-08 依最新需求實作。OQ-001～007 均已解決；六項 Task 已完成程式與測試，待 Code Review。未修改 Business Requirement。角色與流程依 `agents/programmer-agent.md`，架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test Skills。任務狀態遵循角色定義，優先於範本內不一致的重設說明。
 
 ### Missing Requirement Information
 
@@ -91,16 +91,16 @@ Uid 與 Authorization 皆存在才顯示登出；登出請求無論成功或失�
 
 ## III. Requirement List
 
-TODO 僅代表尚未開始初次實作；契約阻擋已解除，但不表示 Plan 已核准。每項任務含直接相關測試。
+六項任務均已完成初次實作及必要測試；`DEVELOPED DONE` 表示交付 Code Review，不等於 `DONE`。
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | TODO | — | — |
-| TASK-002 | 登入／登出 Service 與契約 | ADD | 2026-10-08 | TODO | — | — |
-| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | TODO | — | — |
-| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | TODO | — | — |
-| TASK-005 | 產品查詢與 ProductPage | ADD | 2026-10-08 | TODO | — | — |
-| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | TODO | — | — |
+| TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-002 | 登入／登出 Service 與契約 | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-005 | 產品查詢與 ProductPage | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
 
 順序：Plan Review → TASK-001／002／006 → TASK-003／004 → TASK-005 → 整合驗證。新元件資料夾僅屬既有 components 架構下的 colocated 元件，無新增架構層或 barrel index.ts。
 
@@ -205,13 +205,11 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 | 產品授權及查詢 | 004／005／006 | 授權失效與一般錯誤可區分，query／header 正確 |
 | 六欄／空資料／占位 | 004／005 | 指定欄名、目前無產品、無額外 API 副作用 |
 
-實作完成後執行 `npm run test`、`npm run build`、`npm run lint`；新增測試和註冊相鄰回歸必須通過。以可控制 API 驗證完整登入→產品→登出及強制登入流程，真實後端契約需另作整合核對。瀏覽器檢查鍵盤提交、窄畫面表格橫向捲動、Figma 結構、登入／註冊切換、登出後不呈現舊產品。使用受控 Promise／fake timers 驗證 timeout 與 race，不以固定 sleep 或重跑取代斷言。
-
-本輪是文件規劃，未執行應用測試、後端 API、build、lint 或部署驗證；不宣稱功能可運行。
+實際驗證（2026-10-08）：`npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 通過，15 個測試檔、79 個測試；`npm.cmd run build` 通過；`npm.cmd run lint` 通過。Vite 代理整合測試驗證產品授權 request headers 轉送及 response Status／Message 保留。未連接真實後端、未執行 Docker/nginx 容器測試或瀏覽器手動視覺檢查；上述項目留待環境／Review 驗證。
 
 ## VI. Review Status
 
-**Status: Awaiting Review — OQ-001～007 已解決，核心契約已確認。**
+**Status: Development complete — OQ-001～007 已解決，六項 Task 已 DEVELOPED DONE，待 Code Review。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -223,9 +221,9 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 - [x] OQ-004／005 輸入保留與 Scenario 密碼差異已解決。
 - [x] OQ-006／007 重新整理恢復 Session 與產品型別已同步設計及測試策略。
 - [ ] Implementation Plan 已完成人工審核。
-- [ ] Development 完成。
+- [x] Development 完成；15 個測試檔／79 個測試、build、lint 通過。
 - [ ] Code Review 通過。
 
 ### Handoff
 
-OQ-001～007 已全部結案，交 PM／Reviewer 進行 Plan Review，審查通過前不主動開始實作。實作範圍為六項 Task，包含 sessionStorage 恢復登入與 HTTP headers 契約；不含更新 PM 原需求、後端／DB、商品新增編輯刪除、真實 PermissionPage、token refresh、跨瀏覽器工作階段持久登入或獨立 URL 路由。既有註冊 JSON parser 與新共用規範的差異已記錄，需另行核對其後端契約，本輪不修改註冊 API。Programmer 發現契約與實際回應不符時，以 `Features/Issue/02-LoginAndLogout/<Task ID>.md` 回報，不得以 JSON fallback 隱藏問題。本次為設計確認，不代表開發或 Code Review 通過。
+OQ-001～007 已全部結案。六項 Task 均為 `DEVELOPED DONE`，交 Code Review Agent 依本 Plan 審查；不得由 Programmer 設為 `DONE`。實作範圍為六項 Task，包含 sessionStorage 恢復登入與 HTTP headers 契約；不含更新 PM 原需求、後端／DB、商品新增編輯刪除、真實 PermissionPage、token refresh、跨瀏覽器工作階段持久登入或獨立 URL 路由。既有註冊 JSON parser 與新共用規範的差異已記錄，需另行核對其後端契約，本輪不修改註冊 API。尚未以真實後端或 nginx 容器驗證；Code Review 可依限制評估整合風險。

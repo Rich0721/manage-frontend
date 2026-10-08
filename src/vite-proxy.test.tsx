@@ -64,6 +64,23 @@ function postJson(
   })
 }
 
+function getWithHeaders(port: number, path: string): Promise<{ body: string; headers: Record<string, string | string[] | undefined> }> {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest({ host: '127.0.0.1', port, path, method: 'GET', headers: {
+      Uid: 'user-7', Authorization: 'token-7',
+    } }, (response) => {
+      const chunks: Buffer[] = []
+      response.on('data', (chunk: Buffer) => chunks.push(chunk))
+      response.on('end', () => resolve({
+        body: Buffer.concat(chunks).toString('utf8'),
+        headers: response.headers,
+      }))
+    })
+    request.once('error', reject)
+    request.end()
+  })
+}
+
 describe('Vite API proxy', () => {
   it.each([
     { label: 'unset', value: undefined },
@@ -205,6 +222,39 @@ describe('Vite API proxy', () => {
       } else {
         process.env.API_UPSTREAM = previousUpstream
       }
+    }
+  }, 15000)
+
+  it('forwards product authorization request headers and preserves API response headers', async () => {
+    let receivedHeaders: Record<string, string | string[] | undefined> = {}
+    const backend = createServer((request, response) => {
+      receivedHeaders = request.headers
+      response.writeHead(200, {
+        'content-type': 'application/json', Status: 'Success', Message: 'Products retrieved',
+      })
+      response.end('{"body":{"info":[]}}')
+    })
+    const backendAddress = await listen(backend)
+    const previousUpstream = process.env.API_UPSTREAM
+    process.env.API_UPSTREAM = `http://127.0.0.1:${backendAddress.port}`
+    let viteServer: Awaited<ReturnType<typeof createViteServer>> | undefined
+    try {
+      viteServer = await createViteServer({ configFile: 'vite.config.ts', mode: 'test', logLevel: 'silent',
+        server: { host: '127.0.0.1', port: 0 } })
+      await viteServer.listen()
+      const address = viteServer.httpServer?.address()
+      if (!address || typeof address === 'string') throw new Error('Expected Vite TCP port.')
+      const response = await getWithHeaders(address.port, '/productController/getProducts?productId=all')
+      expect(response.body).toBe('{"body":{"info":[]}}')
+      expect(receivedHeaders.uid).toBe('user-7')
+      expect(receivedHeaders.authorization).toBe('token-7')
+      expect(response.headers.status).toBe('Success')
+      expect(response.headers.message).toBe('Products retrieved')
+    } finally {
+      await viteServer?.close()
+      await close(backend)
+      if (previousUpstream === undefined) delete process.env.API_UPSTREAM
+      else process.env.API_UPSTREAM = previousUpstream
     }
   }, 15000)
 })

@@ -1,0 +1,6 @@
+.product-page { min-height: 100vh; background: #fff; }
+.product-page__content { padding: 32px clamp(16px, 5vw, 72px); }
+.product-table-scroll { overflow-x: auto; }
+.product-page table { width: 100%; border-collapse: collapse; }
+.product-page th, .product-page td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; white-space: nowrap; }
+.product-page td img { width: 22px; height: 22px; margin-right: 12px; }

@@ -21,6 +21,16 @@ function getHeaderValue(
   return header[key]
 }
 
+export function getHttpResponseMessage(headers: Headers): string | undefined {
+  const message = headers.get('Message')
+  return message?.trim() ? message : undefined
+}
+
+export function getHttpResponseStatus(headers: Headers): string | undefined {
+  const status = headers.get('Status')
+  return status?.trim() ? status.toLowerCase() : undefined
+}
+
 export function getApiResponseMessage(value: unknown): string | undefined {
   const message = getHeaderValue(getResponseHeader(value), 'message', 'Message')
   return typeof message === 'string' && message.trim() ? message : undefined

@@ -37,6 +37,10 @@ export default defineConfig(({ mode }) => {
           target: apiUpstream,
           changeOrigin: true,
         },
+        '/productController': {
+          target: apiUpstream,
+          changeOrigin: true,
+        },
       },
     },
   }

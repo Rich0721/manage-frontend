@@ -1,6 +1,6 @@
 # TAMAS 前端
 
-此專案使用 React 18、TypeScript 與 Vite 建置登入／註冊介面。登入畫面目前僅提供版面，登入功能尚未開放。
+此專案使用 React 18、TypeScript 與 Vite 建置登入／註冊及商品查詢介面。
 
 ## 開發環境
 
@@ -17,7 +17,7 @@ npm ci
 npm run dev
 ```
 
-開發伺服器預設將 `/userController` 代理至 `http://localhost:8000`。需要使用其他後端時，可在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會保留原始 URI，例如 `/userController/register`。
+開發伺服器預設將 `/userController` 與 `/productController` 代理至 `http://localhost:8000`。需要使用其他後端時，可在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會保留原始 URI，例如 `/userController/register` 與 `/productController/getProducts?productId=all`。
 
 PowerShell 範例：
 
@@ -39,7 +39,7 @@ npm run lint
 
 ## nginx 部署
 
-專案以 Docker 多階段建置 Vite 靜態檔，再由 nginx 提供前端頁面。`nginx/default.conf.template` 讓前端路由重新整理時回到 `index.html`，並將 `/userController/` 請求轉發至後端，保留原始 API 路徑。
+專案以 Docker 多階段建置 Vite 靜態檔，再由 nginx 提供前端頁面。`nginx/default.conf.template` 讓前端路由重新整理時回到 `index.html`，並將 `/userController/` 與 `/productController/` 請求轉發至後端，保留原始 API 路徑及 HTTP headers。
 
 ```sh
 docker build -t manage-frontend .

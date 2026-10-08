@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
 import { registerUser, RegisterServiceError } from '../services/register-service'
 import type { RegisterFormValues } from '../types/register'
+import { AuthServiceError, loginUser } from '../services/auth-service'
 
 vi.mock('../services/register-service', () => ({
   RegisterServiceError: class RegisterServiceError extends Error {
@@ -16,8 +17,13 @@ vi.mock('../services/register-service', () => ({
   },
   registerUser: vi.fn(),
 }))
+vi.mock('../services/auth-service', () => ({
+  AuthServiceError: class AuthServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
+  loginUser: vi.fn(), logoutUser: vi.fn(),
+}))
 
 const registerUserMock = vi.mocked(registerUser)
+const loginUserMock = vi.mocked(loginUser)
 const registerSubmitButton = () =>
   within(screen.getByRole('form', { name: '註冊表單' })).getByRole('button', {
     name: /註冊|送出中/,
@@ -27,13 +33,14 @@ const authTab = (name: '登入' | '註冊') =>
 
 beforeEach(() => {
   registerUserMock.mockReset()
+  loginUserMock.mockReset()
   vi.spyOn(window, 'alert').mockImplementation(() => undefined)
 })
 
 describe('HomePage registration flow', () => {
   it('starts with an empty register form and enables submit only for valid values', async () => {
     const user = userEvent.setup()
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     const submit = registerSubmitButton()
     expect(screen.getByLabelText('姓名')).toHaveValue('')
@@ -53,7 +60,7 @@ describe('HomePage registration flow', () => {
 
   it('shows field errors after blur and does not call the service for invalid submit', async () => {
     const user = userEvent.setup()
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     await user.type(screen.getByLabelText('姓名'), 'a')
     await user.tab()
@@ -63,7 +70,7 @@ describe('HomePage registration flow', () => {
 
   it('revalidates a direct form submit before calling the service', async () => {
     const user = userEvent.setup()
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     await user.type(screen.getByLabelText('Email'), 'invalid@invaliddomain')
     await user.type(screen.getByLabelText('密碼'), 'ValidPass123')
@@ -80,7 +87,7 @@ describe('HomePage registration flow', () => {
     registerUserMock
       .mockResolvedValueOnce({ status: 'failed', message: '此帳號已存在' })
       .mockResolvedValueOnce({ status: 'success', message: '註冊成功' })
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     await user.type(screen.getByLabelText('姓名'), 'user123')
     await user.type(screen.getByLabelText('Email'), 'user@example.com')
@@ -116,7 +123,7 @@ describe('HomePage registration flow', () => {
     registerUserMock
       .mockRejectedValueOnce(new Error('connection lost'))
       .mockResolvedValueOnce({ status: 'success', message: '註冊成功' })
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     await user.type(screen.getByLabelText('姓名'), 'user123')
     await user.type(screen.getByLabelText('Email'), 'user@example.com')
@@ -137,7 +144,7 @@ describe('HomePage registration flow', () => {
     registerUserMock.mockRejectedValueOnce(
       new RegisterServiceError('http', '帳號已存在'),
     )
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     await user.type(screen.getByLabelText('姓名'), 'user123')
     await user.type(screen.getByLabelText('Email'), 'user@example.com')
@@ -151,7 +158,7 @@ describe('HomePage registration flow', () => {
 
   it('does not clear input when the selected mode is selected again', async () => {
     const user = userEvent.setup()
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
     await user.type(screen.getByLabelText('姓名'), 'user123')
     await user.click(registerSubmitButton())
     expect(screen.getByLabelText('姓名')).toHaveValue('user123')
@@ -170,7 +177,7 @@ describe('HomePage registration flow', () => {
     registerUserMock
       .mockImplementationOnce(() => firstRequest)
       .mockImplementationOnce(() => secondRequest)
-    render(<HomePage />)
+    render(<HomePage initialMode="register" />)
 
     const fillValidForm = async () => {
       await user.type(screen.getByLabelText('姓名'), 'user123')
@@ -201,5 +208,35 @@ describe('HomePage registration flow', () => {
     await Promise.resolve()
     expect(window.alert).toHaveBeenCalledTimes(1)
     expect(window.alert).toHaveBeenCalledWith('第二次請求失敗')
+  })
+})
+
+describe('HomePage login flow', () => {
+  it('validates and submits login data, then reports the complete session', async () => {
+    const user = userEvent.setup()
+    const onLoginSuccess = vi.fn()
+    loginUserMock.mockResolvedValue({ uid: 'u1', authorization: 'token', userName: 'Tester' })
+    render(<HomePage onLoginSuccess={onLoginSuccess} />)
+    const submit = within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' })
+    expect(submit).toBeDisabled()
+    await user.type(screen.getByLabelText('Email'), 'user@example.com')
+    await user.type(screen.getByLabelText('密碼'), 'Password123')
+    expect(submit).toBeEnabled()
+    await user.click(submit)
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(loginUserMock).toHaveBeenCalledWith({ email: 'user@example.com', password: 'Password123' }, expect.any(AbortSignal))
+    expect(onLoginSuccess).toHaveBeenCalledWith({ uid: 'u1', authorization: 'token', userName: 'Tester' })
+  })
+
+  it('retains entered credentials after a failed login', async () => {
+    const user = userEvent.setup()
+    loginUserMock.mockRejectedValueOnce(new AuthServiceError('http', 'User login failed'))
+    render(<HomePage />)
+    await user.type(screen.getByLabelText('Email'), 'user@example.com')
+    await user.type(screen.getByLabelText('密碼'), 'Password123')
+    await user.click(within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' }))
+    expect(window.alert).toHaveBeenCalledWith('User login failed')
+    expect(screen.getByLabelText('Email')).toHaveValue('user@example.com')
+    expect(screen.getByLabelText('密碼')).toHaveValue('Password123')
   })
 })
