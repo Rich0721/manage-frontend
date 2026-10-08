@@ -1,0 +1,18 @@
+flowchart TD
+    StartPoint(使用者進入登入頁面)
+    FillOutForm(使用者填寫登入表單)
+    SubmitForm(使用者提交登入表單)
+    PasswordHashed(密碼進行SHA-256加密)
+    SubmitToBackend(將加密後的密碼與Email送至後端驗證)
+    BackendResponse(後端返回驗證結果)
+    LoginAgain(使用者於其他裝置登入，需重新登入)
+    LoginSuccess(登入成功)
+    TransferToProductPage(轉跳至產品頁面)
+    LoginFail(登入失敗)
+    EndPoint(使用者完成登入操作)
+
+    StartPoint --> FillOutForm --> SubmitForm --> PasswordHashed --> SubmitToBackend --> BackendResponse
+    BackendResponse --> |使用者未於其他裝置登入| LoginSuccess
+    BackendResponse --> |使用者於其他裝置登入| LoginAgain --> LoginSuccess
+    LoginSuccess --> TransferToProductPage --> EndPoint
+    BackendResponse --> |登入失敗| LoginFail --> EndPoint
