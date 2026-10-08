@@ -1,10 +1,16 @@
 # TASK-006 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
 TASK-006
+
+## 複審結果（2026-10-08）
+
+通過。`vite.config.ts` 與 `nginx/default.conf.template` 保留產品 API 原路徑代理設定；受控 backend 測試現已斷言產品 GET 的完整 URI／query 與授權 request headers、產品 Status／Message、登入 Status／Message／Uid／Authorization response headers，以及 503 狀態／headers／body 透傳；既有註冊 POST 回歸保留。前次同版程式 17 個測試檔、135 項通過，build 與 lint 通過；本次工作樹無程式變更。原 Review 缺漏已補足。nginx 容器執行驗證仍依 Plan 列為環境待驗，未將靜態檢查視為通過。Code Review Date：2026-10-08。
+
+## 初審紀錄（歷史）
 
 ## Review Result
 
@@ -36,4 +42,4 @@ TASK-006 要求受控 backend 驗證 GET URI 與 `productId=all`、Uid／Authori
 
 ## Resolution
 
-Status: OPEN。待 Programmer 補足測試並將 Task 重新設為 `DEVELOPED DONE` 後複審。
+Status: RESOLVED。初審測試缺漏已於本次複審確認解決。

@@ -12,7 +12,7 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | TASK-002／003／004／005／006／007 已 DEVELOPED DONE；TASK-005 人工視覺驗收待 PM／需求提出者確認；TASK-001 為 DONE |
+| Status | Code Review：TASK-002／005／006／007 為 DONE，TASK-003／004 為 REVIEW FIX；TASK-005 人工視覺驗收待 PM／需求提出者確認；TASK-001 為 DONE |
 
 本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。OQ-001～007 均已解決。最新開發狀態與驗收結果記錄於 Requirement List 及 Programmer 執行紀錄；TASK-005 已符合 PG 開發交審標準，人工視覺驗收另列待辦。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
 
@@ -134,12 +134,12 @@ Uid 與 Authorization 皆存在才顯示登出；登出請求無論成功或失�
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
-| TASK-002 | 登入／登出 Service 與契約 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-005 | 產品查詢與 ProductPage | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-007 | 共用 Button 與表單按鈕整合 | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-002 | 登入／登出 Service 與契約 | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
+| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | REVIEW FIX | 2026-10-08 | 2026-10-08 |
+| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | REVIEW FIX | 2026-10-08 | 2026-10-08 |
+| TASK-005 | 產品查詢與 ProductPage | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
+| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
+| TASK-007 | 共用 Button 與表單按鈕整合 | ADD | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
 
 本次 delta 順序：Plan Review → TASK-007 → TASK-003／004／005 → 互動回歸與產品頁視覺驗證。加入商品占位方式已確認。Button 元件資料夾屬既有 components 架構，無新增架構層或 barrel index.ts。
 
@@ -294,7 +294,7 @@ Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ b
 
 ## VI. Review Status
 
-**Status: Handoff — TASK-002／003／004／005／006／007 均為 DEVELOPED DONE，可進行 Code Review。TASK-005 人工視覺驗收仍待 PM／需求提出者確認，獨立於 PG 開發與 Code Review 狀態；原 OPEN Review 由 Code Reviewer 複審。**
+**Status: Code Review 完成（2026-10-08）— TASK-002／005／006／007 通過並設為 DONE；TASK-003／004 發現實作與回歸測試缺口，設為 REVIEW FIX，交 Programmer 修正。TASK-002／006 原 OPEN Review 已複審為 RESOLVED。TASK-005 人工視覺驗收仍待 PM／需求提出者確認，獨立於 PG 開發與 Code Review 狀態。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -311,9 +311,13 @@ Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ b
 - [x] TASK-005 已依使用者要求調整 PG 驗收標準，確認不需導入瀏覽器自動化；僅影響驗收分工，無 API、dependency 或其他 Task 的實作變更。
 - [x] TASK-005 由 PG 依新標準完成自檢並更新為 DEVELOPED DONE；所有尚待 Code Review 的 Task 均已交審。
 - [ ] TASK-005 人工視覺驗收完成（PM／需求提出者，獨立於開發與 Code Review 狀態）。
-- [ ] Code Review 通過。
+- [ ] 全部 Code Review 通過；TASK-003／004 為 REVIEW FIX，其餘本次受審 Task 已通過。
 
 ### Handoff
+
+Code Reviewer（2026-10-08）：複審 TASK-002／006 原問題已解決，Review Status 改為 RESOLVED，兩 Task 設為 DONE；TASK-005／007 審查通過並設為 DONE。TASK-003 的登入請求取消後，切頁返回登入可能保持 submitting；TASK-004 的舊登出 Promise 完成可能清除新登入 Session。兩 Task 設為 REVIEW FIX，Review Status OPEN，詳見 `Features/Review/02-LoginAndLogout/TASK-003.md` 與 `TASK-004.md`，交 Programmer 修正並補足回歸。各 Task Code Review Date 均為 2026-10-08。未執行 TASK-005 人工視覺驗收或 nginx 容器驗證。
+
+### 前次 Handoff（歷史紀錄）
 
 System Design（2026-10-08，驗收標準調整）：TASK-005 PG 門檻不要求瀏覽器自動化或實際視覺驗收；人工視覺驗收獨立由 PM／需求提出者追蹤。Programmer（2026-10-08）：已依新標準完成 TASK-005 程式、測試與 CSS／圖示自檢，並更新為 DEVELOPED DONE。沿用同一程式碼版本已通過的 135 項測試、build、lint 結果。人工視覺驗收維持待辦，不宣稱通過。
 

@@ -1,10 +1,16 @@
 # TASK-002 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
 TASK-002
+
+## 複審結果（2026-10-08）
+
+通過。最新 Plan 依需求勘誤明訂登入 request 為 `body.info`，故下列初審第 1 項的平坦 body 結論已失效。`auth-service.ts` 保留修正後電文；成功 HTTP 回應缺少 Status 時回報 `protocol`；服務測試已涵蓋 409 最多一次、取消、逾時、hash 失敗、非法 JSON、必要 HTTP headers 缺漏及登出失敗。前次同版程式 17 個測試檔、135 項通過，build 與 lint 通過；本次工作樹無程式變更。初審第 2／3 項已解決，未發現新的阻擋問題。Code Review Date：2026-10-08。
+
+## 初審紀錄（歷史；電文結論已由最新 Plan 取代）
 
 ## Review Result
 
@@ -38,4 +44,4 @@ TASK-002
 
 ## Resolution
 
-Status: OPEN。待 Programmer 修正並將 Task 重新設為 `DEVELOPED DONE` 後複審。
+Status: RESOLVED。上述初審意見保留供追溯；以本次複審及最新 Plan 為準。
