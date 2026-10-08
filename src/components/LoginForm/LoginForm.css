@@ -11,14 +11,5 @@
   min-width: clamp(95px, 9.32vw, 179px);
   min-height: clamp(40px, 3.85vw, 74px);
   margin-top: clamp(-15px, -1.4vh, -8px);
-  border: 0;
-  border-radius: clamp(16px, 1.56vw, 30px);
-  background: #00fc00;
-  color: #171317;
-  font: inherit;
   font-size: clamp(16px, 1.56vw, 30px);
-  cursor: pointer;
-  opacity: 1;
 }
-
-.login-form__submit:disabled { cursor: not-allowed; opacity: 0.5; }

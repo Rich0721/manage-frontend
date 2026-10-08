@@ -8,6 +8,7 @@ import type {
   RegisterValidationErrors,
 } from '../../types/register'
 import { FormField } from '../FormField/FormField'
+import { Button } from '../Button/Button'
 import './RegisterForm.css'
 
 interface RegisterFormProps {
@@ -75,13 +76,13 @@ export function RegisterForm({
         onBlur={onBlur}
         error={errors.confirmPassword}
       />
-      <button
+      <Button
         className="register-form__submit"
         type="submit"
         disabled={!canSubmit || submitting}
       >
         {submitting ? '送出中…' : '註冊'}
-      </button>
+      </Button>
     </form>
   )
 }

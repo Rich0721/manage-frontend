@@ -1,6 +1,7 @@
 import type { ChangeEventHandler, FocusEventHandler, FormEventHandler } from 'react'
 import type { LoginFormValues, LoginValidationErrors } from '../../types/auth'
 import { FormField } from '../FormField/FormField'
+import { Button } from '../Button/Button'
 import './LoginForm.css'
 
 interface LoginFormProps {
@@ -38,9 +39,9 @@ export function LoginForm({ values, errors, submitting, canSubmit, onChange, onB
         onBlur={onBlur}
         error={errors.password}
       />
-      <button className="login-form__submit" type="submit" disabled={!canSubmit || submitting}>
+      <Button className="login-form__submit" type="submit" disabled={!canSubmit || submitting}>
         {submitting ? '送出中…' : '登入'}
-      </button>
+      </Button>
     </form>
   )
 }

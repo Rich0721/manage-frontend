@@ -250,11 +250,11 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 | 產品授權及查詢 | 004／005／006 | 授權失效與一般錯誤可區分，query／header 正確 |
 | 六欄／空資料／占位 | 004／005 | 指定欄名、目前無產品、無額外 API 副作用 |
 
-實際驗證（2026-10-08）：`npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 通過，15 個測試檔、79 個測試；`npm.cmd run build` 通過；`npm.cmd run lint` 通過。Vite 代理整合測試驗證產品授權 request headers 轉送及 response Status／Message 保留。未連接真實後端、未執行 Docker/nginx 容器測試或瀏覽器手動視覺檢查；上述項目留待環境／Review 驗證。
+實際驗證（2026-10-08）：初版的 `npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 曾通過 15 個測試檔、79 個測試；僅屬歷史紀錄。視覺與 Button 本次 Delta 已建立共用 Button 並整合 TASK-003／004／005／007，新增 Header 與產品頁回歸案例。相關 7 個測試檔、23 個測試通過，`npm.cmd run build` 與 `npm.cmd run lint` 通過。完整測試目前 17 個檔案中 15 個通過、83/85 項測試通過；另 2 項既有 auth-service 測試預期登入 JSON `{ body: { email, password, isForceLogin } }`，與本 Plan 及服務目前定義的 `{ body: { info: { email, password, isForceLogin } } }` 不符，待核對／修正測試後重跑。瀏覽器自動化環境啟動失敗，尚未完成 1920×1080 與窄螢幕的 Figma 實際畫面對照，因此本次 Delta 尚未驗收完成，受影響任務仍保留 PLAN UPDATED／TODO。未連接真實後端、未執行 Docker/nginx 容器測試；留待環境／Review 驗證。
 
 ## VI. Review Status
 
-**Status: Awaiting Review — 產品頁視覺修正與 Button 共用方案已完成設計，加入商品停用占位已由使用者確認；尚未實作本次 Delta。**
+**Status: Awaiting Review — 已開始實作產品頁視覺修正與共用 Button；加入商品停用占位已由使用者確認。本次 Delta 尚待完整測試及瀏覽器視覺驗收。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。

@@ -1,4 +1,5 @@
 import './SiteHeader.css'
+import { Button } from '../Button/Button'
 
 interface SiteHeaderProps {
   authenticated: boolean
@@ -14,8 +15,8 @@ export function SiteHeader({ authenticated, onLogout, onPermissions, activePage 
       {authenticated ? (
         <nav className="site-header__nav" aria-label="主要導覽">
           <span className={activePage === 'products' ? 'site-header__active' : ''}>商品管理</span>
-          <button type="button" onClick={onPermissions}>權限管理</button>
-          <button type="button" onClick={onLogout}>登出</button>
+          <Button variant="text" className="site-header__permissions" onClick={onPermissions}>權限管理</Button>
+          <Button className="site-header__logout" onClick={onLogout}>登出</Button>
         </nav>
       ) : null}
     </header>

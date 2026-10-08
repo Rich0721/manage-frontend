@@ -1,0 +1,45 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 0;
+  color: #171317;
+  font: inherit;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary,
+.button--secondary {
+  min-width: 136px;
+  min-height: 51px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 20px;
+}
+
+.button--primary { background: #00fc00; }
+.button--secondary { background: #00acfc; }
+.button--text { padding: 0; background: transparent; color: inherit; }
+
+.button:focus-visible {
+  outline: 2px solid #53344c;
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 680px) {
+  .button--primary,
+  .button--secondary {
+    min-width: 72px;
+    min-height: 28px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
