@@ -27,9 +27,11 @@ Request Body:
         "Content-Type": "application/json"
     },
     "body": {
-        "email": "<user_email>",
-        "password": "<user_password>",
-        "isForceLogin": "<is_force_login>"
+        "info": {
+            "email": "<user_email>",
+            "password": "<user_password>",
+            "isForceLogin": "<is_force_login>"
+        }
     }
 }
 ```
