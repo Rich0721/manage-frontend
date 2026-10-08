@@ -25,4 +25,11 @@ describe('Button', () => {
     render(<Button href="/future-page" variant="secondary">前往頁面</Button>)
     expect(screen.getByRole('link', { name: '前往頁面' })).toHaveAttribute('href', '/future-page')
   })
+
+  it('forwards accessibility attributes to its native element', () => {
+    const { rerender } = render(<Button aria-label="開啟選單">開啟</Button>)
+    expect(screen.getByRole('button', { name: '開啟選單' })).toBeInTheDocument()
+    rerender(<Button href="/products" aria-label="查看商品">商品</Button>)
+    expect(screen.getByRole('link', { name: '查看商品' })).toHaveAttribute('href', '/products')
+  })
 })

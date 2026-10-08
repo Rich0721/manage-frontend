@@ -37,7 +37,9 @@ export async function getProducts(session: AuthSession, signal: AbortSignal): Pr
     })
     if (response.status === 401) throw new AuthServiceError('unauthorized', '登入已逾期，請重新登入')
     if (!response.ok) throw new AuthServiceError('http', getHttpResponseMessage(response.headers) ?? '產品載入失敗')
-    if (getHttpResponseStatus(response.headers) !== 'success') {
+    const status = getHttpResponseStatus(response.headers)
+    if (!status) throw new AuthServiceError('protocol', '產品回應缺少 HTTP Status')
+    if (status !== 'success') {
       throw new AuthServiceError('http', getHttpResponseMessage(response.headers) ?? '產品載入失敗')
     }
     let body: unknown
@@ -46,7 +48,11 @@ export async function getProducts(session: AuthSession, signal: AbortSignal): Pr
     if (signal.aborted) throw new DOMException('Request aborted.', 'AbortError')
     return parseProducts(body)
   } catch (error: unknown) {
-    if (error instanceof AuthServiceError || (error instanceof DOMException && error.name === 'AbortError')) throw error
+    if (error instanceof AuthServiceError) throw error
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      if (signal.aborted) throw error
+      if (timedOut) throw new AuthServiceError('timeout', '產品載入逾時')
+    }
     if (timedOut) throw new AuthServiceError('timeout', '產品載入逾時')
     if (signal.aborted) throw new DOMException('Request aborted.', 'AbortError')
     throw new AuthServiceError('network', '產品載入失敗，請稍後再試')

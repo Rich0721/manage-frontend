@@ -92,9 +92,11 @@ export async function loginUser(
     const status = getHttpResponseStatus(response.headers)
     const message = responseMessage(response)
     if (response.status === 409 && !isForceLogin) continue
-    if (!response.ok || status !== 'success') {
+    if (!response.ok) {
       throw new AuthServiceError('http', message)
     }
+    if (!status) throw new AuthServiceError('protocol', 'Login response is missing HTTP Status.')
+    if (status !== 'success') throw new AuthServiceError('http', message)
     const body = await readJson(response, signal)
     const uid = response.headers.get('Uid')
     const authorization = response.headers.get('Authorization')
@@ -123,9 +125,12 @@ export async function logoutUser(
     },
     body: JSON.stringify(payload),
   }, signal)
-  const body = await readJson(response, signal)
-  if (!response.ok || getHttpResponseStatus(response.headers) !== 'success') {
+  const status = getHttpResponseStatus(response.headers)
+  if (!response.ok) {
     throw new AuthServiceError('http', responseMessage(response))
   }
+  if (!status) throw new AuthServiceError('protocol', 'Logout response is missing HTTP Status.')
+  if (status !== 'success') throw new AuthServiceError('http', responseMessage(response))
+  const body = await readJson(response, signal)
   if (!record(body)) throw new AuthServiceError('protocol', 'Invalid logout response.')
 }

@@ -6,7 +6,12 @@
   padding-top: clamp(18px, 1.72vw, 33px);
 }
 .product-page__toolbar { display: flex; justify-content: flex-end; margin-bottom: clamp(5px, .52vw, 10px); }
-.product-page__add { min-width: clamp(73px, 7.08vw, 136px); min-height: clamp(27px, 2.66vw, 51px); font-size: clamp(12px, 1.04vw, 20px); }
+.product-page__add {
+  --button-min-width: clamp(73px, 7.08vw, 136px);
+  --button-min-height: clamp(27px, 2.66vw, 51px);
+  --button-padding: 0 clamp(12px, 1vw, 20px);
+  --button-font-size: clamp(12px, 1.04vw, 20px);
+}
 .product-table-scroll { overflow-x: auto; border: 1px solid #b9b9b9; border-radius: 4px; }
 .product-page table { width: 100%; min-width: 720px; border-collapse: collapse; table-layout: fixed; }
 .product-page th, .product-page td {

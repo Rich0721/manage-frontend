@@ -29,10 +29,10 @@
   font-weight: inherit;
 }
 .site-header__logout {
-  min-width: clamp(73px, 7.08vw, 136px);
-  min-height: clamp(27px, 2.66vw, 51px);
-  padding: 0 clamp(12px, 1vw, 20px);
-  font-size: clamp(12px, 1.04vw, 20px);
+  --button-min-width: clamp(73px, 7.08vw, 136px);
+  --button-min-height: clamp(27px, 2.66vw, 51px);
+  --button-padding: 0 clamp(12px, 1vw, 20px);
+  --button-font-size: clamp(12px, 1.04vw, 20px);
 }
 .site-header__active { font-weight: 700; text-decoration: underline; }
 
@@ -40,7 +40,12 @@
   .site-header { min-height: 64px; padding: 0 16px; }
   .site-header__brand { font-size: 28px; }
   .site-header__nav { gap: 12px; margin-top: 0; font-size: 13px; }
-  .site-header__logout { min-width: 72px; min-height: 28px; padding: 4px 10px; font-size: 12px; }
+  .site-header__logout {
+    --button-min-width: 72px;
+    --button-min-height: 28px;
+    --button-padding: 4px 10px;
+    --button-font-size: 12px;
+  }
 }
 
 @media (max-width: 420px) {

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from './HomePage'
@@ -219,6 +219,8 @@ describe('HomePage login flow', () => {
     render(<HomePage onLoginSuccess={onLoginSuccess} />)
     const submit = within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' })
     expect(submit).toBeDisabled()
+    await user.click(submit)
+    expect(loginUserMock).not.toHaveBeenCalled()
     await user.type(screen.getByLabelText('Email'), 'user@example.com')
     await user.type(screen.getByLabelText('密碼'), 'Password123')
     expect(submit).toBeEnabled()
@@ -228,15 +230,62 @@ describe('HomePage login flow', () => {
     expect(onLoginSuccess).toHaveBeenCalledWith({ uid: 'u1', authorization: 'token', userName: 'Tester' })
   })
 
+  it('submits exactly once when Enter is pressed in the login form', async () => {
+    const user = userEvent.setup()
+    loginUserMock.mockResolvedValue({ uid: 'u1', authorization: 'token', userName: 'Tester' })
+    const onLoginSuccess = vi.fn()
+    render(<HomePage onLoginSuccess={onLoginSuccess} />)
+    await user.type(screen.getByLabelText('Email'), 'user@example.com')
+    await user.type(screen.getByLabelText('密碼'), 'Password123')
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(loginUserMock).toHaveBeenCalledOnce())
+    expect(onLoginSuccess).toHaveBeenCalledOnce()
+  })
+
   it('retains entered credentials after a failed login', async () => {
     const user = userEvent.setup()
     loginUserMock.mockRejectedValueOnce(new AuthServiceError('http', 'User login failed'))
-    render(<HomePage />)
+    const onLoginSuccess = vi.fn()
+    loginUserMock.mockResolvedValueOnce({ uid: 'u1', authorization: 'token', userName: 'Tester' })
+    render(<HomePage onLoginSuccess={onLoginSuccess} />)
     await user.type(screen.getByLabelText('Email'), 'user@example.com')
     await user.type(screen.getByLabelText('密碼'), 'Password123')
-    await user.click(within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' }))
+    const submit = within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' })
+    await user.click(submit)
     expect(window.alert).toHaveBeenCalledWith('User login failed')
     expect(screen.getByLabelText('Email')).toHaveValue('user@example.com')
     expect(screen.getByLabelText('密碼')).toHaveValue('Password123')
+    expect(submit).toBeEnabled()
+    await user.clear(screen.getByLabelText('Email'))
+    await user.type(screen.getByLabelText('Email'), 'newuser@example.com')
+    await user.click(submit)
+    await waitFor(() => expect(onLoginSuccess).toHaveBeenCalledOnce())
+    expect(loginUserMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not call loginUser when the form is submitted directly with invalid values', () => {
+    render(<HomePage />)
+    fireEvent.submit(screen.getByRole('form', { name: '登入表單' }))
+    expect(loginUserMock).not.toHaveBeenCalled()
+    expect(screen.getAllByText('此欄位為必填')).toHaveLength(2)
+  })
+
+  it('disables login while a request is pending and ignores a stale response after switching modes', async () => {
+    const user = userEvent.setup()
+    let resolveLogin!: (value: { uid: string; authorization: string; userName: string }) => void
+    loginUserMock.mockReturnValue(new Promise((resolve) => { resolveLogin = resolve }))
+    const onLoginSuccess = vi.fn()
+    render(<HomePage onLoginSuccess={onLoginSuccess} />)
+    await user.type(screen.getByLabelText('Email'), 'user@example.com')
+    await user.type(screen.getByLabelText('密碼'), 'Password123')
+    const submit = within(screen.getByRole('form', { name: '登入表單' })).getByRole('button', { name: '登入' })
+    await user.click(submit)
+    expect(submit).toBeDisabled()
+    const signal = loginUserMock.mock.calls[0]?.[1]
+    await user.click(authTab('註冊'))
+    expect(signal?.aborted).toBe(true)
+    await act(async () => resolveLogin({ uid: 'u1', authorization: 'token', userName: 'Tester' }))
+    expect(onLoginSuccess).not.toHaveBeenCalled()
+    expect(screen.getByRole('form', { name: '註冊表單' })).toBeInTheDocument()
   })
 })

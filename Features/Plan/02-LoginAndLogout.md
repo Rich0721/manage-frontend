@@ -274,6 +274,8 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 歷史實際驗證（2026-10-08，需求勘誤前）：初版的 `npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 曾通過 15 個測試檔、79 個測試；僅屬歷史紀錄。視覺與 Button 本次 Delta 已建立共用 Button 並整合 TASK-003／004／005／007，新增 Header 與產品頁回歸案例。相關 7 個測試檔、23 個測試通過，`npm.cmd run build` 與 `npm.cmd run lint` 通過。完整測試目前 17 個檔案中 15 個通過、83/85 項測試通過；另 2 項既有 auth-service 測試預期登入 JSON `{ body: { email, password, isForceLogin } }`，與本 Plan 及服務目前定義的 `{ body: { info: { email, password, isForceLogin } } }` 不符，待核對／修正測試後重跑。瀏覽器自動化環境啟動失敗，尚未完成 1920×1080 與窄螢幕的 Figma 實際畫面對照，因此本次 Delta 尚未驗收完成，受影響任務仍保留 PLAN UPDATED／TODO。未連接真實後端、未執行 Docker/nginx 容器測試；留待環境／Review 驗證。
 
+Programmer 執行紀錄（2026-10-08）：依最新勘誤更新 TASK-002 request assertions，補上 409 上限／取消、hash failure、timeout、錯誤 response、HTTP header 衝突與缺漏、logout failure 等測試；成功 HTTP 回應缺 Status 時，login／logout service 改回報 protocol error。TASK-006 代理測試增加產品 URI／query 與 Content-Type 斷言、登入 body.info 及 response headers 透傳、503 status／headers／body 透傳案例。`npm.cmd run build` 與 `npm.cmd run lint` 通過；本次單元及代理測試尚未執行，故 TASK-002／006 未標為 DEVELOPED DONE，仍待 Programmer 執行必要測試後更新狀態。
+
 歷史 Code Review 更正（2026-10-08，需求勘誤前，電文結論已由最新影響分析取代）：前段「本 Plan 及服務目前定義 `body.info`」的判斷有誤。本 Plan 的 API 映射表與 TASK-002 Implementation 均明訂登入 request 使用 `{ body: { email, password, isForceLogin } }`；目前服務與型別多包 `info`，故將 TASK-002 設為 REVIEW FIX。TASK-006 的代理測試亦缺 Plan 明列的 URI／query、非成功回應及登入 response headers 驗證，設為 REVIEW FIX。審查紀錄見 `Features/Review/02-LoginAndLogout/`。
 
 ## VI. Review Status

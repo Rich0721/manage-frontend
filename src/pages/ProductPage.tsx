@@ -12,24 +12,34 @@ interface ProductPageProps {
   onSessionExpired: () => void
 }
 
+type ProductPageResult =
+  | { session: AuthSession; status: 'success'; products: Product[] }
+  | { session: AuthSession; status: 'error'; error: string }
+
 export function ProductPage({ session, onLogout, onSessionExpired }: ProductPageProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [result, setResult] = useState<ProductPageResult | null>(null)
+  const currentResult = result?.session === session ? result : null
+  const loading = currentResult === null
+  const products = currentResult?.status === 'success' ? currentResult.products : []
+  const error = currentResult?.status === 'error' ? currentResult.error : ''
 
   useEffect(() => {
     const controller = new AbortController()
     let active = true
     getProducts(session, controller.signal).then((result) => {
-      if (active) { setProducts(result); setError('') }
+      if (active) setResult({ session, status: 'success', products: result })
     }).catch((reason: unknown) => {
       if (!active || (reason instanceof DOMException && reason.name === 'AbortError')) return
       if (reason instanceof AuthServiceError && reason.kind === 'unauthorized') {
         onSessionExpired()
         return
       }
-      setError(reason instanceof AuthServiceError ? reason.message : '產品載入失敗')
-    }).finally(() => { if (active) setLoading(false) })
+      setResult({
+        session,
+        status: 'error',
+        error: reason instanceof AuthServiceError ? reason.message : '產品載入失敗',
+      })
+    })
     return () => { active = false; controller.abort() }
   }, [session, onSessionExpired])
 

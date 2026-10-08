@@ -33,6 +33,59 @@ describe('ProductPage', () => {
     expect(screen.getAllByRole('columnheader')).toHaveLength(6)
   })
 
+  it('renders every row from a multi-product response', async () => {
+    getProductsMock.mockResolvedValue([
+      { id: 'p1', name: 'First', label_names: 'Group A', cost: 0, price: 15 },
+      { id: 'p2', name: 'Second', label_names: 'Group B', cost: 10, price: 25 },
+    ])
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    expect(await screen.findByText('First')).toBeInTheDocument()
+    expect(screen.getByText('Second')).toBeInTheDocument()
+    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(screen.getByText('25')).toBeInTheDocument()
+    expect(screen.getAllByRole('row')).toHaveLength(3)
+  })
+
+  it('shows loading and keeps the table hidden until the request succeeds', () => {
+    getProductsMock.mockReturnValue(new Promise(() => undefined))
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    expect(screen.getByRole('status')).toHaveTextContent('載入中')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('shows ordinary product errors without clearing the session', async () => {
+    getProductsMock.mockRejectedValue(new AuthServiceError('http', 'Forbidden'))
+    const onSessionExpired = vi.fn()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Forbidden')
+    expect(screen.queryByText('目前無產品')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(onSessionExpired).not.toHaveBeenCalled()
+  })
+
+  it('aborts the product request when the page unmounts', () => {
+    getProductsMock.mockReturnValue(new Promise(() => undefined))
+    const { unmount } = render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    const signal = getProductsMock.mock.calls[0]?.[1]
+    unmount()
+    expect(signal?.aborted).toBe(true)
+  })
+
+  it('clears the prior session products while loading a new session', async () => {
+    let finishSecond!: (products: { id: string; name: string; label_names: string; cost: number; price: number }[]) => void
+    getProductsMock
+      .mockResolvedValueOnce([{ id: 'old', name: 'Old product', label_names: 'Old', cost: 1, price: 2 }])
+      .mockReturnValueOnce(new Promise((resolve) => { finishSecond = resolve }))
+    const { rerender } = render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    expect(await screen.findByText('Old product')).toBeInTheDocument()
+    rerender(<ProductPage session={{ ...session, uid: 'u2' }} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    expect(screen.getByRole('status')).toHaveTextContent('載入中')
+    expect(screen.queryByText('Old product')).not.toBeInTheDocument()
+    expect(getProductsMock).toHaveBeenCalledTimes(2)
+    finishSecond([])
+    expect(await screen.findByText('目前無產品')).toBeInTheDocument()
+  })
+
   it('keeps the add product placeholder disabled without navigation or service calls', async () => {
     getProductsMock.mockResolvedValue([])
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
