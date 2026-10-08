@@ -12,9 +12,9 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | Development complete；OQ-001～007 已解決，六項任務 DEVELOPED DONE，待 Code Review |
+| Status | Awaiting Review；產品頁視覺修正與共用 Button 方案已更新，TASK-003／004／005 為 PLAN UPDATED，TASK-007 為 TODO |
 
-本文件於 2026-10-08 依最新需求實作。OQ-001～007 均已解決；六項 Task 已完成程式與測試，待 Code Review。未修改 Business Requirement。角色與流程依 `agents/programmer-agent.md`，架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test Skills。任務狀態遵循角色定義，優先於範本內不一致的重設說明。
+本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。原六項 Task 的初次實作與測試紀錄保留為歷史；本次 delta 尚未實作或驗證。OQ-001～007 均已解決。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
 
 ### Missing Requirement Information
 
@@ -53,7 +53,25 @@ HTTP status code 使用 `Response.status`；業務 Status／Message 使用 `Resp
 | HTTP／JSON headers 位置未定 | 依專案共用規範固定讀寫 HTTP headers，補 HTTP response parser 與代理回應驗證 | MODIFY TASK-002／005／006 |
 | 共用驗證、雜湊、API 代理與 UI 占位 | 行為不變 | NO CHANGE TASK-001／006 |
 
-Scenario 的一般登入與強制登入仍寫在同一個 Scenario；建議 PM 拆開以便追蹤，非業務阻擋項。測試需分開涵蓋兩條流程，並由本次新增需求補足 Session／登出／403 等案例。Figma 結構沿用初版核對紀錄，本輪未重新呼叫 Figma。
+Scenario 的一般登入與強制登入仍寫在同一個 Scenario；建議 PM 拆開以便追蹤，非業務阻擋項。測試需分開涵蓋兩條流程，並由本次新增需求補足 Session／登出／403 等案例。本輪重新透過 get_design_context 取得產品 node 18:2 的完整結構及截圖，對照目前 source／CSS；尚未進行瀏覽器實際畫面量測。
+
+### 產品頁視覺與共用 Button Delta（2026-10-08）
+
+來源：使用者本輪要求重新核對產品設計，以及評估可依需求設定 CSS、文字與 URL 的 Button。Requirement Type 為 Bug / Behavior Correction（視覺）＋ Requirement Change（共用元件）。不新增 API、router 或商品異動業務。
+
+| 項目 | 現有實作 | Figma／本次 Expected Behavior | Task |
+|---|---|---|---|
+| 內容結構 | 可見 h1「商品管理」，一般頁面 padding | 設計沒有內容大標題；保留 accessible section 名稱，toolbar 後接表格 | 005 |
+| 位置 | 左右 padding 最大 72px，表格鋪滿內容區 | 1920px 參考畫布：table x=220、y=209、w=1606；toolbar 按鈕右緣與 table 對齊。以容器 margin／比例及 flex 排版實現，窄螢幕保留合理留白與表格橫捲 | 005 |
+| 表格 | 左對齊、僅下框線、欄寬由內容決定 | 六欄等寬、文字置中、灰色表頭、完整 1px #b9b9b9 格線與 4px 外圓角；桌面字級 16px、列高約 41px | 005 |
+| 圖示 | 兩個圖示皆 22px，靠左並間隔 12px | 編輯 24×24、刪除 26×26，於編輯欄中置中分開排列；仍為顯示用途，不新增操作 | 005 |
+| 登出 | 透明背景，字級跟隨導覽 | 綠色圓角按鈕，參考 136×51、半徑 30、文字 20px；操作仍呼叫既有 onLogout | 004／007 |
+| Header CSS | 主樣式與 mobile rules 放在 HomePage.css | 移至 SiteHeader.css，使 Header 可獨立使用；產品 Header 右留白約 26px、導覽於右方對齊，桌面高 115px，保留窄螢幕排版 | 004 |
+| 加入商品 | 省略 | 使用者已確認顯示藍色圓角停用占位按鈕；不綁定 onClick、href 或 API，待後續需求再接功能 | 005／007 |
+| 表頭文字 | 「價格」 | 需求文字優先，繼續使用「價格」，不改為設計稿「價錢」 | 005 |
+| 重複按鈕 | LoginForm、RegisterForm、SiteHeader 各有原生 button 與重複基礎樣式 | 以 Button 共用呈現與原生互動語意；各頁保留布局、驗證、API 與導航決策 | 003／004／007 |
+
+本次核對確認 public/icon/pencil.png 與 delete.png 非空，仍需實作時核對實際圖像與 Figma slot；不可將整張設計截圖當頁面資產。沒有安裝 UI library，不增加 dependency。AuthTabs 已封裝頁籤選取行為且外觀不同，本次不強制改為通用 Button。
 
 ## II. Requirement Summary
 
@@ -86,23 +104,24 @@ Uid 與 Authorization 皆存在才顯示登出；登出請求無論成功或失�
 - 登入：TAMAS Header、登入／註冊頁籤、Email、密碼及登入按鈕；延伸現有 CSS 與 FormField。
 - 產品：共用 Header、選取的商品管理、權限管理、登出、六欄表格與兩個圖示。採語意化 table 與可適應寬度的 CSS，不照搬絕對定位或 Tailwind。
 - 設計稿欄名為「價錢」，需求明訂「價格」：採需求文字。
-- 設計稿另有「加入商品」；文字需求未定義功能，列 UI 審查問題，不新增商品 API 或自訂操作。本次提議省略，若需顯示占位由 PM 確認。
+- 設計稿另有「加入商品」；使用者於本輪確認「顯示停用占位按鈕，後續再接功能」，取代初版省略方案。新增商品 URL／API 留待後續需求。
 - 配色與背景依專案指引保持整體一致，不要求逐像素相同。實作階段再核對本地圖示与設計資產，不能保留暫時 Figma URL。
 
 ## III. Requirement List
 
-六項任務均已完成初次實作及必要測試；`DEVELOPED DONE` 表示交付 Code Review，不等於 `DONE`。
+原六項任務已完成初次實作；本次受影響任務改為 PLAN UPDATED 並清除舊 Development／Code Review Date；新元件任務 TASK-007 使用 TODO。未受影響任務保留原狀態。
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
 | TASK-002 | 登入／登出 Service 與契約 | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
-| TASK-005 | 產品查詢與 ProductPage | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
+| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
+| TASK-005 | 產品查詢與 ProductPage | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
 | TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-007 | 共用 Button 與表單按鈕整合 | ADD | 2026-10-08 | TODO | — | — |
 
-順序：Plan Review → TASK-001／002／006 → TASK-003／004 → TASK-005 → 整合驗證。新元件資料夾僅屬既有 components 架構下的 colocated 元件，無新增架構層或 barrel index.ts。
+本次 delta 順序：Plan Review → TASK-007 → TASK-003／004／005 → 互動回歸與產品頁視覺驗證。加入商品占位方式已確認。Button 元件資料夾屬既有 components 架構，無新增架構層或 barrel index.ts。
 
 ## IV. Technical Stack
 
@@ -146,6 +165,8 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 ### TASK-003 LoginForm 與 HomePage 登入流程
 
+**本次 PLAN UPDATED Delta**：僅修改 `src/components/LoginForm/LoginForm.tsx`、`LoginForm.css`，必要時調整同目錄測試。用 TASK-007 的 Button 取代提交原生 button，明確傳 `type="submit"`、原 disabled 條件、原 children 文案，保留 form.onSubmit；保留頁面專屬的定位／尺寸／margin，將 border、cursor、focus-visible 等共用基礎樣式移至 Button。既有 HomePage 請求與驗證不變。測試確認 Enter 與 click 均只提交一次、停用時不可提交、登入失敗保留輸入。下列初版行為作原功能背景，不要求重做已完成的登入流程。
+
 - **File**：MODIFY `src/components/LoginForm/LoginForm.tsx`、`LoginForm.css`、`LoginForm.test.tsx`（皆同目錄）；MODIFY `src/pages/HomePage.tsx`、`src/pages/HomePage.test.tsx`。
 - **Target**：LoginForm props；HomePage 的登入 values／touched／submitting、handleChange、handleBlur、handleSubmit、cancelRequest。
 - **Plan Type**：MODIFY。
@@ -158,6 +179,8 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 ### TASK-004 Session、頁面切換與共用導覽
 
+**本次 PLAN UPDATED Delta**：MODIFY `src/components/SiteHeader/SiteHeader.tsx`、`SiteHeader.css`、`src/pages/HomePage.css`；ADD 尚不存在的 `src/components/SiteHeader/SiteHeader.test.tsx`。把 HomePage.css 的 `.site-header`、brand、nav 及 mobile rules 搬至 SiteHeader.css，移除 `.site-header__nav button` 這類會覆蓋共用 Button 變體的寬泛 selector。登出使用 Button 的綠色變體，權限占位使用文字變體並保留現有回呼；商品管理繼續用不可點擊 span、粗體底線。桌面對齊依 Figma Header 尺寸與位置，手機允許換行且不溢出。驗證 Header 單獨渲染也有樣式、按鈕 accessible name／事件正確、未授權無登出、商品管理非互動元素。App／session 與 service 不在本次修改範圍。
+
 - **File**：MODIFY `src/App.tsx`、`src/pages/HomePage.tsx`、`src/pages/HomePage.css`；ADD `src/App.test.tsx`、`src/components/SiteHeader/SiteHeader.tsx`、`SiteHeader.css`、`SiteHeader.test.tsx`（皆同元件目錄）。
 - **Target**：App session／畫面控制與 handleLogout；新增 SiteHeader；HomePage header 抽出。
 - **Plan Type**：MODIFY。
@@ -169,6 +192,10 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 - **Testing**：登入成功保存快照並轉產品；卸載再掛載模擬重新整理，驗證使用保存的授權查詢且不呼叫 login；恢復後 401 清儲存並提示、403／500／斷網保留 Session 且不顯示舊資料；無／損壞／部分授權進 login 且不呼叫產品 API。登出各類結果均回空登入表單，登出請求未完成前儲存已移除；失效後重新掛載不得恢復登入。涵蓋儲存讀寫移除失敗、StrictMode 恢復、登出與產品請求 race、連按登出；商品不可點、權限占位不呼叫 API。各案例清理 sessionStorage，避免互相污染。
 
 ### TASK-005 產品查詢與 ProductPage
+
+**本次 PLAN UPDATED Delta**：MODIFY `src/pages/ProductPage.tsx`、`ProductPage.css`、`ProductPage.test.tsx`；只調整呈現結構與 CSS，保留 getProducts、錯誤與 session 回呼。移除可見大標題、以 section aria-label 保留名稱；增加右對齊 toolbar，放 Button 藍色變體的「加入商品」，`disabled`、`type="button"`，無 href/onClick。桌面 toolbar/table 依本輪 Delta 表的 1920px 座標與比例，使用自然流 flex/block，不用整頁 absolute。table 採 fixed layout 六欄等寬、完整格線、表頭灰底與置中；外框包在可水平捲動容器內，窄螢幕不壓縮欄位到不可讀。圖示於同欄的 flex wrapper 中水平置中，維持 24px／26px 原比例，仍是非互動圖片。零筆成功時保留表頭並以 colspan=6 的狀態列呈現「目前無產品」；loading／error 沿用既有區分，不顯示舊商品。確認表頭保留「價格」。現有 Product 型別實際位於 src/types/auth.ts，本輪不為此搬移型別或修改 service；下列初版 ADD 清單僅作歷史，不要求重建既有服務。
+
+**本次驗證**：ProductPage 測試涵蓋停用占位不導航／不發新增 API、單筆／多筆／零筆、既有錯誤與失效回呼；用受控 API 與虛擬授權資料於瀏覽器檢查 1920×1080 和窄螢幕，記錄實作截圖與 Figma 對照。核對所有圖示的非空檔案、來源、slot、callsite 與有效 rendered geometry；不能以 JSX 測試通過代替視覺核對。
 
 - **File**：ADD `src/types/product.ts`、`src/services/product-service.ts`、`src/services/product-service.test.tsx`、`src/pages/ProductPage.tsx`、`src/pages/ProductPage.css`、`src/pages/ProductPage.test.tsx`。
 - **Target**：新增 Product、getProducts、ProductPage；Product 為 id／name／label_names: string、cost／price: number，僅映射本次顯示欄位。
@@ -193,7 +220,25 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 - **Testing**：受控 backend 驗證 GET 的 URI／productId=all／Uid／Authorization，非成功狀態透傳；既有註冊 POST 測試保留。nginx -t 與容器轉送待具備環境時執行，不能將靜態檢查說成已運行通過。
 - **Response headers 驗證**：受控 backend 回傳 Status／Message，登入回應另含 Uid／Authorization，確認既有 /userController 與新增 /productController 代理均保留這些 HTTP response headers。沿用同源代理架構，不新增跨來源呼叫或無需求的 CORS 設定。
 
-### 驗收對應與整合檢查
+### TASK-007 共用 Button 與表單按鈕整合
+
+- **File**：ADD `src/components/Button/Button.tsx`、`Button.css`、`Button.test.tsx`；MODIFY `src/components/RegisterForm/RegisterForm.tsx`、`RegisterForm.css`，必要時調整 `RegisterForm.test.tsx`。此新增元件目錄符合 architecture.md 的 components 慣例。LoginForm／SiteHeader／ProductPage 的 callsite 分別屬 TASK-003／004／005。
+- **Target**：Button、ButtonProps（留元件檔內）、共用基礎樣式與 variants。
+- **Plan Type**：ADD。
+- **Current Behavior**：登入／註冊重複圓角、字體、disabled、cursor；Header 使用透明原生按鈕，沒有可依用途套用的外觀。
+- **Expected Behavior**：共用 Button 依 props 控制 CSS、文字與導航／事件，頁面不需重写按鈕基礎行為。
+- **Implementation**：`children` 提供文字／內容，`variant` 使用 `primary`（綠色）、`secondary`（藍色）、`text`，`className` 提供頁面 layout class；若需要局部尺寸用 CSS custom properties 明確調整，不傳入整段任意 CSS 字串。ButtonProps 採判別 union：未提供 href 時原生 button，透傳 ButtonHTMLAttributes、預設 type=button；提供 href 時原生 a，透傳 AnchorHTMLAttributes，排除 type／disabled 等 button-only props，以原生連結語意支援新分頁與鍵盤操作。需要停用時使用 button 分支，不建立假 disabled link。事件分支可接 onClick；表單按鈕明確 type=submit；href 分支為純 URL 導覽，不同時承擔 API 呼叫。不得在元件內硬編碼 userController、fetch、session 或 window.location。
+- **CSS**：只將基本外觀、focus-visible、disabled 行為與變體放進 Button.css。保留表單按鈕既有位置／尺寸與提交前後文字，避免本輪改動登入／註冊版型。Product Header 與 toolbar 的圓角／尺寸由 callsite class 配合變體表達。未實作 placeholder 的淡色外观不能被當成真的 disabled 狀態；加入商品確實使用原生 disabled，登出則可操作。
+- **Reuse / Scope**：RegisterForm 僅替換 submit control 與重複 CSS，保留註冊 onSubmit／驗證／服務／回應 parser。AuthTabs 已是可重用互動元件，本次保留其選取樣式與 aria-pressed，不強行泛化。
+- **URL 與事件映射**：登入／註冊為 form submit；登出為既有 onLogout（service 呼叫 POST /userController/logout）；權限管理維持現有占位回呼；加入商品無事件／URL。Button 的 href 能力只提供給未來已定義的導航目標，本輪不得猜測 /products/new 或 /permissions，也不得將 API URL 放成 href。
+- **Testing**：驗證預設 type=button 不意外送出表單、明確 type=submit 支援提交、disabled 不觸發 onClick、href 產生正確 link、文字及 aria-label 可設定；不以大量 CSS class 快照當作測試。登入／註冊現有互動回歸與 Header／ProductPage 案例需通過，保留 native focus 與鍵盤語意。
+- **Impact**：無新 dependency、API、資料型別或路由；不變更其他功能的業務規則。已完成註冊計畫不重開，這次 RegisterForm UI-only delta 歸 TASK-007 管理。
+
+### 本次 Delta 驗收
+
+執行 Button、LoginForm、RegisterForm、SiteHeader、ProductPage 相關測試與既有 HomePage／App 回歸，完成 build、lint；再以瀏覽器對照 Figma 產品頁。前次 79 個測試通過僅為歷史，不代表本次修改已驗證。
+
+### 原功能驗收對應
 
 | 需求 | 任務 | 驗證重點 |
 |---|---|---|
@@ -209,7 +254,7 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 ## VI. Review Status
 
-**Status: Development complete — OQ-001～007 已解決，六項 Task 已 DEVELOPED DONE，待 Code Review。**
+**Status: Awaiting Review — 產品頁視覺修正與 Button 共用方案已完成設計，加入商品停用占位已由使用者確認；尚未實作本次 Delta。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -220,10 +265,10 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 - [x] OQ-003 依 instructions/project.md 確認 HTTP headers 來源，服務序列化、解析及測試策略已定稿。
 - [x] OQ-004／005 輸入保留與 Scenario 密碼差異已解決。
 - [x] OQ-006／007 重新整理恢復 Session 與產品型別已同步設計及測試策略。
-- [ ] Implementation Plan 已完成人工審核。
-- [x] Development 完成；15 個測試檔／79 個測試、build、lint 通過。
+- [x] Implementation Plan 已完成人工審核。
+- [ ] 本次 Delta Development 完成；TASK-003／004／005 為 PLAN UPDATED、TASK-007 為 TODO。前次 15 個測試檔／79 個測試紀錄僅適用初版。
 - [ ] Code Review 通過。
 
 ### Handoff
 
-OQ-001～007 已全部結案。六項 Task 均為 `DEVELOPED DONE`，交 Code Review Agent 依本 Plan 審查；不得由 Programmer 設為 `DONE`。實作範圍為六項 Task，包含 sessionStorage 恢復登入與 HTTP headers 契約；不含更新 PM 原需求、後端／DB、商品新增編輯刪除、真實 PermissionPage、token refresh、跨瀏覽器工作階段持久登入或獨立 URL 路由。既有註冊 JSON parser 與新共用規範的差異已記錄，需另行核對其後端契約，本輪不修改註冊 API。尚未以真實後端或 nginx 容器驗證；Code Review 可依限制評估整合風險。
+本次為 System Design 的視覺差異分析與 Plan Update。Plan Review 完成後，Programmer 處理 TASK-007、TASK-003／004／005 的 delta；TASK-001／002／006 保持 DEVELOPED DONE。本輪未修改 production／test code 或需求文件。加入商品只做已確認的停用占位；所有未定義 URL／商品異動 API／權限頁維持後續需求範圍。驗證通過後由 Programmer 設 DEVELOPED DONE，再交 Code Review。
