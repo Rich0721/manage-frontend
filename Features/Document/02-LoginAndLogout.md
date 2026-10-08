@@ -9,7 +9,7 @@
 ### 2-1. 參考文件
 Figma設計稿:
     - [登入頁面](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=1-5&t=x3UsbawINDG8iYep-4)
-    - [產品頁面](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=18-2&t=x3UsbawINDG8iYep-4)
+    - [產品頁面](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=18-2&t=wdrWxOlTeJeVuUv6-4)
 Flow Chart:
     - [登入流程](./flows/02-LoginAndLogout/01-Login.mmd)
 Gherkin:
