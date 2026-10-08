@@ -12,7 +12,7 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | Code Review 部分完成；TASK-001 為 DONE、TASK-002／006 為 REVIEW FIX；TASK-003／004／005 為 PLAN UPDATED，TASK-007 為 TODO |
+| Status | Awaiting Review：需求勘誤已同步，TASK-002 改為 PLAN UPDATED；TASK-001 為 DONE、TASK-006 為 REVIEW FIX；TASK-003／004／005 為 PLAN UPDATED，TASK-007 為 TODO |
 
 本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。原六項 Task 的初次實作與測試紀錄保留為歷史；本次 delta 尚未實作或驗證。OQ-001～007 均已解決。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
 
@@ -34,15 +34,35 @@ OQ-001～007 已全部解決。2026-10-08 依 `instructions/project.md` 新增�
 
 | API | HTTP request headers | JSON request payload | HTTP response headers | JSON response payload |
 |---|---|---|---|---|
-| Login | Content-Type: application/json；不帶登入授權 | `{ body: { email, password: passwordHash, isForceLogin } }` | Status、Message；成功另含 Uid、Authorization | `{ body: { info: { userName } } }` |
+| Login | Content-Type: application/json；不帶登入授權 | `{ body: { info: { email, password: passwordHash, isForceLogin } } }` | Status、Message；成功另含 Uid、Authorization | `{ body: { info: { userName } } }` |
 | Logout | Content-Type、Uid、Authorization | `{ body: { info: { userName } } }` | Status、Message | `{ body: { info: { userName } } }` |
 | Get Products | Content-Type、Uid、Authorization | 無 request body | Status、Message | `{ body: { info: [...] } }` |
 
-HTTP status code 使用 `Response.status`；業務 Status／Message 使用 `Response.headers.get(...)`，不可混用。Uid／Authorization 只從 HTTP response headers 取得；JSON 內同名欄位不作 fallback。JSON 保留原計畫的 body envelope。Status 值轉小寫比較，HTTP header 名稱依 Headers API 讀取；Authorization 原值送回。
+HTTP status code 使用 `Response.status`；業務 Status／Message 使用 `Response.headers.get(...)`，不可混用。Uid／Authorization 只從 HTTP response headers 取得；JSON 內同名欄位不作 fallback。登入 JSON envelope 依修正後需求使用 body.info。Status 值轉小寫比較，HTTP header 名稱依 Headers API 讀取；Authorization 原值送回。
 
 既有註冊 service 使用 JSON status／message parser，與新共用定義存在歷史差異。本輪僅規劃登入／登出／產品，不改寫註冊契約；明列為既有功能另行核對事項，不聲稱既有註冊已符合新規則，也不把它重新列為 OQ-003 阻擋。
 
 ### 本次 Requirement Delta 與影響
+
+#### 登入需求勘誤：最新影響分析（2026-10-08）
+
+本次屬 Requirement Change（需求書勘誤）。原需求與 Plan 映射表將登入欄位放在 body 直屬層；修正後需求 2-2-1 明訂放在 body.info。現有服務與型別已符合新需求，測試仍預期舊結構。下表及更新後 TASK-002 優先於本文件歷史驗證紀錄與舊 Review 的電文結論。
+
+| Task | 本次影響 | 後續與狀態 |
+|---|---|---|
+| TASK-001 | NO CHANGE：輸入、trim、欄位驗證未變 | 保持 DONE |
+| TASK-002 | MODIFY：同步 Plan／服務測試契約，保留現有 body.info 型別與序列化 | PLAN UPDATED，清除 Development／Code Review Date；仍須修正錯誤分類、補足測試 |
+| TASK-003 | NO CHANGE：HomePage 傳 LoginFormValues，JSON envelope 由 service 處理 | 保持 PLAN UPDATED，繼續原 Button delta，回歸登入成功及失敗保留輸入 |
+| TASK-004 | NO CHANGE：AuthSession／登入 response／Session 保存介面未變 | 保持 PLAN UPDATED，繼續原 Header delta 及 Session 回歸 |
+| TASK-005 | NO CHANGE：產品 GET 無 request body，response 欄位未變 | 保持 PLAN UPDATED，繼續原產品 UI／視覺驗收 |
+| TASK-006 | NO CHANGE：代理透傳 body，無序列化或格式轉換 | 保持 REVIEW FIX，原 URI／query、錯誤狀態及 response headers 測試缺口仍需補齊；新增登入案例的 fixture 採最新 body.info |
+| TASK-007 | NO CHANGE：Button 不處理 API 電文 | 保持 TODO，繼續原元件驗收 |
+
+Review 處理：TASK-002 Review 第 1 項「多包 info」基於修正前需求，已被本次勘誤取代，不應要求將服務改回 body 直屬欄位。第 2／3 項錯誤分類與缺漏測試仍有效。Review 文件保留歷史，OPEN 狀態由 Code Reviewer 後續複審；需求分析結論記錄於 `Features/Issue/02-LoginAndLogout/TASK-002.md`。
+
+相容性及驗證：只使用修正後的單一格式，不新增雙格式 fallback；HTTP headers、URL、response、boolean isForceLogin、409 重送規則及 Session 行為皆未變。無資料庫、環境變數、代理設定、dependency 或 migration 變更。須重跑服務及 HomePage／App 回歸與完整檢查；本輪只做文件分析，未執行或宣稱新測試通過。
+
+以下原需求 Delta 與視覺 Delta 保留，未因本次勘誤擴大範圍。
 
 | 原計畫 | 最新需求／調整 | 影響 |
 |---|---|---|
@@ -114,7 +134,7 @@ Uid 與 Authorization 皆存在才顯示登出；登出請求無論成功或失�
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
-| TASK-002 | 登入／登出 Service 與契約 | ADD | 2026-10-08 | REVIEW FIX | 2026-10-08 | 2026-10-08 |
+| TASK-002 | 登入／登出 Service 與契約 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
 | TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
 | TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
 | TASK-005 | 產品查詢與 ProductPage | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
@@ -151,12 +171,14 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 
 ### TASK-002 登入／登出 Service 與契約
 
-- **File**：ADD `src/services/auth-service.ts`、`src/services/auth-service.test.tsx`；擴充新 `src/types/auth.ts`；MODIFY `src/services/api-response.ts`、`src/services/api-response.test.tsx`。
-- **Target**：新增 loginUser、logoutUser、AuthServiceError、AuthSession 與結果 union；共用模組新增 getHttpResponseStatus、getHttpResponseMessage，接收 HTTP Headers 並回傳 string 或 undefined；原 JSON parser 匯出維持不變。
-- **Plan Type**：ADD。
-- **Current Behavior**：沒有登入／登出 API。
+**本次 PLAN UPDATED Delta（需求勘誤）**：修正後需求明訂登入 request 使用 `{ body: { info: { email, password: passwordHash, isForceLogin } } }`。`src/services/auth-service.ts` 的 payload 與 `src/types/auth.ts` 的 LoginRequestBody 目前已符合，不應依舊 Review 改回平坦 body。MODIFY `src/services/auth-service.test.tsx` 的完整 body 斷言及第二次請求的 `body.info.isForceLogin` 路徑；驗證 boolean false→true、相同 Email／digest、最多兩次、JSON 不含 headers。仍須依 Review 第 2／3 項處理 HTTP 成功但缺 Status 時的 protocol 分類及補足下列 Testing。完成服務、HomePage／App 回歸、完整測試、build、lint 後，再設 DEVELOPED DONE 供複審。
+
+- **File**：MODIFY `src/services/auth-service.ts`、`src/services/auth-service.test.tsx`；確認現有 `src/types/auth.ts` 的 LoginRequestBody 保持 body.info；必要時依原契約測試補強 `src/services/api-response.test.tsx`，不變更 `api-response.ts` 的既有匯出介面。
+- **Target**：現有 loginUser、logoutUser、AuthServiceError、AuthSession 與 LoginRequestBody；getHttpResponseStatus、getHttpResponseMessage 接收 HTTP Headers 並回傳 string 或 undefined；原 JSON parser 匯出維持不變。
+- **Plan Type**：MODIFY（初版 ADD 已完成；本次為契約與測試調整）。
+- **Current Behavior**：登入／登出 service 已存在；登入 body.info 已符合修正後需求，測試仍預期舊結構，錯誤分類與缺漏測試待修正。
 - **Expected Behavior**：POST `/userController/login`；初次 false，HTTP 409（其他裝置已登入）才重送一次 true，第二次 409 停止並提示；401 提示帳密錯誤並保留輸入。HTTP 200 且 HTTP response header Status 正規化為 success、必要授權完整才成功。POST `/userController/logout` 於 HTTP request headers 攜帶當次授權，JSON body.info 攜帶 userName。
-- **Implementation**：HTTP Content-Type 與 JSON body envelope 分開：登入 JSON 為 `{ body: { info: { email, password: passwordHash, isForceLogin } } }`，不套用註冊的 body.info；登出 JSON 為 `{ body: { info: { userName } } }`，兩者 JSON 均不含 headers。重送沿用同一次輸入快照及雜湊，不將 digest 再 hash；不對一般失敗、斷網、timeout 自動強制重送。Status／Message 使用新的 HTTP header parser，Uid／Authorization 使用 response.headers.get 取得並驗證非空字串；Authorization 保留原值。成功 JSON 以 unknown 解析 body.info.userName 並驗證為字串；缺必要值列 protocol error，不能半登入。缺少 HTTP 授權時不能從 JSON 補值；HTTP header 與 JSON 同名欄位衝突時只採 HTTP header。錯誤 Message 缺失時使用上層通用提示，不影響既定 HTTP 401／409 分支。
+- **Implementation**：HTTP Content-Type 與 JSON body envelope 分開：登入 JSON 為 `{ body: { info: { email, password: passwordHash, isForceLogin } } }`；登出 JSON 為 `{ body: { info: { userName } } }`，兩者 JSON 均不含 headers。重送沿用同一次輸入快照及雜湊，不將 digest 再 hash；不對一般失敗、斷網、timeout 自動強制重送。Status／Message 使用新的 HTTP header parser，Uid／Authorization 使用 response.headers.get 取得並驗證非空字串；Authorization 保留原值。成功 JSON 以 unknown 解析 body.info.userName 並驗證為字串；缺必要值列 protocol error，不能半登入。缺少 HTTP 授權時不能從 JSON 補值；HTTP header 與 JSON 同名欄位衝突時只採 HTTP header。錯誤 Message 缺失時使用上層通用提示，不影響既定 HTTP 401／409 分支。
 - **Reuse**：sha256；沿用既有 30 秒 timeout、AbortSignal 與 finally 清理模式。HTTP parser 由本任務新增，供登入／登出／產品共用；既有 getApiResponseStatus／getApiResponseMessage 僅留給註冊，不用於本功能。新增服務明確區分 timeout／network／http／protocol／crypto，不修改 RegisterServiceError。
 - **Impact**：只新增必要 API 型別與服務；不改既有註冊 request。
 - **Error Handling**：取消後不得啟動第二次登入；強制登入再遇相同回應也停止，不無限重試。失敗由上層提示；登出錯誤不阻止上層 finally 清除 session。日誌不得輸出密碼、雜湊、Authorization 或完整電文。
@@ -250,13 +272,13 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 | 產品授權及查詢 | 004／005／006 | 授權失效與一般錯誤可區分，query／header 正確 |
 | 六欄／空資料／占位 | 004／005 | 指定欄名、目前無產品、無額外 API 副作用 |
 
-實際驗證（2026-10-08）：初版的 `npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 曾通過 15 個測試檔、79 個測試；僅屬歷史紀錄。視覺與 Button 本次 Delta 已建立共用 Button 並整合 TASK-003／004／005／007，新增 Header 與產品頁回歸案例。相關 7 個測試檔、23 個測試通過，`npm.cmd run build` 與 `npm.cmd run lint` 通過。完整測試目前 17 個檔案中 15 個通過、83/85 項測試通過；另 2 項既有 auth-service 測試預期登入 JSON `{ body: { email, password, isForceLogin } }`，與本 Plan 及服務目前定義的 `{ body: { info: { email, password, isForceLogin } } }` 不符，待核對／修正測試後重跑。瀏覽器自動化環境啟動失敗，尚未完成 1920×1080 與窄螢幕的 Figma 實際畫面對照，因此本次 Delta 尚未驗收完成，受影響任務仍保留 PLAN UPDATED／TODO。未連接真實後端、未執行 Docker/nginx 容器測試；留待環境／Review 驗證。
+歷史實際驗證（2026-10-08，需求勘誤前）：初版的 `npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 曾通過 15 個測試檔、79 個測試；僅屬歷史紀錄。視覺與 Button 本次 Delta 已建立共用 Button 並整合 TASK-003／004／005／007，新增 Header 與產品頁回歸案例。相關 7 個測試檔、23 個測試通過，`npm.cmd run build` 與 `npm.cmd run lint` 通過。完整測試目前 17 個檔案中 15 個通過、83/85 項測試通過；另 2 項既有 auth-service 測試預期登入 JSON `{ body: { email, password, isForceLogin } }`，與本 Plan 及服務目前定義的 `{ body: { info: { email, password, isForceLogin } } }` 不符，待核對／修正測試後重跑。瀏覽器自動化環境啟動失敗，尚未完成 1920×1080 與窄螢幕的 Figma 實際畫面對照，因此本次 Delta 尚未驗收完成，受影響任務仍保留 PLAN UPDATED／TODO。未連接真實後端、未執行 Docker/nginx 容器測試；留待環境／Review 驗證。
 
-Code Review 更正（2026-10-08）：前段「本 Plan 及服務目前定義 `body.info`」的判斷有誤。本 Plan 的 API 映射表與 TASK-002 Implementation 均明訂登入 request 使用 `{ body: { email, password, isForceLogin } }`；目前服務與型別多包 `info`，故將 TASK-002 設為 REVIEW FIX。TASK-006 的代理測試亦缺 Plan 明列的 URI／query、非成功回應及登入 response headers 驗證，設為 REVIEW FIX。審查紀錄見 `Features/Review/02-LoginAndLogout/`。
+歷史 Code Review 更正（2026-10-08，需求勘誤前，電文結論已由最新影響分析取代）：前段「本 Plan 及服務目前定義 `body.info`」的判斷有誤。本 Plan 的 API 映射表與 TASK-002 Implementation 均明訂登入 request 使用 `{ body: { email, password, isForceLogin } }`；目前服務與型別多包 `info`，故將 TASK-002 設為 REVIEW FIX。TASK-006 的代理測試亦缺 Plan 明列的 URI／query、非成功回應及登入 response headers 驗證，設為 REVIEW FIX。審查紀錄見 `Features/Review/02-LoginAndLogout/`。
 
 ## VI. Review Status
 
-**Status: 部分審查完成 — TASK-001 通過；TASK-002／006 有 OPEN Review Issue；TASK-003／004／005／007 尚待開發驗收後進入正式 Code Review。**
+**Status: Awaiting Review — TASK-002 需求勘誤已完成 Plan Update；原 Review 的電文結論由最新需求取代，錯誤分類與缺漏測試仍有效。其餘 Task 沿用原狀態，詳見最新影響分析。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -268,9 +290,11 @@ Code Review 更正（2026-10-08）：前段「本 Plan 及服務目前定義 `bo
 - [x] OQ-004／005 輸入保留與 Scenario 密碼差異已解決。
 - [x] OQ-006／007 重新整理恢復 Session 與產品型別已同步設計及測試策略。
 - [x] Implementation Plan 已完成人工審核。
+- [x] 本次 TASK-002 需求勘誤已完成七項任務影響分析。
+- [ ] 本次 TASK-002 Plan Update 完成人工審核（前項人工審核僅適用舊版）。
 - [ ] 本次 Delta Development 完成；TASK-003／004／005 為 PLAN UPDATED、TASK-007 為 TODO。前次 15 個測試檔／79 個測試紀錄僅適用初版。
 - [ ] Code Review 通過。
 
 ### Handoff
 
-Code Review（2026-10-08）：TASK-001 已通過並設為 DONE。TASK-002／006 的 OPEN Review Issue 已記錄於 `Features/Review/02-LoginAndLogout/`，交由 Programmer 修正，通過測試後再設 `DEVELOPED DONE` 供複審。TASK-003／004／005／007 保留原狀態，待完整測試與產品頁視覺驗證完成後進入正式審查。加入商品仍只做已確認的停用占位；未定義 URL／商品異動 API／權限頁維持後續需求範圍。
+System Design（2026-10-08，需求勘誤）：TASK-002 已更新為 PLAN UPDATED，依新需求保留 body.info，修正測試預期並處理仍有效的錯誤分類與測試缺口。本次 Plan Update 待確認後交 Programmer。TASK-001 保持 DONE；TASK-006 保持 REVIEW FIX；TASK-003／004／005／007 維持原工作及驗收範圍。原 Review 第 1 項電文結論不再作為修改服務格式的依據，Review OPEN 狀態留待 Reviewer 複審。加入商品仍是停用占位。
