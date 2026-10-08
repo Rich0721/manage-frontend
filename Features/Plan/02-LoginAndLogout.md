@@ -12,9 +12,9 @@
 | Related Plan | `Features/Plan/01-Register.md` |
 | Plan Date | 2026-10-08 |
 | Role | System Design Agent |
-| Status | Awaiting Review：需求勘誤已同步，TASK-002 改為 PLAN UPDATED；TASK-001 為 DONE、TASK-006 為 REVIEW FIX；TASK-003／004／005 為 PLAN UPDATED，TASK-007 為 TODO |
+| Status | Partial Handoff：TASK-002／003／004／006／007 已 DEVELOPED DONE；TASK-005 待瀏覽器視覺驗收；TASK-001 為 DONE |
 
-本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。原六項 Task 的初次實作與測試紀錄保留為歷史；本次 delta 尚未實作或驗證。OQ-001～007 均已解決。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
+本文件於 2026-10-08 依使用者提出的產品頁視覺差異與共用 Button 要求，由 System Design 重新核對並更新。OQ-001～007 均已解決。最新開發狀態與驗收結果記錄於 Requirement List 及 Programmer 執行紀錄；TASK-005 尚待瀏覽器視覺驗收。架構依 `instructions/project.md` 與 `instructions/architecture.md`；技術規範採 React、TypeScript、unit-test 與 figma-design-to-code Skills。角色流程依 `agents/system-design-agent.md`；後續 Programmer 依 `agents/programmer-agent.md` 執行。
 
 ### Missing Requirement Information
 
@@ -129,17 +129,17 @@ Uid 與 Authorization 皆存在才顯示登出；登出請求無論成功或失�
 
 ## III. Requirement List
 
-原六項任務已完成初次實作；本次受影響任務改為 PLAN UPDATED 並清除舊 Development／Code Review Date；新元件任務 TASK-007 使用 TODO。未受影響任務保留原狀態。
+原六項任務已完成初次實作；下表記錄最新 Implementation Status 與本次開發交接狀態。未受本次變更影響的 TASK-001 保持 DONE。
 
 | Task ID | Component Name | Plan Type | Plan Date | Implementation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 共用認證欄位驗證 | MODIFY | 2026-10-08 | DONE | 2026-10-08 | 2026-10-08 |
-| TASK-002 | 登入／登出 Service 與契約 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
-| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
-| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
+| TASK-002 | 登入／登出 Service 與契約 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-003 | LoginForm 與 HomePage 登入流程 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-004 | Session、頁面切換與共用導覽 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
 | TASK-005 | 產品查詢與 ProductPage | MODIFY | 2026-10-08 | PLAN UPDATED | — | — |
-| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | REVIEW FIX | 2026-10-08 | 2026-10-08 |
-| TASK-007 | 共用 Button 與表單按鈕整合 | ADD | 2026-10-08 | TODO | — | — |
+| TASK-006 | 產品 API 代理 | MODIFY | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
+| TASK-007 | 共用 Button 與表單按鈕整合 | ADD | 2026-10-08 | DEVELOPED DONE | 2026-10-08 | — |
 
 本次 delta 順序：Plan Review → TASK-007 → TASK-003／004／005 → 互動回歸與產品頁視覺驗證。加入商品占位方式已確認。Button 元件資料夾屬既有 components 架構，無新增架構層或 barrel index.ts。
 
@@ -272,15 +272,15 @@ TypeScript 5.9.3、React／React DOM 18.3.1、Vite 7.3.1、npm、原生 CSS／fe
 | 產品授權及查詢 | 004／005／006 | 授權失效與一般錯誤可區分，query／header 正確 |
 | 六欄／空資料／占位 | 004／005 | 指定欄名、目前無產品、無額外 API 副作用 |
 
-歷史實際驗證（2026-10-08，需求勘誤前）：初版的 `npm.cmd exec -- vitest run --reporter=dot --maxWorkers=1` 曾通過 15 個測試檔、79 個測試；僅屬歷史紀錄。視覺與 Button 本次 Delta 已建立共用 Button 並整合 TASK-003／004／005／007，新增 Header 與產品頁回歸案例。相關 7 個測試檔、23 個測試通過，`npm.cmd run build` 與 `npm.cmd run lint` 通過。完整測試目前 17 個檔案中 15 個通過、83/85 項測試通過；另 2 項既有 auth-service 測試預期登入 JSON `{ body: { email, password, isForceLogin } }`，與本 Plan 及服務目前定義的 `{ body: { info: { email, password, isForceLogin } } }` 不符，待核對／修正測試後重跑。瀏覽器自動化環境啟動失敗，尚未完成 1920×1080 與窄螢幕的 Figma 實際畫面對照，因此本次 Delta 尚未驗收完成，受影響任務仍保留 PLAN UPDATED／TODO。未連接真實後端、未執行 Docker/nginx 容器測試；留待環境／Review 驗證。
+歷史實際驗證（2026-10-08，需求勘誤前）：初版曾通過 15 個測試檔、79 個測試，僅屬歷史紀錄。最新驗證（2026-10-08）：完整測試 17 個檔案、135 項測試全數通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。TASK-002／003／004／006／007 已完成最新 Plan 的程式與自動化測試驗收，狀態更新為 DEVELOPED DONE，待 Code Review。TASK-005 的元件及互動測試已通過，但 Plan 另要求在瀏覽器對照 1920×1080 與窄螢幕；CUA 瀏覽器服務持續因 `setup refresh had errors` 無法啟動，環境未安裝 Playwright／Puppeteer，故尚未完成實際畫面核對，維持 PLAN UPDATED。未連接真實後端，未執行 Docker/nginx 容器測試；代理受控整合測試已通過，容器驗證仍待可用環境。
 
-Programmer 執行紀錄（2026-10-08）：依最新勘誤更新 TASK-002 request assertions，補上 409 上限／取消、hash failure、timeout、錯誤 response、HTTP header 衝突與缺漏、logout failure 等測試；成功 HTTP 回應缺 Status 時，login／logout service 改回報 protocol error。TASK-006 代理測試增加產品 URI／query 與 Content-Type 斷言、登入 body.info 及 response headers 透傳、503 status／headers／body 透傳案例。`npm.cmd run build` 與 `npm.cmd run lint` 通過；本次單元及代理測試尚未執行，故 TASK-002／006 未標為 DEVELOPED DONE，仍待 Programmer 執行必要測試後更新狀態。
+Programmer 執行紀錄（2026-10-08）：TASK-002 已依修正需求保留 `{ body: { info: ... } }`，補上 409 上限／取消、hash failure、timeout、錯誤 response、HTTP header 衝突與缺漏、logout failure 等測試；成功 HTTP 回應缺 Status 時，login／logout service 回報 protocol error。TASK-006 代理測試涵蓋產品 URI／query、request headers、登入 body.info 與 response headers 透傳、503 status／headers／body 透傳。TASK-003／004／007 的 HomePage、Session、Header 與 Button 案例均納入全套測試；TASK-005 ProductPage 行為與資料狀態案例通過。自我檢查確認無未提交程式變更；測試 17/17 檔、135/135 項通過，build、lint 通過。TASK-002／003／004／006／007 標為 DEVELOPED DONE，TASK-005 待瀏覽器視覺驗收後再交審。
 
 歷史 Code Review 更正（2026-10-08，需求勘誤前，電文結論已由最新影響分析取代）：前段「本 Plan 及服務目前定義 `body.info`」的判斷有誤。本 Plan 的 API 映射表與 TASK-002 Implementation 均明訂登入 request 使用 `{ body: { email, password, isForceLogin } }`；目前服務與型別多包 `info`，故將 TASK-002 設為 REVIEW FIX。TASK-006 的代理測試亦缺 Plan 明列的 URI／query、非成功回應及登入 response headers 驗證，設為 REVIEW FIX。審查紀錄見 `Features/Review/02-LoginAndLogout/`。
 
 ## VI. Review Status
 
-**Status: Awaiting Review — TASK-002 需求勘誤已完成 Plan Update；原 Review 的電文結論由最新需求取代，錯誤分類與缺漏測試仍有效。其餘 Task 沿用原狀態，詳見最新影響分析。**
+**Status: Partial Handoff — TASK-002／003／004／006／007 已 DEVELOPED DONE，可進行 Code Review；TASK-005 仍為 PLAN UPDATED，待完成瀏覽器桌面與窄螢幕視覺驗收。TASK-002 舊 Review 的電文結論由最新需求取代，錯誤分類與缺漏測試已依最新計畫補正，OPEN 狀態由 Code Reviewer 複審。**
 
 - [x] 核對需求、流程、Scenario、既有計畫與相關 source／tests。
 - [x] 核對 Figma 指定節點及既有圖示路徑。
@@ -299,4 +299,4 @@ Programmer 執行紀錄（2026-10-08）：依最新勘誤更新 TASK-002 request
 
 ### Handoff
 
-System Design（2026-10-08，需求勘誤）：TASK-002 已更新為 PLAN UPDATED，依新需求保留 body.info，修正測試預期並處理仍有效的錯誤分類與測試缺口。本次 Plan Update 待確認後交 Programmer。TASK-001 保持 DONE；TASK-006 保持 REVIEW FIX；TASK-003／004／005／007 維持原工作及驗收範圍。原 Review 第 1 項電文結論不再作為修改服務格式的依據，Review OPEN 狀態留待 Reviewer 複審。加入商品仍是停用占位。
+Programmer（2026-10-08）：已依最新 Plan 完成並驗證 TASK-002／003／004／006／007，均設為 DEVELOPED DONE，交 Code Reviewer 複審；TASK-002 與 TASK-006 原有 OPEN Review 文件保留，請依最新 Plan 重新審查。TASK-005 的 UI／互動程式及自動化測試已完成，但瀏覽器視覺驗收受 CUA 啟動錯誤阻擋，仍為 PLAN UPDATED。TASK-001 保持 DONE；未宣稱真實後端或 nginx 容器測試通過。加入商品仍是停用占位。
