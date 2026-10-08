@@ -129,11 +129,16 @@ Response Body:
 1. 使用者輸入`Email`與`密碼`，相關輸入檢查規範與`01-Register.md`一致，請使用成共用模組進行驗證。
 2. 使用者點擊`登入`按鈕後，系統會將密碼進行'SHA-256'加密，並將加密後的密碼與`Email`一併送至後端進行驗證。
 3. 後端驗證情境:
-    - 使用者未於其他裝置登入，系統會直接登入並返回授權資訊後，使用者直接切換至`ProductPage`。
-    - 使用者於其他裝置登入，目前直接先強制重送一次登入請求，並且將`isForceLogin`設為`true`。若後端驗證成功，系統會返回授權資訊，使用者直接切換至`ProductPage`。
-    - 若後端驗證失敗，系統會返回錯誤訊息，使用者需重新輸入`Email`與`密碼`進行登入。
+
+| 情境 | 後續行為 | Status Code | Status | Message |
+|-------------|--------|---------|--------|---------|
+| 使用者未於其他裝置登入 | 直接登入並返回授權資訊，使用者切換至`ProductPage` | 200         | Success| Login successful |
+| 使用者輸入錯誤的`Email`或`密碼` | 使用Alert提示錯誤訊息，並要求使用者重新輸入，並保留原本輸入的資訊 | 401         | Failed  | User login failed |
+| 使用者於其他裝置登入 | 強制重送一次登入請求，並將`isForceLogin`設為`true`，若後端驗證成功，使用者切換至`ProductPage` | 409         | Failed  | User login failed because already logged in on another device |
+
 4. Header中的`Authorization`與`Uid`需隨每次請求一併送出，以確保使用者身份驗證的有效性。
 5. `ProductPage`會直接使用Header中的`Authorization`與`Uid`進行身份驗證，確保使用者的操作權限後，自動載入所有的產品資訊。
+6. 使用Session保存登入狀態，因後端有限制登入時間，所以如果授權資訊過期，因將頁面導向`HomePage`登入頁面，並提示使用者重新登入。
 
 #### 登出流程
 1. 使用者的`Authorization`與`Uid`存在時，`登出`按鈕才會顯示，否則不顯示給使用者。
@@ -151,4 +156,13 @@ Response Body:
         - `價格` - price
         - `編輯` - 會放入`pencil.png`和`delete.png`，用於編輯與刪除操作，可先實作前端顯示，但相關功能暫時不實作。
     - 根據產品數量動態生成表格行，若無產品則顯示提示訊息`目前無產品`。
-    - 如果授權無效，則直接導回`HomePage`登入頁面。
+
+#### 共用說明
+- 除了使用`userController/login`和`userController/register`之外，所有的API都需要包含`Authorization`與`Uid`於Headers中，以確保使用者身份驗證的有效性。
+
+| Status Code | Status | Message | 情境 |
+| --  | -- | -- | -- |
+| 401 | Failed  | Unauthorized | 後端比對`Uid`與`Authorization`失敗 |
+| 403 | Failed  | Forbidden | 後端比對`Uid`與`Authorization`成功，但使用者無操作權限 |
+| 409 | Failed  | Conflict | 資源衝突，例如使用者已在其他裝置登入 |
+| 422 | Failed  | Unprocessable Entity | 請求格式錯誤或缺少必要參數  |

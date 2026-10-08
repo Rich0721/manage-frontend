@@ -5,7 +5,7 @@ Feature: 使用者於前端進行登入
      And 使用者未於其他裝置登入
      When 使用者於登入表單輸入以下有效資料
       | email    | password |
-      | user@example.com | password123 |
+      | user@example.com | Password123 |
      And 使用者點擊登入按鈕
      And 前端進行密碼加密後，將以下資料送至後端
      | email    | password | isForceLogin |
@@ -18,7 +18,7 @@ Feature: 使用者於前端進行登入
      And 使用者於其他裝置已登入
      When 使用者於登入表單輸入以下有效資料
       | email    | password |
-      | user@example.com | password123 |
+      | user@example.com | Password123 |
      And 使用者點擊登入按鈕
      And 前端進行密碼加密後，將以下資料送至後端
      | email    | password | isForceLogin |
@@ -34,7 +34,7 @@ Scenario: 使用者登入失敗
     Given 使用者在登入頁面
      When 使用者於登入表單輸入以下無效資料
       | email    | password |
-      | user@example.com | wrongpassword |
+      | user@example.com | W1ongpassword |
      And 使用者點擊登入按鈕
      And 前端進行密碼加密後，將以下資料送至後端
      | email    | password | isForceLogin |
