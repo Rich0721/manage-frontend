@@ -1,12 +1,12 @@
 # TASK-005 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
 TASK-005
 
-## Review Result
+## Initial Review Result
 
 未通過。詳情載入與其他操作可互相覆蓋，刪除確認內容與部分回歸測試不符計畫。Code Review Date：2026-10-13。
 
@@ -43,3 +43,7 @@ Status: OPEN。2026-10-13 複審：詳情請求已在切換新增／刪除時取
 ## Programmer Fix Handoff
 
 2026-10-13：`src/App.test.tsx` 新增新增商品 API 回傳 401 的 App 整合案例，確認 sessionStorage 已清除、畫面回到登入表單、只呼叫新增一次且只顯示一次「使用者未授權」。驗證 `npm.cmd test -- --run src/App.test.tsx`（16 項通過）、完整 `npm.cmd test -- --run`（22 個測試檔、181 項通過）及 `npm.cmd run lint` 均通過。Implementation Plan TASK-005 狀態更新為 `DEVELOPED DONE`；Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
+
+## Final Re-review
+
+Status: RESOLVED。Code Review Date：2026-10-13。已核對 `src/App.test.tsx`：測試經由 App 實際開啟新增表單並送出，由產品服務邊界回傳 401，接著驗證 sessionStorage 清空、登入表單出現、`window.alert` 僅呼叫一次且內容為「使用者未授權」。先前複審確認的詳情切換、刪除確認與頁面回歸仍有效；Programmer 於本次修正後執行單檔 16 項、全套 181 項及 lint 均通過。沒有新增待修問題，TASK-005 通過複審。

@@ -5,6 +5,8 @@ Review Date：2026-10-13
 
 複審結果（2026-10-13）：TASK-001／002／003／004／006 通過，Implementation Status 為 `DONE`、Review Status 為 `RESOLVED`。TASK-005 的原實作問題已修正，但 App 層 CRUD 401 整合測試仍缺，Implementation Status 為 `REVIEW FIX`、Review Status 維持 `OPEN`。
 
+最終複審結果（2026-10-13）：TASK-005 通過；六項 Task 的 Implementation Status 均為 `DONE`，Review Status 均為 `RESOLVED`。
+
 ## 初審主要發現
 
 | Task | 結果 | 主要問題 |
@@ -31,6 +33,10 @@ Review Date：2026-10-13
 ## Programmer Fix Handoff
 
 2026-10-13：TASK-005 已補上 App 層新增 API 401 整合測試，涵蓋 Session 清除、返回登入頁及指定提示只顯示一次。`npm.cmd test -- --run src/App.test.tsx` 16 項通過；完整 `npm.cmd test -- --run` 為 22 個測試檔、181 項通過；`npm.cmd run lint` 通過。Plan 狀態為 `DEVELOPED DONE`，等待 Code Reviewer 複審；本紀錄不代表 Review Issue 已 `RESOLVED`。
+
+## 最終複審
+
+2026-10-13：Code Reviewer 核對 TASK-005 補充測試以 App 為受測邊界，經新增商品操作重現 API 401，驗證 Session 清除、返回登入頁及指定訊息僅提示一次；對照 Plan 與原 Review Issue，待修缺口已補足。確認 Programmer 本次修正後的單檔測試 16 項、全套 181 項及 lint 通過；此次僅更新審查文件與 Plan 狀態，未重跑測試。TASK-005 Review Status 改為 `RESOLVED`、Implementation Status 改為 `DONE`，六項 Task 全數通過 Code Review。瀏覽器人工視覺驗收仍依計畫另行確認。
 
 ## 初次複審驗證與界線
 
