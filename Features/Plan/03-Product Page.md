@@ -6,7 +6,7 @@
 - 原始需求與計畫：`Features/Document/02-LoginAndLogout.md`、`Features/Plan/02-LoginAndLogout.md`。
 - Scenario：`Features/Document/Scenarios/03-Product Page/` 下 `01-Product Page.feature`、`02-Add Product.feature`、`03-Edit Product.feature`、`04-Delete Product.feature`。
 - Flow：`Features/Document/flows/03-Product Page/` 下三份新增、編輯、刪除流程。
-- Requirement Type：原始工作為 **Requirement Change**；本次追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-006 視覺驗證暫緩）。
+- Requirement Type：原始工作為 **Requirement Change**；本次追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-003／006 介面視覺驗證暫緩）。
 - Plan Date：2026-10-13。
 - Plan Status：**Awaiting Review**。本次需求變更已完成分析；人工審閱前不進入實作。
 - 本次僅調整計畫，不修改需求文件、Production Code 或測試；工作區現有 `vite.config.ts` 變更非本計畫寫入。
@@ -28,6 +28,19 @@ Requirement Source: 本次對話使用者指示
 Requirement Date: 2026-10-13
 Requirement Summary: TASK-006 的視覺顯示暫時不進行測試。下載入口位置與間距的預期行為保留；桌面／窄螢幕瀏覽器幾何檢查與 Figma 視覺對照暫緩，不作為本輪 TASK-006 Development 或 Code Review 完成門檻。選檔、重選及 disabled 下載占位的功能測試與既有回歸仍須執行。
 ```
+
+### 2026-10-13 介面驗證範圍再調整（最新）
+
+```text
+Requirement Source: 本次對話使用者指示
+Requirement Date: 2026-10-13
+Requirement Type: Requirement Change（驗證範圍）
+Original Requirement: TASK-003 須以瀏覽器／Figma 對照標籤尺寸與 close 圖示幾何；TASK-006 的介面視覺驗證已暫緩。
+Updated Requirement: 暫時取消 Plan 中需透過自動化介面確認的測試情境；TASK-003 與 TASK-006 均不以瀏覽器／Figma 介面視覺對照作為本輪開發或 Code Review 完成門檻。
+Difference / Impact: 只調整驗證方式與完成門檻；商品標籤與下載入口的預期外觀、既有 Vitest 功能／回歸測試及 API 契約均不變，不新增程式或測試檔工作。
+```
+
+本輪可透過既有 Figma 規格、原始碼與本地資產核對尺寸及圖示引用，並沿用已完成的元件／頁面自動化測試驗證互動。未執行的實際畫面對照不得記為通過；若後續恢復介面驗證，需另行規劃其範圍。
 
 ### 使用者需求補充
 
@@ -108,7 +121,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
+| TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
@@ -182,7 +195,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - **Reuse / Impact**：Button 的清除操作與既有欄位錯誤風格；分類提交邊界影響 TASK-001／004／005。
 - **Error Handling**：候選為空仍可輸入新文字標籤；不得顯示「已建立後端分類」之類尚未實作的成功訊息。
 - **Testing**：已載入清單分類去重與即時篩選、既有分類選取、未知分類轉成文字標籤、Enter 不送商品、IME、x、多分類逗號 round-trip，以及含逗號輸入的防護。
-- **2026-10-13 本次差異**：MODIFY `src/components/ProductLabelInput/ProductLabelInput.tsx`、`.css`、`.test.tsx`；依 Figma 正式資產流程取得 [產品標籤 38:4054](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=38-4054) 的 close 圖示並存為本地資產（提案路徑 `public/icon/label-close.png`），不得引用短期 Figma URL。Enter 與點擊候選沿用同一新增標籤狀態，渲染為約 36px 高、`#fdfaa9`、圓角 50px、14px 文字及右側約 12px close 圖示；寬度隨文字伸縮，多標籤可換行，不把整個清除全部 x 誤當單筆 close。圖示保留可鍵盤操作與可辨識名稱；原 IME、去重、逗號與 `label_names` round-trip 規則不變。元件測試驗證兩種加入方式得到同一標籤結構與單筆移除；樣式尺寸及圖示幾何於瀏覽器對照 Figma。
+- **2026-10-13 本次差異**：MODIFY `src/components/ProductLabelInput/ProductLabelInput.tsx`、`.css`、`.test.tsx`；依 Figma 正式資產流程取得 [產品標籤 38:4054](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=38-4054) 的 close 圖示並存為本地資產（提案路徑 `public/icon/label-close.png`），不得引用短期 Figma URL。Enter 與點擊候選沿用同一新增標籤狀態，渲染為約 36px 高、`#fdfaa9`、圓角 50px、14px 文字及右側約 12px close 圖示；寬度隨文字伸縮，多標籤可換行，不把整個清除全部 x 誤當單筆 close。圖示保留可鍵盤操作與可辨識名稱；原 IME、去重、逗號與 `label_names` round-trip 規則不變。元件測試驗證兩種加入方式得到同一標籤結構與單筆移除；本輪以設計規格、CSS 與本地資產核對樣式尺寸及圖示引用，瀏覽器／Figma 介面視覺對照暫緩，不作完成門檻。
 
 ### TASK-004 共用商品表單與浮動視窗
 
@@ -229,7 +242,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 3. 本次差異以 TASK-001 → TASK-004 → TASK-005 處理 Stock；TASK-003 處理標籤、TASK-006 處理下載入口版面，兩者不依賴 Stock。TASK-002 無程式差異，保持 DONE；此順序不要求啟動額外 Agent。
 4. 測試沿用仍有效的 Gherkin 情境名稱並註記來源；Stock 可編輯／隨 request 送出部分已被本次使用者決議暫時取代。Service 控制 fetch，Page 控制 service 邊界；不要 mock 待測驗證或分頁演算法。
 5. 實作後跑相關 Vitest，再跑受共用欄位／Session 影響的登入註冊與 App 回歸，最後 `npm test`、`npm run build`、`npm run lint`。不引入新的測試框架或假設覆蓋率門檻。
-6. TASK-003 產品標籤的樣式尺寸及 close 圖示幾何仍依其步驟進行瀏覽器／Figma 對照；TASK-006 的視覺顯示測試依使用者指示暫緩，不阻擋本輪開發與審查狀態。未執行的視覺檢查不得記為通過，亦不宣稱已驗證後端整合。
+6. TASK-003 與 TASK-006 的瀏覽器／Figma 介面視覺對照依最新使用者指示暫緩，均不阻擋本輪開發與審查狀態；保留原始碼、資產與既有自動化功能／回歸測試的核對。未執行的視覺檢查不得記為通過，亦不宣稱已驗證後端整合。
 
 ## VI. Review Status / Plan Validation
 
@@ -241,12 +254,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [x] 分類來源／多分類格式與數值契約已確認。
 - [x] 錯誤文案、搜尋與分頁刷新邊界已納入計畫。
 - [x] 所有需求已有對應實作步驟與測試策略。
-- [x] TASK-006 視覺測試暫緩已納入驗證策略，功能與回歸測試維持。
+- [x] TASK-003／006 介面視覺測試暫緩已納入驗證策略，功能與回歸測試維持。
 - [ ] Implementation Plan 已完成人工審核。
-- [ ] 本次差異 Development 完成。
+- [x] 本次差異 Development 完成。
 - [ ] 本次差異 Code Review 通過。
 
-先前版本的 `npm test`（22 個測試檔、181 項通過）與 lint 結果僅屬歷史驗證。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；TASK-003 的新增標籤 close 圖示對照仍待驗收，TASK-006 的瀏覽器版面驗收依使用者指示暫緩。最新開發與驗證狀態記錄於下方 Programmer Handoff。
+先前版本的 `npm test`（22 個測試檔、181 項通過）與 lint 結果僅屬歷史驗證。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；以下 Programmer Handoff 記錄的是本次驗證範圍調整前的開發狀態，最新完成門檻以上方「介面驗證範圍再調整」為準。
 
 ### Programmer Handoff（2026-10-13）
 
@@ -255,6 +268,14 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Programmer Fix Handoff（2026-10-13）
 
 已依 TASK-005 複審結果，在 `ProductPage.test.tsx` 驗證庫存為 0 的商品列實際顯示 `0`；服務層仍負責將 API 缺少 stock 的回應正規化為 0。TASK-005 修正已完成，相關定向測試 33 項、全套 Vitest 22 個測試檔／186 項、build 與 lint 均通過，狀態更新為 `DEVELOPED DONE`，等待 Code Reviewer 複審。TASK-003 的 close 圖示尺寸已依設計節點改為 12px，既有標籤互動測試包含在上述測試結果內；但本機瀏覽器控制介面沒有可用瀏覽器，無法完成計畫要求的本機實際渲染對照，因此 TASK-003 維持 `PLAN UPDATED`，不得宣稱視覺驗收完成。
+
+### System Design 驗證範圍更新（2026-10-13，最新）
+
+上述 Programmer Handoff 的 TASK-003「須完成本機瀏覽器／Figma 對照」是更新前門檻，現已依使用者指示暫緩；TASK-006 維持相同暫緩。TASK-003 保持 `PLAN UPDATED` 供 Programmer 依最新 Plan 核對既有程式、資產與測試結果，確認其餘完成條件後再更新為 `DEVELOPED DONE`；TASK-005 的 `DEVELOPED DONE` 與其 Code Review 交接不受影響。本次只修改 Plan，未新增或執行測試，也未變更程式碼。
+
+### Programmer TASK-003 確認與交接（2026-10-13，最新）
+
+依最新驗證範圍核對 `ProductLabelInput`、`ProductForm`、`ProductPage`、本地 `label-close.png` 與既有測試。Enter 與候選點擊共用標籤新增邏輯；已載入商品分類去重、IME、逗號防護、單筆／全部清除、多分類編輯回填及送出均有對應測試或既有 Code Review 紀錄。標籤樣式設定為 36px 最小高度、`#fdfaa9`、50px 圓角、14px 字體及 12px close 圖示，本地圖示檔存在且元件引用正確。前次同版程式的定向測試 33 項、全套 Vitest 186 項、build 與 lint 均通過；本次只有 Plan 變更，未重跑測試。瀏覽器／Figma 介面視覺對照依最新 Plan 暫緩，未記為通過。TASK-003 的其餘完成條件已滿足，Implementation Status 更新為 `DEVELOPED DONE`，Development Date 為 2026-10-13，交由 Code Reviewer 複審；`DONE` 尚未設定。
 
 ### Handoff 條件
 
