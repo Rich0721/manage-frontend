@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getProducts } from './product-service'
+import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from './product-service'
 import type { AuthSession } from '../types/auth'
 
 const session: AuthSession = { uid: 'u1', authorization: 'token', userName: 'Tester' }
@@ -11,11 +11,11 @@ afterEach(() => {
 describe('product service', () => {
   it('requests all products with session headers and validates declared field types', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
-      { id: 'p1', name: 'Item', label_names: 'Group', cost: 0, price: 25 },
+      { id: 'p1', name: 'Item', label_names: 'Group', cost: 0, price: 25, stock: 7 },
     ] } }), { status: 200, headers: { Status: 'Success', Message: 'OK' } }))
     vi.stubGlobal('fetch', fetchMock)
     await expect(getProducts(session, new AbortController().signal)).resolves.toEqual([
-      { id: 'p1', name: 'Item', label_names: 'Group', cost: 0, price: 25 },
+      { id: 'p1', name: 'Item', label_names: 'Group', cost: 0, price: 25, stock: 7 },
     ])
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProducts?productId=all')
     expect(fetchMock.mock.calls[0]?.[1]?.headers).toEqual({
@@ -32,7 +32,7 @@ describe('product service', () => {
 
   it('uses HTTP 401 to distinguish an expired session', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 401 })))
-    await expect(getProducts(session, new AbortController().signal)).rejects.toThrow('登入已逾期')
+    await expect(getProducts(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'unauthorized' })
   })
 
   it.each([
@@ -104,5 +104,46 @@ describe('product service', () => {
     const productResult = pendingProducts.then(() => undefined, (error: unknown) => error)
     await vi.advanceTimersByTimeAsync(30_000)
     expect(await productResult).toMatchObject({ kind: 'timeout' })
+  })
+
+  it('maps stock as a required finite Number', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
+      { id: 'p1', name: 'Item', label_names: 'A,B', cost: 1, price: 2, stock: 3 },
+    ] } }), { status: 200, headers: { Status: 'Success' } })))
+    await expect(getProducts(session, new AbortController().signal)).resolves.toMatchObject([{ stock: 3, label_names: 'A,B' }])
+  })
+
+  it('sends one complete numeric update with identity in HTTP headers', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
+      id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 0,
+    } } }), { status: 200, headers: { Status: 'Success' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const input = { id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 0 }
+    await updateProduct(session, input, new AbortController().signal)
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/updateProduct')
+    expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('PUT')
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({ Uid: 'u1', Authorization: 'token' })
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ body: { info: input } })
+  })
+
+  it('encodes detail identifiers and sends add and delete payloads in one request each', async () => {
+    const fetchMock = vi.fn().mockImplementation(() => new Response(JSON.stringify({ body: { info: {
+      id: 'p /1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0,
+    } } }), { status: 200, headers: { Status: 'Success' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await getProduct(session, 'p /1', new AbortController().signal)
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProduct?productId=p%20%2F1')
+    await addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal)
+    await deleteProduct(session, 'p /1', new AbortController().signal)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe('POST')
+    expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({ body: { info: { id: 'p /1' } } })
+  })
+
+  it('classifies create conflicts with the required retry message', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 409 })))
+    await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal))
+      .rejects.toMatchObject(new ProductServiceError('conflict', '商品產生ID衝突，請重新送出'))
   })
 })

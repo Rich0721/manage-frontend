@@ -51,12 +51,12 @@ function App() {
     setSession(next)
   }, [])
 
-  const handleSessionExpired = useCallback(() => {
+  const handleSessionExpired = useCallback((message?: string) => {
     const cleared = removeStoredSession()
     setSession(null)
     window.alert(cleared
-      ? '登入已逾期，請重新登入'
-      : '登入已逾期，請重新登入；本機登入資料未能清除')
+      ? (message ?? '登入已逾期，請重新登入')
+      : `${message ?? '登入已逾期，請重新登入'}；本機登入資料未能清除`)
   }, [])
 
   const handleLogout = useCallback(async () => {

@@ -28,4 +28,5 @@ export interface Product {
   label_names: string
   cost: number
   price: number
+  stock: number
 }

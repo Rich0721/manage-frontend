@@ -12,7 +12,7 @@ interface FormFieldProps
   > {
   id: string
   label: string
-  type: 'text' | 'email' | 'password'
+  type: 'text' | 'email' | 'password' | 'number'
   value: string
   onChange: ChangeEventHandler<HTMLInputElement>
   onBlur: FocusEventHandler<HTMLInputElement>

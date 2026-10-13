@@ -1,0 +1,13 @@
+.product-label-input { position: relative; min-width: 0; }
+.product-label-input__control { display: flex; align-items: center; min-height: 42px; background: #d9d9d9; border: 1px solid transparent; }
+.product-label-input__control--error { border-color: #b42318; }
+.product-label-input__tags { display: flex; align-items: center; flex: 1; flex-wrap: wrap; gap: 6px; min-width: 0; padding: 5px 8px; }
+.product-label-input__tags input { flex: 1 0 100px; min-width: 80px; border: 0; outline: 0; background: transparent; font: inherit; }
+.product-label-input__tag { display: inline-flex; align-items: center; gap: 5px; border-radius: 50px; background: #fdfaa9; padding: 4px 10px; font-size: 14px; }
+.product-label-input__tag button, .product-label-input__clear { border: 0; background: transparent; cursor: pointer; font: inherit; }
+.product-label-input__tag button { padding: 0; line-height: 1; }
+.product-label-input__clear { align-self: stretch; padding: 0 10px; font-size: 20px; }
+.product-label-input__options { position: absolute; z-index: 2; top: 100%; right: 0; left: 0; max-height: 160px; overflow: auto; margin: 2px 0 0; padding: 4px; list-style: none; border: 1px solid #aaa; background: white; box-shadow: 0 4px 12px rgb(0 0 0 / 12%); }
+.product-label-input__options button { width: 100%; padding: 8px; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.product-label-input__options button:hover, .product-label-input__options button:focus-visible { background: #fdfaa9; }
+.product-label-input__error { margin: 5px 0 0; color: #8f1d16; font-size: 13px; }

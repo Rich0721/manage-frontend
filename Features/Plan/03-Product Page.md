@@ -87,12 +87,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | TODO | — | — |
-| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | TODO | — | — |
-| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | TODO | — | — |
-| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | TODO | — | — |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | TODO | — | — |
-| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | TODO | — | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 
 ## IV. Technical Stack / System Design
 
@@ -218,10 +218,10 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [x] 錯誤文案、搜尋與分頁刷新邊界已納入計畫。
 - [x] 所有需求已有對應實作步驟與測試策略。
 - [ ] Implementation Plan 已完成人工審核。
-- [ ] Development 完成。
+- [x] Development 完成。
 - [ ] Code Review 通過。
 
-本次驗證僅為文件與程式碼靜態核對；沒有執行應用測試、build 或 lint，因為本次沒有修改程式碼。
+開發驗證：`npm test`（20 個測試檔、149 個測試通過）、`npm run build`、`npm run lint` 均通過。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；仍待 Code Review 與瀏覽器人工視覺驗收。
 
 ### Handoff 條件
 
