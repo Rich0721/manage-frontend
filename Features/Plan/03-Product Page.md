@@ -106,12 +106,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
-| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 
 ## IV. Technical Stack / System Design
 
@@ -246,7 +246,11 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [ ] 本次差異 Development 完成。
 - [ ] 本次差異 Code Review 通過。
 
-既有版本曾通過 Code Review：`npm test` 22 個測試檔、181 項通過，`npm run lint` 通過；這是本次需求變更前的歷史驗證，不代表本次差異已開發或驗收。本次待實作 TASK-001／003／004／005／006；TASK-002 維持 DONE。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；TASK-003 的新增標籤 close 圖示對照仍列本輪驗證，TASK-006 的瀏覽器版面驗收暫緩。
+先前版本的 `npm test`（22 個測試檔、181 項通過）與 lint 結果僅屬歷史驗證。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；TASK-003 的新增標籤 close 圖示對照仍待驗收，TASK-006 的瀏覽器版面驗收依使用者指示暫緩。最新開發與驗證狀態記錄於下方 Programmer Handoff。
+
+### Programmer Handoff（2026-10-13）
+
+Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；目前沒有本 Feature 的 OPEN Implementation Issue。`npm test -- --run` 全量測試 22 個測試檔、186 項通過；本次程式變更的 `npm run build` 與 `npm run lint` 均通過。TASK-001／004／005／006 已完成開發並更新為 `DEVELOPED DONE`；TASK-006 視覺檢查依使用者指示暫緩，不阻擋本輪完成。TASK-003 程式與自動化測試已完成，但仍待該 Task 明訂的標籤尺寸及 close 圖示瀏覽器／Figma 對照，因此維持 `PLAN UPDATED`。Code Review Status 尚待 Code Reviewer 處理；本次不將任何項目標為 `DONE`。
 
 ### Handoff 條件
 
