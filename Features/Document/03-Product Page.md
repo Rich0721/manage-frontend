@@ -82,7 +82,7 @@ Status Code與情境:
 | 409 | Failed |商品產生ID衝突，請重新送出 |
 
 #### 2-2-2. Get Product API
-API URI: `productController/getProduct?productId=<product_id>`
+API URI: `productController/getProducts?productId=<product_id>`
 Method: GET
 
 Request Headers:
