@@ -1,0 +1,25 @@
+flowchart TD
+
+    %% Nodes
+    StartPoint(開始刪除商品操作)
+    ClickDeleteButton(點擊刪除商品按鈕)
+    PopUpDeleteDoubleConfirm(彈出刪除商品雙重確認視窗)
+    ClickConfirmButton(點擊確認按鈕)
+    ClickCancelButton(點擊取消按鈕)
+    RequestToDeleteProductAPI(發送刪除商品請求)
+    IsSuccess{是否刪除成功}
+    PopUpFailed(彈出刪除失敗視窗)
+    RefreshTable(重新整理Table)
+    EndPoint(刪除商品操作完成)
+
+    StartPoint --> ClickDeleteButton
+    ClickDeleteButton --> PopUpDeleteDoubleConfirm
+    PopUpDeleteDoubleConfirm --> ClickConfirmButton
+    ClickConfirmButton --> RequestToDeleteProductAPI
+    RequestToDeleteProductAPI --> IsSuccess
+    IsSuccess -->|是| RefreshTable
+    IsSuccess -->|否| PopUpFailed
+    PopUpFailed --> EndPoint
+    RefreshTable --> EndPoint
+    StartPoint --> ClickCancelButton
+    ClickCancelButton --> EndPoint

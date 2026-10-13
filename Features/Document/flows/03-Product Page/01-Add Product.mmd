@@ -1,0 +1,29 @@
+flowchart TD
+
+    %% Nodes
+    StartPoint(開始新增商品操作)
+    ClickAddButton(點擊加入商品按鈕)
+    PopUpAddProduct(彈出新增商品視窗)
+    FillInProductInfo(填寫商品資訊)
+    ClickConfirmButton(點擊確認按鈕)
+    ClickCancelButton(點擊取消按鈕)
+    RequestToAddProductAPI(發送新增商品請求)
+    IsSuccess{是否新增成功}
+    PopUpFailed(彈出新增失敗視窗)
+    ReserveInfo(保留商品資訊)
+    RefreshTable(重新整理Table)
+    EndPoint(新增商品操作完成)
+
+    StartPoint --> ClickAddButton
+    ClickAddButton --> PopUpAddProduct
+    PopUpAddProduct --> FillInProductInfo
+    FillInProductInfo --> ClickConfirmButton
+    ClickConfirmButton --> RequestToAddProductAPI
+    RequestToAddProductAPI --> IsSuccess
+    IsSuccess -->|是| RefreshTable
+    IsSuccess -->|否| PopUpFailed
+    PopUpFailed --> ReserveInfo
+    ReserveInfo --> EndPoint
+    RefreshTable --> EndPoint
+    StartPoint --> ClickCancelButton
+    ClickCancelButton --> EndPoint

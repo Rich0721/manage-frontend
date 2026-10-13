@@ -14,6 +14,9 @@ Figma設計稿:
     - [編輯商品](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=38-3967&t=YcEAVbW5X59SRkSM-4)
     - [產品標籤](https://www.figma.com/design/RXG3NaxCrUXouqcYmp9TzC/Manage-frontend?node-id=38-4054&t=YcEAVbW5X59SRkSM-4)
 Flow Chart:
+    - [新增商品流程](./flows/03-Product%20Page/01-Add%20Product.mmd)
+    - [編輯商品流程](./flows/03-Product%20Page/02-Edit%20Product.mmd)
+    - [刪除商品流程](./flows/03-Product%20Page/03-Delete%20Product.mmd)
 Gherkin:
 
 

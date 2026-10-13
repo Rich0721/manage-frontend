@@ -1,0 +1,31 @@
+flowchart TD
+
+    %% Nodes
+    StartPoint(開始編輯商品操作)
+    ClickEditButton(點擊編輯商品按鈕)
+    PopUpEditProduct(彈出編輯商品視窗)
+    LoadExistingProductInfo(載入現有商品資訊)
+    UpdateProductInfo(填寫商品資訊)
+    ClickConfirmButton(點擊確認按鈕)
+    ClickCancelButton(點擊取消按鈕)
+    RequestToEditProductAPI(發送編輯商品請求)
+    IsSuccess{是否編輯成功}
+    PopUpFailed(彈出編輯失敗視窗)
+    ReserveInfo(保留商品資訊)
+    RefreshTable(重新整理Table)
+    EndPoint(編輯商品操作完成)
+
+    StartPoint --> ClickEditButton
+    ClickEditButton --> PopUpEditProduct
+    PopUpEditProduct --> LoadExistingProductInfo
+    LoadExistingProductInfo --> UpdateProductInfo
+    UpdateProductInfo --> ClickConfirmButton
+    ClickConfirmButton --> RequestToEditProductAPI
+    RequestToEditProductAPI --> IsSuccess
+    IsSuccess -->|是| RefreshTable
+    IsSuccess -->|否| PopUpFailed
+    PopUpFailed --> ReserveInfo
+    ReserveInfo --> EndPoint
+    RefreshTable --> EndPoint
+    StartPoint --> ClickCancelButton
+    ClickCancelButton --> EndPoint
