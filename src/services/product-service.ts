@@ -36,9 +36,9 @@ function abortError(): DOMException {
 
 function parseProduct(value: unknown): Product {
   if (!record(value) || typeof value.id !== 'string' || typeof value.name !== 'string' ||
-    typeof value.label_names !== 'string' || typeof value.cost !== 'number' || !Number.isFinite(value.cost) ||
-    typeof value.price !== 'number' || !Number.isFinite(value.price) ||
-    typeof value.stock !== 'number' || !Number.isFinite(value.stock)) {
+    typeof value.label_names !== 'string' || typeof value.cost !== 'number' || !Number.isFinite(value.cost) || value.cost < 1 ||
+    typeof value.price !== 'number' || !Number.isFinite(value.price) || value.price < 1 ||
+    typeof value.stock !== 'number' || !Number.isFinite(value.stock) || value.stock < 0) {
     throw new ProductServiceError('protocol', '產品回應欄位格式錯誤')
   }
   return {
@@ -81,7 +81,11 @@ async function request(
     if (status !== 'success') throw new ProductServiceError('http', getHttpResponseMessage(response.headers) ?? '產品操作失敗')
     let body: unknown
     try { body = await response.json() }
-    catch { throw new ProductServiceError('protocol', '產品回應不是有效 JSON') }
+    catch {
+      if (signal.aborted) throw abortError()
+      if (timedOut) throw new ProductServiceError('timeout', '產品操作逾時，請重新查詢結果')
+      throw new ProductServiceError('protocol', '產品回應不是有效 JSON')
+    }
     if (signal.aborted) throw abortError()
     return { response, body }
   } catch (error: unknown) {
@@ -123,12 +127,14 @@ export async function getProduct(session: AuthSession, productId: string, signal
 }
 
 export async function addProduct(session: AuthSession, input: ProductWriteInput, signal: AbortSignal): Promise<Product> {
-  const { body } = await request('/productController/addProduct', session, signal, 'POST', { info: input })
+  const info = { name: input.name, label_names: input.label_names, cost: input.cost, price: input.price, stock: input.stock }
+  const { body } = await request('/productController/addProduct', session, signal, 'POST', { info })
   return parseSingle(body)
 }
 
 export async function updateProduct(session: AuthSession, input: ProductWriteInput & { id: string }, signal: AbortSignal): Promise<Product> {
-  const { body } = await request('/productController/updateProduct', session, signal, 'PUT', { info: input })
+  const info = { id: input.id, name: input.name, label_names: input.label_names, cost: input.cost, price: input.price, stock: input.stock }
+  const { body } = await request('/productController/updateProduct', session, signal, 'PUT', { info })
   return parseSingle(body)
 }
 

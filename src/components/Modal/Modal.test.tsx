@@ -17,4 +17,25 @@ describe('Modal', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it('moves focus into the dialog, traps tab navigation, and restores focus on close', () => {
+    const trigger = document.createElement('button')
+    trigger.textContent = '開啟視窗'
+    document.body.append(trigger)
+    trigger.focus()
+    const view = render(<Modal title="刪除商品" onClose={() => undefined}>
+      <button type="button">第一個</button>
+      <button type="button">最後一個</button>
+    </Modal>)
+    const first = screen.getByRole('button', { name: '第一個' })
+    const last = screen.getByRole('button', { name: '最後一個' })
+    expect(first).toHaveFocus()
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
+    expect(last).toHaveFocus()
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(first).toHaveFocus()
+    view.unmount()
+    expect(trigger).toHaveFocus()
+    trigger.remove()
+  })
 })

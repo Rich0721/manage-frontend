@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductLabelInput } from './ProductLabelInput'
 
@@ -30,5 +30,24 @@ describe('ProductLabelInput', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('分類名稱不能包含逗號')
     await user.click(screen.getByRole('button', { name: '清除所有分類' }))
     expect(onChange).toHaveBeenLastCalledWith([])
+  })
+
+  it('does not commit a label when Enter is part of an IME composition', () => {
+    const onChange = vi.fn()
+    render(<ProductLabelInput value={[]} options={[]} onChange={onChange} />)
+    const input = screen.getByRole('textbox', { name: '商品分類' })
+    fireEvent.change(input, { target: { value: '分類' } })
+    fireEvent.compositionStart(input)
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(onChange).not.toHaveBeenCalled()
+    expect(input).toHaveValue('分類')
+  })
+
+  it('removes only the selected label requested by its x button', async () => {
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<ProductLabelInput value={['A', 'B']} options={[]} onChange={onChange} />)
+    await user.click(screen.getByRole('button', { name: '移除分類 A' }))
+    expect(onChange).toHaveBeenCalledWith(['B'])
   })
 })

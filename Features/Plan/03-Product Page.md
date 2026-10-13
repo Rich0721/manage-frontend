@@ -87,12 +87,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
-| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
-| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
-| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
-| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
 
 ## IV. Technical Stack / System Design
 
@@ -221,7 +221,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [x] Development 完成。
 - [ ] Code Review 通過。
 
-開發驗證：`npm test`（20 個測試檔、149 個測試通過）、`npm run build`、`npm run lint` 均通過。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；仍待 Code Review 與瀏覽器人工視覺驗收。
+開發與 Review Fix 驗證：`npm test`（22 個測試檔、180 個測試通過）、`npm run build`、`npm run lint` 均通過。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；目前待 Code Review 重新審查，瀏覽器人工視覺驗收仍待需求提出者確認。
 
 ### Handoff 條件
 

@@ -44,4 +44,12 @@ describe('FormField', () => {
     expect(screen.getByLabelText('姓名')).toHaveAttribute('aria-invalid', 'false')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+
+  it('supports numeric fields and preserves their minimum constraint', () => {
+    render(
+      <FormField id="stock" label="庫存" type="number" min="0" value="0" onChange={() => undefined} onBlur={() => undefined} />,
+    )
+    expect(screen.getByRole('spinbutton', { name: '庫存' })).toHaveAttribute('min', '0')
+    expect(screen.getByRole('spinbutton', { name: '庫存' })).toHaveValue(0)
+  })
 })

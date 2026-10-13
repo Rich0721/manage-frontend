@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductPage } from './ProductPage'
 import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from '../services/product-service'
@@ -59,6 +59,14 @@ describe('ProductPage', () => {
     expect(screen.getByRole('button', { name: '下一頁' })).toBeDisabled()
   })
 
+  it.each([1, 15, 16])('shows correct page boundaries for %i products', async (count) => {
+    getProductsMock.mockResolvedValue(Array.from({ length: count }, (_, index) => product(`p${index}`, `Item ${index}`)))
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    expect(await screen.findByText('Item 0')).toBeInTheDocument()
+    expect(screen.getByText(`Pages 1/${Math.ceil(count / 15)}`)).toBeInTheDocument()
+    expect(screen.getAllByRole('row')).toHaveLength(Math.min(count, 15) + 1)
+  })
+
   it('filters case-insensitively using AND and resets to the first page', async () => {
     getProductsMock.mockResolvedValue([
       ...Array.from({ length: 16 }, (_, index) => product(`p${index}`, `Other ${index}`, 'Blue')),
@@ -74,6 +82,42 @@ describe('ProductPage', () => {
     expect(screen.getByText('Special Item Blue')).toBeInTheDocument()
     expect(screen.queryByText('Special Item', { exact: true })).not.toBeInTheDocument()
     expect(screen.getByText(/Pages\s+1\/1/)).toBeInTheDocument()
+  })
+
+  it('deduplicates category suggestions collected from loaded products', async () => {
+    getProductsMock.mockResolvedValue([
+      product('p1', 'One', 'Blue,Red'),
+      product('p2', 'Two', 'Blue,Green'),
+    ])
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('One')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'B')
+    expect(screen.getAllByRole('button', { name: 'Blue' })).toHaveLength(1)
+  })
+
+  it('clamps to the last filtered page after deleting its only product', async () => {
+    const initial = [
+      ...Array.from({ length: 16 }, (_, index) => product(`t${index}`, `Target ${index}`, 'Target')),
+      ...Array.from({ length: 14 }, (_, index) => product(`o${index}`, `Other ${index}`, 'Other')),
+    ]
+    const refreshed = initial.filter((item) => item.id !== 't15')
+    getProductsMock.mockResolvedValueOnce(initial).mockResolvedValueOnce(refreshed)
+    deleteProductMock.mockResolvedValue()
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Target 0')
+    await user.type(screen.getByRole('searchbox', { name: '篩選商品分類' }), 'Target')
+    await user.click(screen.getByRole('button', { name: '下一頁' }))
+    expect(screen.getByText('Target 15')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '刪除商品 Target 15' }))
+    expect(screen.getByRole('dialog')).toHaveTextContent('t15')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(await screen.findByText('Target 14')).toBeInTheDocument()
+    expect(screen.getByText(/Pages\s+1\/1/)).toBeInTheDocument()
+    expect(screen.queryByText('Target 15')).not.toBeInTheDocument()
+    expect(screen.queryByText('沒有符合條件的商品')).not.toBeInTheDocument()
   })
 
   it('keeps loading and errors distinct from an empty product result', async () => {
@@ -106,6 +150,41 @@ describe('ProductPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('keeps page 1 after adding the sixteenth product', async () => {
+    const firstPage = Array.from({ length: 15 }, (_, index) => product(`p${index}`, `Item ${index}`))
+    getProductsMock.mockResolvedValueOnce(firstPage).mockResolvedValueOnce([...firstPage, product('new', 'Added')])
+    addProductMock.mockResolvedValue(product('new', 'Added'))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Item 0')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Added')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'Group')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(await screen.findByText(/Pages\s+1\/2/)).toBeInTheDocument()
+  })
+
+  it('preserves page 2 when adding a product from page 2', async () => {
+    const initial = Array.from({ length: 18 }, (_, index) => product(`p${index}`, `Item ${index}`))
+    getProductsMock.mockResolvedValueOnce(initial).mockResolvedValueOnce([...initial, product('new', 'Added')])
+    addProductMock.mockResolvedValue(product('new', 'Added'))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Item 0')
+    await user.click(screen.getByRole('button', { name: '下一頁' }))
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Added')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'Group')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(await screen.findByText(/Pages\s+2\/2/)).toBeInTheDocument()
+  })
+
   it('retains entered values and makes no request when required fields are missing', async () => {
     getProductsMock.mockResolvedValue([])
     const user = userEvent.setup()
@@ -120,9 +199,9 @@ describe('ProductPage', () => {
   })
 
   it('loads detail before showing the edit form and sends a single complete update', async () => {
-    getProductsMock.mockResolvedValue([product('p1', 'Original', 'Old')]).mockResolvedValueOnce([product('p1', 'Original', 'Old')]).mockResolvedValueOnce([product('p1', 'Changed', 'New')])
-    getProductMock.mockResolvedValue(product('p1', 'Original', 'Old'))
-    updateProductMock.mockResolvedValue(product('p1', 'Changed', 'New'))
+    getProductsMock.mockResolvedValue([product('p1', 'Original', 'Old,More')]).mockResolvedValueOnce([product('p1', 'Original', 'Old,More')]).mockResolvedValueOnce([product('p1', 'Changed', 'Old,More')])
+    getProductMock.mockResolvedValue(product('p1', 'Original', 'Old,More'))
+    updateProductMock.mockResolvedValue(product('p1', 'Changed', 'Old,More'))
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     await screen.findByText('Original')
@@ -133,8 +212,63 @@ describe('ProductPage', () => {
     await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Changed')
     await user.click(screen.getByRole('button', { name: '確認' }))
     expect(updateProductMock).toHaveBeenCalledOnce()
-    expect(updateProductMock.mock.calls[0]?.[1]).toEqual({ id: 'p1', name: 'Changed', label_names: 'Old', cost: 10, price: 20, stock: 4 })
+    expect(updateProductMock.mock.calls[0]?.[1]).toEqual({ id: 'p1', name: 'Changed', label_names: 'Old,More', cost: 10, price: 20, stock: 4 })
     expect(await screen.findByText('Changed')).toBeInTheDocument()
+  })
+
+  it('does not let a pending edit detail request replace a newly opened create form', async () => {
+    getProductsMock.mockResolvedValue([product('p1', 'Original')])
+    let resolveDetail!: (value: Product) => void
+    getProductMock.mockReturnValue(new Promise((resolve) => { resolveDetail = resolve }))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Original')
+    await user.click(screen.getByRole('button', { name: '編輯商品 Original' }))
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    expect(screen.getByRole('dialog')).toHaveTextContent('新增商品')
+    await act(async () => resolveDetail(product('p1', 'Original')))
+    expect(screen.getByRole('dialog')).toHaveTextContent('新增商品')
+    expect(screen.getByRole('textbox', { name: '商品名稱' })).toHaveValue('')
+  })
+
+  it('keeps the most recently requested product when detail responses arrive out of order', async () => {
+    getProductsMock.mockResolvedValue([product('p1', 'First'), product('p2', 'Second')])
+    let resolveFirst!: (value: Product) => void
+    let resolveSecond!: (value: Product) => void
+    getProductMock.mockImplementation((_activeSession, id) => new Promise((resolve) => {
+      if (id === 'p1') resolveFirst = resolve
+      else resolveSecond = resolve
+    }))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('First')
+    await user.click(screen.getByRole('button', { name: '編輯商品 First' }))
+    await user.click(screen.getByRole('button', { name: '編輯商品 Second' }))
+    await act(async () => resolveSecond(product('p2', 'Second detail')))
+    expect(await screen.findByRole('textbox', { name: '商品名稱' })).toHaveValue('Second detail')
+    await act(async () => resolveFirst(product('p1', 'First detail')))
+    expect(screen.getByRole('textbox', { name: '商品名稱' })).toHaveValue('Second detail')
+  })
+
+  it('ignores an old-session unauthorized mutation after the session changes', async () => {
+    getProductsMock.mockResolvedValue([])
+    let rejectAdd!: (reason: unknown) => void
+    addProductMock.mockReturnValue(new Promise((_resolve, reject) => { rejectAdd = reject }))
+    const onSessionExpired = vi.fn()
+    const user = userEvent.setup()
+    const { rerender } = render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Item')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'A')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    rerender(<ProductPage session={{ uid: 'u2', authorization: 'new-token', userName: 'New' }} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await act(async () => rejectAdd(new ProductServiceError('unauthorized', 'expired old session')))
+    expect(onSessionExpired).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: '加入商品' })).toBeInTheDocument()
   })
 
   it('cancels add and delete without mutation requests', async () => {
@@ -169,6 +303,44 @@ describe('ProductPage', () => {
     expect(screen.getByRole('textbox', { name: '商品名稱' })).toHaveValue('Item')
   })
 
+  it('does not submit a second create while the first request is pending', async () => {
+    getProductsMock.mockResolvedValue([])
+    addProductMock.mockReturnValue(new Promise(() => undefined))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Item')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'A')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(screen.getByRole('button', { name: '確認' })).toBeDisabled()
+    expect(addProductMock).toHaveBeenCalledOnce()
+  })
+
+  it('retries only the list request when a successful mutation refresh fails', async () => {
+    getProductsMock.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('refresh unavailable')).mockResolvedValueOnce([product('p1', 'Item')])
+    addProductMock.mockResolvedValue(product('p1', 'Item'))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Item')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'A')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(await screen.findByText('refresh unavailable')).toBeInTheDocument()
+    expect(screen.getByText('操作已完成，但清單重新載入失敗。請重新整理清單。')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '重新載入' }))
+    expect(await screen.findByText('Item')).toBeInTheDocument()
+    expect(addProductMock).toHaveBeenCalledOnce()
+    expect(getProductsMock).toHaveBeenCalledTimes(3)
+  })
+
   it('returns mutation 401 to the session owner with the required message', async () => {
     getProductsMock.mockResolvedValue([])
     addProductMock.mockRejectedValue(new ProductServiceError('unauthorized', 'unauthorized'))
@@ -186,6 +358,27 @@ describe('ProductPage', () => {
     expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權')
   })
 
+  it.each(['update', 'delete'] as const)('returns a %s 401 to the session owner with the required message', async (operation) => {
+    getProductsMock.mockResolvedValue([product('p1', 'Item')])
+    getProductMock.mockResolvedValue(product('p1', 'Item'))
+    updateProductMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    deleteProductMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    const onSessionExpired = vi.fn()
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('Item')
+    if (operation === 'update') {
+      await user.click(screen.getByRole('button', { name: '編輯商品 Item' }))
+      await screen.findByRole('dialog')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+    } else {
+      await user.click(screen.getByRole('button', { name: '刪除商品 Item' }))
+      await user.click(screen.getByRole('button', { name: '確認' }))
+    }
+    await vi.waitFor(() => expect(onSessionExpired).toHaveBeenCalledOnce())
+    expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權')
+  })
+
   it('handles Excel selection without uploading or calling APIs', async () => {
     getProductsMock.mockResolvedValue([])
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
@@ -195,6 +388,34 @@ describe('ProductPage', () => {
     fireEvent.change(input as HTMLInputElement, { target: { files: [new File(['x'], 'products.xlsx')] } })
     expect(await screen.findByText('批次上傳功能尚未開放，檔案未上傳。')).toBeInTheDocument()
     expect(addProductMock).not.toHaveBeenCalled()
+  })
+
+  it('opens the native file picker, permits reselecting the same file, and keeps download actions disabled', async () => {
+    getProductsMock.mockResolvedValue([])
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')
+    expect(input).not.toBeNull()
+    const clickSpy = vi.spyOn(input as HTMLInputElement, 'click')
+    await user.click(screen.getByRole('button', { name: '批次管理' }))
+    expect(clickSpy).toHaveBeenCalledOnce()
+    expect(getProductsMock).toHaveBeenCalledOnce()
+    expect(getProductMock).not.toHaveBeenCalled()
+    expect(addProductMock).not.toHaveBeenCalled()
+    expect(updateProductMock).not.toHaveBeenCalled()
+    expect(deleteProductMock).not.toHaveBeenCalled()
+    const file = new File(['x'], 'products.xlsx')
+    fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
+    expect(input).toHaveValue('')
+    fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
+    expect(screen.getByText('批次上傳功能尚未開放，檔案未上傳。')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '下載批次新增商品模板（尚未開放）' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '下載商品報表（尚未開放）' })).toBeDisabled()
+    expect(getProductMock).not.toHaveBeenCalled()
+    expect(addProductMock).not.toHaveBeenCalled()
+    expect(updateProductMock).not.toHaveBeenCalled()
+    expect(deleteProductMock).not.toHaveBeenCalled()
   })
 
   it('delegates list 401 to the session owner and preserves ordinary errors', async () => {

@@ -43,7 +43,12 @@ function toWriteInput(values: ProductFormValues): ProductWriteInput {
   }
 }
 
-export function ProductPage({ session, onLogout, onSessionExpired }: ProductPageProps) {
+export function ProductPage(props: ProductPageProps) {
+  const sessionKey = props.session.uid
+  return <ProductPageContent key={sessionKey} {...props} />
+}
+
+function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPageProps) {
   const [result, setResult] = useState<ProductPageResult | null>(null)
   const [nameSearch, setNameSearch] = useState('')
   const [labelSearch, setLabelSearch] = useState('')
@@ -55,6 +60,9 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
   const [detailLoading, setDetailLoading] = useState(false)
   const uploadInputRef = useRef<HTMLInputElement>(null)
   const operationControllerRef = useRef<AbortController | null>(null)
+  const detailControllerRef = useRef<AbortController | null>(null)
+  const detailRequestIdRef = useRef(0)
+  const sessionRef = useRef<AuthSession | null>(session)
   const currentResult = result?.session === session ? result : null
   const loading = currentResult === null
   const products = currentResult?.status === 'success' ? currentResult.products : EMPTY_PRODUCTS
@@ -64,16 +72,23 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
     return getProducts(session, signal)
   }, [session])
 
-  const refreshProducts = useCallback(async (preservePage: boolean) => {
+  const refreshProducts = useCallback(async () => {
     const controller = new AbortController()
     operationControllerRef.current = controller
     try {
       const nextProducts = await loadProducts(controller.signal)
+      if (sessionRef.current !== session) return
       setResult({ session, status: 'success', products: nextProducts })
-      if (!preservePage) setCurrentPage((page) => Math.min(page, Math.max(1, Math.ceil(nextProducts.length / PAGE_SIZE))))
-      else setCurrentPage((page) => Math.min(page, Math.max(1, Math.ceil(nextProducts.length / PAGE_SIZE))))
+      const nameQuery = nameSearch.toLocaleLowerCase()
+      const labelQuery = labelSearch.toLocaleLowerCase()
+      const filteredCount = nextProducts.filter((product) =>
+        (!nameQuery || product.name.toLocaleLowerCase().includes(nameQuery)) &&
+        (!labelQuery || labelsOf(product).join(', ').toLocaleLowerCase().includes(labelQuery)),
+      ).length
+      setCurrentPage((page) => Math.min(page, Math.max(1, Math.ceil(filteredCount / PAGE_SIZE))))
       setOperationMessage('')
     } catch (reason: unknown) {
+      if (sessionRef.current !== session) return
       if (reason instanceof DOMException && reason.name === 'AbortError') return
       if ((reason instanceof ProductServiceError || reason instanceof AuthServiceError) && reason.kind === 'unauthorized') {
         onSessionExpired('使用者未授權')
@@ -84,9 +99,10 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
     } finally {
       if (operationControllerRef.current === controller) operationControllerRef.current = null
     }
-  }, [loadProducts, onSessionExpired, session])
+  }, [labelSearch, loadProducts, nameSearch, onSessionExpired, session])
 
   useEffect(() => {
+    sessionRef.current = session
     const controller = new AbortController()
     let active = true
     loadProducts(controller.signal).then((loaded) => {
@@ -99,7 +115,13 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
       }
       setResult({ session, status: 'error', error: reason instanceof Error ? reason.message : '產品載入失敗' })
     })
-    return () => { active = false; controller.abort(); operationControllerRef.current?.abort() }
+    return () => {
+      active = false
+      if (sessionRef.current === session) sessionRef.current = null
+      controller.abort()
+      detailControllerRef.current?.abort()
+      operationControllerRef.current?.abort()
+    }
   }, [loadProducts, onSessionExpired, session])
 
   const filteredProducts = useMemo(() => {
@@ -113,8 +135,13 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
     })
   }, [labelSearch, nameSearch, products])
   const pageCount = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
-  const visibleProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const effectivePage = Math.min(currentPage, pageCount)
+  const visibleProducts = filteredProducts.slice((effectivePage - 1) * PAGE_SIZE, effectivePage * PAGE_SIZE)
   const labelOptions = useMemo(() => Array.from(new Set(products.flatMap(labelsOf))), [products])
+
+  useEffect(() => {
+    if (currentPage !== effectivePage) setCurrentPage(effectivePage)
+  }, [currentPage, effectivePage])
 
   const handleSearchChange = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => {
     setter(event.target.value)
@@ -122,16 +149,19 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
   }
 
   const handleEdit = async (product: Product) => {
+    detailControllerRef.current?.abort()
+    const requestId = ++detailRequestIdRef.current
     const controller = new AbortController()
-    operationControllerRef.current?.abort()
-    operationControllerRef.current = controller
+    detailControllerRef.current = controller
     setDetailLoading(true)
     setOperationMessage('')
     try {
       const detail = await getProduct(session, product.id, controller.signal)
+      if (requestId !== detailRequestIdRef.current || sessionRef.current !== session) return
       setDialog({ mode: 'edit', product: detail })
       setDialogError('')
     } catch (reason: unknown) {
+      if (requestId !== detailRequestIdRef.current || sessionRef.current !== session) return
       if (reason instanceof DOMException && reason.name === 'AbortError') return
       if ((reason instanceof ProductServiceError || reason instanceof AuthServiceError) && reason.kind === 'unauthorized') {
         onSessionExpired('使用者未授權')
@@ -139,9 +169,35 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
       }
       setOperationMessage(reason instanceof Error ? reason.message : '無法載入商品詳細資料')
     } finally {
-      if (operationControllerRef.current === controller) operationControllerRef.current = null
-      setDetailLoading(false)
+      if (detailRequestIdRef.current === requestId) {
+        detailControllerRef.current = null
+        setDetailLoading(false)
+      }
     }
+  }
+
+  const cancelDetailRequest = () => {
+    detailRequestIdRef.current += 1
+    detailControllerRef.current?.abort()
+    detailControllerRef.current = null
+    setDetailLoading(false)
+  }
+
+  const openCreateDialog = () => {
+    cancelDetailRequest()
+    setDialogError('')
+    setDialog({ mode: 'create' })
+  }
+
+  const openDeleteDialog = (product: Product) => {
+    cancelDetailRequest()
+    setDialogError('')
+    setDialog({ mode: 'delete', product })
+  }
+
+  const closeDialog = () => {
+    cancelDetailRequest()
+    setDialog({ mode: 'closed' })
   }
 
   const handleMutationError = (reason: unknown, fallback: string) => {
@@ -165,9 +221,11 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
       const input = toWriteInput(values)
       if (mode === 'create') await addProduct(session, input, controller.signal)
       else await updateProduct(session, { ...input, id: dialog.product.id }, controller.signal)
+      if (sessionRef.current !== session) return
       setDialog({ mode: 'closed' })
-      await refreshProducts(true)
+      await refreshProducts()
     } catch (reason: unknown) {
+      if (sessionRef.current !== session) return
       if (!(reason instanceof DOMException && reason.name === 'AbortError')) handleMutationError(reason, '產品儲存失敗')
     } finally {
       if (operationControllerRef.current === controller) operationControllerRef.current = null
@@ -184,10 +242,12 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
     const deletedPage = currentPage
     try {
       await deleteProduct(session, dialog.product.id, controller.signal)
+      if (sessionRef.current !== session) return
       setDialog({ mode: 'closed' })
       setCurrentPage(deletedPage)
-      await refreshProducts(false)
+      await refreshProducts()
     } catch (reason: unknown) {
+      if (sessionRef.current !== session) return
       if (!(reason instanceof DOMException && reason.name === 'AbortError')) handleMutationError(reason, '產品刪除失敗')
     } finally {
       if (operationControllerRef.current === controller) operationControllerRef.current = null
@@ -207,7 +267,7 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
         <div className="product-page__toolbar">
           <Button variant="secondary" className="product-page__batch" onClick={() => uploadInputRef.current?.click()}>批次管理</Button>
           <input ref={uploadInputRef} className="product-page__file-input" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="選擇 Excel 檔案" onChange={handleFileSelected} />
-          <Button className="product-page__add" onClick={() => { setDialog({ mode: 'create' }); setDialogError('') }}>加入商品</Button>
+          <Button className="product-page__add" onClick={openCreateDialog}>加入商品</Button>
         </div>
         <div className="product-page__downloads" aria-label="商品檔案功能">
           <Button variant="text" disabled aria-label="下載批次新增商品模板（尚未開放）">下載批次新增商品模板</Button>
@@ -216,31 +276,31 @@ export function ProductPage({ session, onLogout, onSessionExpired }: ProductPage
         {detailLoading ? <p role="status">載入商品詳細資料…</p> : null}
         {operationMessage ? <p className="product-page__notice" role="status">{operationMessage}</p> : null}
         {loading ? <p role="status">載入中…</p> : null}
-        {error ? <div role="alert"><p>{error}</p><Button variant="text" onClick={() => { setOperationMessage(''); void refreshProducts(true) }}>重新載入</Button></div> : null}
+        {error ? <div role="alert"><p>{error}</p><Button variant="text" onClick={() => { setOperationMessage(''); void refreshProducts() }}>重新載入</Button></div> : null}
         {!loading && !error ? (
           <>
             <div className="product-page__filters">
               <label>篩選商品名稱<input type="search" value={nameSearch} onChange={handleSearchChange(setNameSearch)} /></label>
               <label>篩選商品分類<input type="search" value={labelSearch} onChange={handleSearchChange(setLabelSearch)} /></label>
             </div>
-            <ProductTable products={visibleProducts} currentPage={Math.min(currentPage, pageCount)} pageCount={pageCount} onPageChange={setCurrentPage} onEdit={(product) => { void handleEdit(product) }} onDelete={(product) => { setDialog({ mode: 'delete', product }); setDialogError('') }} />
+            <ProductTable products={visibleProducts} currentPage={effectivePage} pageCount={pageCount} onPageChange={setCurrentPage} onEdit={(product) => { void handleEdit(product) }} onDelete={openDeleteDialog} />
             {filteredProducts.length === 0 ? <p className="product-page__empty" role="status">{products.length === 0 ? '目前無產品' : '沒有符合條件的商品'}</p> : null}
           </>
         ) : null}
       </section>
       {dialog.mode === 'create' || dialog.mode === 'edit' ? (
-        <Modal title={dialog.mode === 'create' ? '新增商品' : '編輯商品'} onClose={() => setDialog({ mode: 'closed' })} busy={busy}>
-          <ProductForm mode={dialog.mode} initialProduct={dialog.mode === 'edit' ? dialog.product : undefined} labelOptions={labelOptions} busy={busy} error={dialogError} onCancel={() => setDialog({ mode: 'closed' })} onSubmit={(values) => { void submitProduct(values) }} />
+        <Modal title={dialog.mode === 'create' ? '新增商品' : '編輯商品'} onClose={closeDialog} busy={busy}>
+          <ProductForm mode={dialog.mode} initialProduct={dialog.mode === 'edit' ? dialog.product : undefined} labelOptions={labelOptions} busy={busy} error={dialogError} onCancel={closeDialog} onSubmit={(values) => { void submitProduct(values) }} />
         </Modal>
       ) : null}
       {dialog.mode === 'delete' ? (
-        <Modal title="刪除商品" onClose={() => setDialog({ mode: 'closed' })} busy={busy}>
+        <Modal title="刪除商品" onClose={closeDialog} busy={busy}>
           <div className="product-page__delete-confirm">
-            <p>確定要刪除商品「{dialog.product.name}」嗎？</p>
+            <p>確定要刪除商品「{dialog.product.name}」（編號：{dialog.product.id}）嗎？</p>
             {dialogError ? <p role="alert">{dialogError}</p> : null}
             <div className="product-form__actions">
               <Button onClick={() => { void confirmDelete() }} disabled={busy}>確認</Button>
-              <Button variant="secondary" className="product-form__cancel" onClick={() => setDialog({ mode: 'closed' })} disabled={busy}>取消</Button>
+              <Button variant="secondary" className="product-form__cancel" onClick={closeDialog} disabled={busy}>取消</Button>
             </div>
           </div>
         </Modal>

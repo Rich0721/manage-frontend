@@ -38,7 +38,7 @@ export function ProductForm({ initialProduct, labelOptions, busy, error, onCance
   }
 
   return (
-    <form className="product-form" onSubmit={handleSubmit}>
+    <form className="product-form" noValidate onSubmit={handleSubmit}>
       <div className="product-form__fields">
         <div className="product-form__id"><span>商品編號</span><output>{initialProduct?.id ?? ''}</output></div>
         <FormField id="product-name" label="商品名稱" type="text" value={values.name} onChange={(event) => update('name', event.target.value)} onBlur={() => undefined} error={errors.name} aria-required="true" />
