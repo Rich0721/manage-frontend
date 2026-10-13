@@ -91,7 +91,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 
 ## IV. Technical Stack / System Design
@@ -221,7 +221,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [x] Development 完成。
 - [ ] Code Review 通過。
 
-開發與 Review Fix 驗證：`npm test`（22 個測試檔、180 個測試通過）、`npm run build`、`npm run lint` 均通過。2026-10-13 Code Review 複審已獨立重跑 `npm test -- --run`（22 個測試檔、180 項通過）；TASK-001／002／003／004／006 通過，TASK-005 尚缺 App 層 CRUD 401 Session／單次提示整合測試，回到 `REVIEW FIX`。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；瀏覽器人工視覺驗收仍待需求提出者確認。
+開發與 Review Fix 驗證：`npm test`（22 個測試檔、181 個測試通過）、`npm run lint` 通過。2026-10-13 TASK-005 Review Fix 補上 App 層新增 API 401 整合測試，驗證 Session 清除、回到登入頁及「使用者未授權」只提示一次；完整 Vitest 22 個測試檔、181 項通過，lint 通過。TASK-005 已交 Code Reviewer 複審。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；瀏覽器人工視覺驗收仍待需求提出者確認。
 
 ### Handoff 條件
 

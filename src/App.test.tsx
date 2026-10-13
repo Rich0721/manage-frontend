@@ -3,10 +3,16 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import App from './App'
-import { getProducts } from './services/product-service'
+import { addProduct, deleteProduct, getProducts, ProductServiceError, updateProduct } from './services/product-service'
 import { AuthServiceError, loginUser, logoutUser } from './services/auth-service'
 
-vi.mock('./services/product-service', () => ({ getProducts: vi.fn() }))
+vi.mock('./services/product-service', () => ({
+  ProductServiceError: class ProductServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
+  addProduct: vi.fn(),
+  deleteProduct: vi.fn(),
+  getProducts: vi.fn(),
+  updateProduct: vi.fn(),
+}))
 vi.mock('./services/auth-service', () => ({
   AuthServiceError: class AuthServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
   logoutUser: vi.fn(),
@@ -15,6 +21,9 @@ vi.mock('./services/auth-service', () => ({
 
 const session = { uid: 'u1', authorization: 'token', userName: 'Tester' }
 const getProductsMock = vi.mocked(getProducts)
+const addProductMock = vi.mocked(addProduct)
+const deleteProductMock = vi.mocked(deleteProduct)
+const updateProductMock = vi.mocked(updateProduct)
 const loginMock = vi.mocked(loginUser)
 const logoutMock = vi.mocked(logoutUser)
 
@@ -22,6 +31,9 @@ afterEach(() => {
   vi.restoreAllMocks()
   sessionStorage.clear()
   getProductsMock.mockReset()
+  addProductMock.mockReset()
+  deleteProductMock.mockReset()
+  updateProductMock.mockReset()
   loginMock.mockReset()
   logoutMock.mockReset()
 })
@@ -101,6 +113,32 @@ describe('App session flow', () => {
     expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
     expect(sessionStorage.getItem('manage-frontend.auth-session')).toBeNull()
     expect(window.alert).toHaveBeenCalledWith('登入已逾期，請重新登入')
+  })
+
+  it('clears the session and shows one required alert when a CRUD request returns 401', async () => {
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    addProductMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    const user = userEvent.setup()
+    render(<App />)
+
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Item')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'A')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '1')
+    await user.click(screen.getByRole('button', { name: '確認' }))
+
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(sessionStorage.getItem('manage-frontend.auth-session')).toBeNull()
+    expect(addProductMock).toHaveBeenCalledOnce()
+    expect(deleteProductMock).not.toHaveBeenCalled()
+    expect(updateProductMock).not.toHaveBeenCalled()
+    expect(window.alert).toHaveBeenCalledOnce()
+    expect(window.alert).toHaveBeenCalledWith('使用者未授權')
   })
 
   it.each(['http', 'network'] as const)('keeps the session after a non-401 %s product failure', async (kind) => {
