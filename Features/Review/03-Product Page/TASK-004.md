@@ -33,3 +33,7 @@ TASK-004
 ## Resolution
 
 Status: RESOLVED。2026-10-13 複審：ProductForm 使用 noValidate，低於最小值時由自訂驗證顯示欄位錯誤；ProductForm、FormField、Modal 測試已涵蓋數值下限、焦點進入／限制／返回及 Escape。複審通過。
+
+## 2026-10-13 本次 Plan 更新複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-13。新增與編輯表單的庫存欄固定為停用的 0，不進入草稿、驗證錯誤或提交值；兩種模式與成本／售價驗證均有對應測試。共用 `FormField` 原有 disabled 屬性可直接重用。未發現本次差異的待修問題。

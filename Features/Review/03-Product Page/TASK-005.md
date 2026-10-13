@@ -1,6 +1,6 @@
 # TASK-005 Code Review
 
-Status: RESOLVED
+Status: OPEN
 
 ## Task ID
 
@@ -47,3 +47,17 @@ Status: OPEN。2026-10-13 複審：詳情請求已在切換新增／刪除時取
 ## Final Re-review
 
 Status: RESOLVED。Code Review Date：2026-10-13。已核對 `src/App.test.tsx`：測試經由 App 實際開啟新增表單並送出，由產品服務邊界回傳 401，接著驗證 sessionStorage 清空、登入表單出現、`window.alert` 僅呼叫一次且內容為「使用者未授權」。先前複審確認的詳情切換、刪除確認與頁面回歸仍有效；Programmer 於本次修正後執行單檔 16 項、全套 181 項及 lint 均通過。沒有新增待修問題，TASK-005 通過複審。
+
+## 2026-10-13 本次 Plan 更新複審
+
+Review Result：未通過；Review Status 為 `OPEN`，Implementation Status 為 `REVIEW FIX`，Code Review Date：2026-10-13。此節處理 Stock 暫行契約的新差異，不重開上方已解決的歷史 Issue。
+
+Review Issue：最新 Plan 的 TASK-005「本次差異」明訂頁面測試須驗證清單回應缺少 `stock` 時表格顯示 `0`。`src/services/product-service.test.tsx` 已證明服務解析缺省 stock 會回傳 0；但 `src/pages/ProductPage.test.tsx` 的清單顯示案例使用 stock 7，新增表單案例只檢查停用的 stock 0，尚無表格庫存格顯示 0 的斷言。服務與頁面分層驗證未完整覆蓋 Plan 指定的可見結果。
+
+Expected Behavior：頁面測試接收服務正規化後的 `stock: 0` 商品，確認該商品的庫存格顯示 `0`，並保留既有七欄及 CRUD 測試。服務層缺省 stock 的回應案例已存在，無需重複頁面中的解析邏輯。
+
+Suggested Area To Fix：檢查 `src/pages/ProductPage.test.tsx` 的清單顯示案例與 `ProductTable` 可觀察的庫存儲存格。補足頁面斷言後執行相關回歸，再交由 Code Reviewer 複審。
+
+## Programmer Fix Handoff
+
+2026-10-13：`src/pages/ProductPage.test.tsx` 的清單顯示案例使用正規化後 `stock: 0` 商品，並以該商品列斷言表格庫存儲存格顯示 `0`。定向 ProductPage／ProductLabelInput 測試 33 項通過；全套 Vitest 22 個測試檔、186 項通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。Implementation Status 已更新為 `DEVELOPED DONE`，本 Review Status 保持 `OPEN`，等待複審。

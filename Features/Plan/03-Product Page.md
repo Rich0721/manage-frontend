@@ -106,12 +106,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | PLAN UPDATED | — | — |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 
 ## IV. Technical Stack / System Design
 
@@ -251,6 +251,10 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 ### Programmer Handoff（2026-10-13）
 
 Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；目前沒有本 Feature 的 OPEN Implementation Issue。`npm test -- --run` 全量測試 22 個測試檔、186 項通過；本次程式變更的 `npm run build` 與 `npm run lint` 均通過。TASK-001／004／005／006 已完成開發並更新為 `DEVELOPED DONE`；TASK-006 視覺檢查依使用者指示暫緩，不阻擋本輪完成。TASK-003 程式與自動化測試已完成，但仍待該 Task 明訂的標籤尺寸及 close 圖示瀏覽器／Figma 對照，因此維持 `PLAN UPDATED`。Code Review Status 尚待 Code Reviewer 處理；本次不將任何項目標為 `DONE`。
+
+### Programmer Fix Handoff（2026-10-13）
+
+已依 TASK-005 複審結果，在 `ProductPage.test.tsx` 驗證庫存為 0 的商品列實際顯示 `0`；服務層仍負責將 API 缺少 stock 的回應正規化為 0。TASK-005 修正已完成，相關定向測試 33 項、全套 Vitest 22 個測試檔／186 項、build 與 lint 均通過，狀態更新為 `DEVELOPED DONE`，等待 Code Reviewer 複審。TASK-003 的 close 圖示尺寸已依設計節點改為 12px，既有標籤互動測試包含在上述測試結果內；但本機瀏覽器控制介面沒有可用瀏覽器，無法完成計畫要求的本機實際渲染對照，因此 TASK-003 維持 `PLAN UPDATED`，不得宣稱視覺驗收完成。
 
 ### Handoff 條件
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductPage } from './ProductPage'
 import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from '../services/product-service'
@@ -23,12 +23,14 @@ afterEach(() => {
 
 describe('ProductPage', () => {
   it('renders the requested columns, product labels, and accessible actions', async () => {
-    getProductsMock.mockResolvedValue([product('p1', 'Item', 'A,B', 7)])
+    getProductsMock.mockResolvedValue([product('p1', 'Item', 'A,B', 0)])
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     expect(await screen.findByText('Item')).toBeInTheDocument()
     expect(screen.getAllByRole('columnheader')).toHaveLength(7)
     expect(screen.getByRole('columnheader', { name: '庫存' })).toBeInTheDocument()
     expect(screen.getByText('A')).toBeInTheDocument(); expect(screen.getByText('B')).toBeInTheDocument()
+    const itemRow = screen.getByRole('row', { name: /p1 Item/ })
+    expect(within(itemRow).getByText('0')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '編輯商品 Item' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '刪除商品 Item' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '加入商品' })).toBeEnabled()

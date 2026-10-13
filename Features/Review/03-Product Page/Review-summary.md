@@ -1,5 +1,17 @@
 # 03 - Product Page Code Review
 
+## Programmer Fix Handoff（2026-10-13）
+
+TASK-005 缺少頁面表格庫存顯示 0 的斷言已補齊，Plan 狀態為 `DEVELOPED DONE`，等待複審；Review Status 仍為 `OPEN`。定向測試 33 項、全套 186 項、build 與 lint 通過。TASK-003 的 close 圖示 CSS 已調整為 12px；程式及自動化測試完成，但本機瀏覽器控制介面無可用瀏覽器，Figma 實際渲染對照未完成，故維持 `PLAN UPDATED`。
+
+## 2026-10-13 本次 Plan 更新複審（最新結果）
+
+審查範圍為最新 Plan 中 `DEVELOPED DONE` 的 TASK-001／004／005／006。TASK-001／004／006 通過，Implementation Status 更新為 `DONE`，其 Review Status 維持 `RESOLVED`；TASK-005 因缺少表格庫存 0 的頁面可見結果測試，更新為 `REVIEW FIX`，Review Status 為 `OPEN`。TASK-003 仍為 `PLAN UPDATED`，未進入本輪正式 Code Review；TASK-002 既有 `DONE` 維持不變。
+
+TASK-005 的服務測試已證明回應缺少 stock 時正規化為 0，但 `ProductPage.test.tsx` 尚未確認表格庫存格顯示 0，與 Plan TASK-005 的本次差異測試要求不符。問題位置、期望行為與修正範圍見 `TASK-005.md`。TASK-006 的瀏覽器視覺檢查依最新 Plan 暫緩，未記為驗收通過。
+
+Programmer 交接的全量測試為 22 個測試檔、186 項通過，build 與 lint 亦通過；本次 Code Review 依該結果與程式／測試內容核對，未修改 Production 或 Test Code，也未重跑測試。上述歷史審查紀錄保留，最新狀態以本節及 Implementation Plan 的 Requirement List 為準。
+
 Review Date：2026-10-13  
 初審結果：未通過；當時 TASK-001～006 均為 `REVIEW FIX`，各 Task Review Status 為 `OPEN`。
 

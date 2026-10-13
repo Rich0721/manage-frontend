@@ -33,3 +33,7 @@ TASK-006
 ## Resolution
 
 Status: RESOLVED。2026-10-13 複審：測試確認批次按鈕觸發檔案選擇、重選同一檔案後 input 清空、商品 mutation API 無副作用及下載按鈕 disabled；左右箭頭使用本地資產。程式碼複審通過；Figma 畫面幾何仍需依計畫另作瀏覽器人工驗收。
+
+## 2026-10-13 本次 Plan 更新複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-13。下載區移除負 margin，與操作按鈕保持正向垂直間距，窄螢幕允許換行；兩個下載入口仍為 disabled。原選檔、重選及無產品 API 副作用的測試保留。依最新 Plan，TASK-006 桌面／窄螢幕及 Figma 視覺驗收暫緩，不作本輪審查門檻；本次未宣稱視覺驗收通過。未發現其餘待修問題。
