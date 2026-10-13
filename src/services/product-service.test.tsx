@@ -114,17 +114,20 @@ describe('product service', () => {
     expect(await productResult).toMatchObject({ kind: 'timeout' })
   })
 
-  it('maps stock as a required finite Number', async () => {
+  it('defaults omitted stock to zero and preserves a valid stock Number', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
-      { id: 'p1', name: 'Item', label_names: 'A,B', cost: 1, price: 2, stock: 3 },
+      { id: 'p1', name: 'Item', label_names: 'A,B', cost: 1, price: 2 },
+      { id: 'p2', name: 'Item 2', label_names: 'A', cost: 1, price: 2, stock: 3 },
     ] } }), { status: 200, headers: { Status: 'Success' } })))
-    await expect(getProducts(session, new AbortController().signal)).resolves.toMatchObject([{ stock: 3, label_names: 'A,B' }])
+    await expect(getProducts(session, new AbortController().signal)).resolves.toMatchObject([{ stock: 0, label_names: 'A,B' }, { stock: 3 }])
   })
 
   it.each([
     ['cost below the form minimum', { cost: 0, price: 2, stock: 0 }],
     ['price below the form minimum', { cost: 1, price: -1, stock: 0 }],
     ['negative stock', { cost: 1, price: 2, stock: -1 }],
+    ['null stock', { cost: 1, price: 2, stock: null }],
+    ['string stock', { cost: 1, price: 2, stock: '3' }],
   ])('rejects successful product responses with %s', async (_label, numbers) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
       { id: 'p1', name: 'Item', label_names: 'A', ...numbers },
@@ -134,11 +137,11 @@ describe('product service', () => {
 
   it('sends one complete numeric update with identity in HTTP headers', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
-      id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 0,
+      id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20,
     } } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
-    const input = { id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 0 }
-    await updateProduct(session, input, new AbortController().signal)
+    const input = { id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20 }
+    await expect(updateProduct(session, input, new AbortController().signal)).resolves.toMatchObject({ stock: 0 })
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/updateProduct')
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('PUT')
@@ -148,17 +151,17 @@ describe('product service', () => {
 
   it('maps create and update payloads to only the fields allowed by the API contract', async () => {
     const fetchMock = vi.fn().mockImplementation(() => new Response(JSON.stringify({ body: { info: {
-      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0,
+      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2,
     } } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     const input = { id: 'must-not-be-created-with-this-id', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0, updated_user: 'forbidden' } as unknown as ProductWriteInput
-    await addProduct(session, input, new AbortController().signal)
+    await expect(addProduct(session, input, new AbortController().signal)).resolves.toMatchObject({ stock: 0 })
     await updateProduct(session, { ...input, id: 'p1' }, new AbortController().signal)
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ body: { info: {
-      name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0,
+      name: 'Item', label_names: 'A', cost: 1, price: 2,
     } } })
     expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({ body: { info: {
-      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0,
+      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2,
     } } })
   })
 
@@ -200,16 +203,23 @@ describe('product service', () => {
     vi.stubGlobal('fetch', fetchMock)
     await getProduct(session, 'p /1', new AbortController().signal)
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProduct?productId=p%20%2F1')
-    await addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal)
+    await addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2 }, new AbortController().signal)
     await deleteProduct(session, 'p /1', new AbortController().signal)
     expect(fetchMock).toHaveBeenCalledTimes(3)
     expect(fetchMock.mock.calls[1]?.[1]?.method).toBe('POST')
     expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({ body: { info: { id: 'p /1' } } })
   })
 
+  it('defaults stock to zero for a detail response without the field', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
+      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2,
+    } } }), { status: 200, headers: { Status: 'Success' } })))
+    await expect(getProduct(session, 'p1', new AbortController().signal)).resolves.toMatchObject({ stock: 0 })
+  })
+
   it('classifies create conflicts with the required retry message', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 409 })))
-    await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal))
+    await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2 }, new AbortController().signal))
       .rejects.toMatchObject(new ProductServiceError('conflict', '商品產生ID衝突，請重新送出'))
   })
 
@@ -217,7 +227,7 @@ describe('product service', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [] } }), {
       status: 200, headers: { Status: 'Success' },
     })))
-    await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal))
+    await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2 }, new AbortController().signal))
       .rejects.toMatchObject({ kind: 'protocol' })
   })
 })

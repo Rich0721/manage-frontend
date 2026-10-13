@@ -39,7 +39,6 @@ function toWriteInput(values: ProductFormValues): ProductWriteInput {
     label_names: values.labelNames.join(','),
     cost: Number(values.cost),
     price: Number(values.price),
-    stock: Number(values.stock),
   }
 }
 

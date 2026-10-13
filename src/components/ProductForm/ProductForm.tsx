@@ -22,7 +22,6 @@ export function ProductForm({ initialProduct, labelOptions, busy, error, onCance
     labelNames: initialProduct?.label_names ? initialProduct.label_names.split(',').map((label) => label.trim()).filter(Boolean) : [],
     cost: initialProduct ? String(initialProduct.cost) : '',
     price: initialProduct ? String(initialProduct.price) : '',
-    stock: initialProduct ? String(initialProduct.stock) : '0',
   })
   const [errors, setErrors] = useState<ProductFormErrors>({})
   const update = (field: keyof ProductFormValues, value: string | string[]) => {
@@ -48,7 +47,7 @@ export function ProductForm({ initialProduct, labelOptions, busy, error, onCance
         </div>
         <FormField id="product-cost" label="成本" type="number" min="1" step="any" value={values.cost} onChange={(event) => update('cost', event.target.value)} onBlur={() => undefined} error={errors.cost} aria-required="true" />
         <FormField id="product-price" label="售價" type="number" min="1" step="any" value={values.price} onChange={(event) => update('price', event.target.value)} onBlur={() => undefined} error={errors.price} aria-required="true" />
-        <FormField id="product-stock" label="庫存" type="number" min="0" step="any" value={values.stock} onChange={(event) => update('stock', event.target.value)} onBlur={() => undefined} error={errors.stock} aria-required="true" />
+        <FormField id="product-stock" label="庫存" type="number" value="0" onChange={() => undefined} onBlur={() => undefined} disabled />
       </div>
       {errors.summary ? <p className="product-form__summary" role="alert">{errors.summary}</p> : null}
       {error ? <p className="product-form__summary" role="alert">{error}</p> : null}

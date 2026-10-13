@@ -15,6 +15,29 @@ describe('ProductLabelInput', () => {
     expect(onChange).toHaveBeenCalledWith(['Blue'])
   })
 
+  it('renders the same Figma tag template when adding by Enter or suggestion', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const { rerender } = render(<ProductLabelInput value={[]} options={['Suggested']} onChange={onChange} />)
+    const input = screen.getByRole('textbox', { name: '商品分類' })
+    await user.type(input, 'Typed new')
+    await user.keyboard('{Enter}')
+    expect(onChange).toHaveBeenLastCalledWith(['Typed new'])
+    rerender(<ProductLabelInput value={['Typed new']} options={['Suggested']} onChange={onChange} />)
+    expect(document.querySelector('.product-label-input__tag')).toHaveTextContent('Typed new')
+    expect(screen.getByRole('button', { name: '移除分類 Typed new' }).querySelector('img')).toHaveAttribute('src', '/icon/label-close.png')
+
+    rerender(<ProductLabelInput value={[]} options={['Suggested']} onChange={onChange} />)
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'Sug')
+    await user.click(screen.getByRole('button', { name: 'Suggested' }))
+    expect(onChange).toHaveBeenLastCalledWith(['Suggested'])
+    rerender(<ProductLabelInput value={['Suggested']} options={['Suggested']} onChange={onChange} />)
+    const tag = document.querySelector('.product-label-input__tag')
+    expect(tag).toHaveTextContent('Suggested')
+    expect(tag).toHaveClass('product-label-input__tag')
+    expect(screen.getByRole('button', { name: '移除分類 Suggested' }).querySelector('img')).toHaveAttribute('src', '/icon/label-close.png')
+  })
+
   it('adds a new text label, rejects commas, and clears all selected labels', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

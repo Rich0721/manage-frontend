@@ -34,8 +34,10 @@ export function ProductLabelInput({ value, options, onChange, error }: ProductLa
         <div className="product-label-input__tags">
           {value.map((label) => (
             <span className="product-label-input__tag" key={label}>
-              {label}
-              <button type="button" aria-label={`移除分類 ${label}`} onClick={() => onChange(value.filter((item) => item !== label))}>×</button>
+              <span>{label}</span>
+              <button type="button" aria-label={`移除分類 ${label}`} onClick={() => onChange(value.filter((item) => item !== label))}>
+                <img src="/icon/label-close.png" alt="" />
+              </button>
             </span>
           ))}
           <input

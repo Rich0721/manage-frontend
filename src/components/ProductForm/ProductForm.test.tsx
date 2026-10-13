@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductForm } from './ProductForm'
 import type { Product } from '../../types/auth'
@@ -21,13 +21,10 @@ describe('ProductForm', () => {
     expect(onSubmit).not.toHaveBeenCalled()
   })
 
-  it('shows an accessible stock minimum error for negative values', async () => {
-    const user = userEvent.setup()
-    render(<ProductForm mode="edit" initialProduct={product} labelOptions={['A', 'B']} busy={false} error="" onCancel={() => undefined} onSubmit={() => undefined} />)
+  it.each(['create', 'edit'] as const)('shows stock as zero and disables editing in %s mode', (mode) => {
+    render(<ProductForm mode={mode} initialProduct={mode === 'edit' ? product : undefined} labelOptions={['A', 'B']} busy={false} error="" onCancel={() => undefined} onSubmit={() => undefined} />)
     const stock = screen.getByRole('spinbutton', { name: '庫存' })
-    fireEvent.change(stock, { target: { value: '-1' } })
-    await user.click(screen.getByRole('button', { name: '確認' }))
-    expect(stock).toHaveAttribute('aria-invalid', 'true')
-    expect(stock).toHaveAccessibleDescription('庫存最小值為 0')
+    expect(stock).toHaveValue(0)
+    expect(stock).toBeDisabled()
   })
 })
