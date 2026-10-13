@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { loadEnv } from 'vite'
 
-const DEFAULT_API_UPSTREAM = 'http://localhost:8080'
+const DEFAULT_API_UPSTREAM = 'http://localhost:8000'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')

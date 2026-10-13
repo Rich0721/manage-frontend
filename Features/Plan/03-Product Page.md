@@ -6,7 +6,7 @@
 - 原始需求與計畫：`Features/Document/02-LoginAndLogout.md`、`Features/Plan/02-LoginAndLogout.md`。
 - Scenario：`Features/Document/Scenarios/03-Product Page/` 下 `01-Product Page.feature`、`02-Add Product.feature`、`03-Edit Product.feature`、`04-Delete Product.feature`。
 - Flow：`Features/Document/flows/03-Product Page/` 下三份新增、編輯、刪除流程。
-- Requirement Type：原始工作為 **Requirement Change**；本次追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約）。
+- Requirement Type：原始工作為 **Requirement Change**；本次追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-006 視覺驗證暫緩）。
 - Plan Date：2026-10-13。
 - Plan Status：**Awaiting Review**。本次需求變更已完成分析；人工審閱前不進入實作。
 - 本次僅調整計畫，不修改需求文件、Production Code 或測試；工作區現有 `vite.config.ts` 變更非本計畫寫入。
@@ -20,6 +20,14 @@ Requirement Summary: 下載批次新增商品模板及下載商品報表與操�
 ```
 
 本次 Stock 決議由使用者再次確認，暫時覆蓋下方舊版「stock 必填、可編輯、隨新增／更新送出」的規劃及需求文件中的舊版 Stock 範例；成本、售價仍維持 JSON Number。這是前端與尚未實作 Stock 的 API 之間的過渡行為，未修改 PM 原始需求文件。其餘 CRUD、分頁、搜尋、Session 與標籤資料格式不變。
+
+### 2026-10-13 TASK-006 驗證範圍調整
+
+```text
+Requirement Source: 本次對話使用者指示
+Requirement Date: 2026-10-13
+Requirement Summary: TASK-006 的視覺顯示暫時不進行測試。下載入口位置與間距的預期行為保留；桌面／窄螢幕瀏覽器幾何檢查與 Figma 視覺對照暫緩，不作為本輪 TASK-006 Development 或 Code Review 完成門檻。選檔、重選及 disabled 下載占位的功能測試與既有回歸仍須執行。
+```
 
 ### 使用者需求補充
 
@@ -211,8 +219,8 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - **Implementation**：使用 file input accept `.xlsx,.xls` 作選檔提示，不加入 Excel parser；reset input 讓相同檔案可再選。設計稿下載模板／報表入口採 disabled 占位並標明尚未開放，不建立假 URL 或檔案，待 API 設計後另行規劃。從 Figma 正式資產流程取得左右箭頭，存為對應本地檔名，不能硬寫暫時 URL；現有 pencil/delete 核對一致後沿用，圖片包按鈕後 CSS 依用途 class 定尺寸，不再依 first-child/last-child 誤套尺寸。
 - **Reuse / Impact**：沿用 public/icon、Button、既有 Header；不新增資產頂層或下載依賴。
 - **Error Handling**：選檔不表示上傳成功；未開放功能不導向錯誤 URL。資產未取得列為交付阻礙，不能以任意替代圖示宣稱符合設計。
-- **Testing**：選檔與取消／重選沒有 fetch；下載占位不可觸發；人工對照兩種清單、新增／編輯、標籤、箭頭與圖示幾何，窄螢幕表格可橫捲，Modal 不超出視窗。
-- **2026-10-13 本次差異**：MODIFY `src/pages/ProductPage.css`；視實際 DOM 需要最小調整 `ProductPage.tsx`、`ProductPage.test.tsx`。操作按鈕與兩個 disabled 下載入口維持同一區域的上下兩列，移除造成擁擠的 `.product-page__downloads` 負 margin，設定明確的正向垂直間距與水平間距；窄螢幕容許下載文字換行或換列，不能覆蓋按鈕、搜尋欄或彼此。不得把 disabled 入口改成有功能的下載連結。原選檔／disabled 回歸維持；在桌面與窄螢幕瀏覽器檢查元素邊界無重疊、文字可完整辨讀並與 Figma 位置關係一致。
+- **Testing**：選檔與取消／重選沒有 fetch；下載占位不可觸發。原規劃的頁面、箭頭及圖示幾何、窄螢幕橫捲與 Modal 等人工視覺對照暫緩，不作為本輪 TASK-006 完成門檻；後續執行時另行記錄結果，不得宣稱已通過。
+- **2026-10-13 本次差異**：MODIFY `src/pages/ProductPage.css`；視實際 DOM 需要最小調整 `ProductPage.tsx`、`ProductPage.test.tsx`。操作按鈕與兩個 disabled 下載入口維持同一區域的上下兩列，移除造成擁擠的 `.product-page__downloads` 負 margin，設定明確的正向垂直間距與水平間距；窄螢幕容許下載文字換行或換列，不能覆蓋按鈕、搜尋欄或彼此。不得把 disabled 入口改成有功能的下載連結。原選檔／disabled 回歸維持；桌面與窄螢幕的元素邊界、文字及 Figma 位置關係之瀏覽器檢查依本次驗證範圍調整暫緩。
 
 ### 執行順序與驗證
 
@@ -221,7 +229,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 3. 本次差異以 TASK-001 → TASK-004 → TASK-005 處理 Stock；TASK-003 處理標籤、TASK-006 處理下載入口版面，兩者不依賴 Stock。TASK-002 無程式差異，保持 DONE；此順序不要求啟動額外 Agent。
 4. 測試沿用仍有效的 Gherkin 情境名稱並註記來源；Stock 可編輯／隨 request 送出部分已被本次使用者決議暫時取代。Service 控制 fetch，Page 控制 service 邊界；不要 mock 待測驗證或分頁演算法。
 5. 實作後跑相關 Vitest，再跑受共用欄位／Session 影響的登入註冊與 App 回歸，最後 `npm test`、`npm run build`、`npm run lint`。不引入新的測試框架或假設覆蓋率門檻。
-6. Figma 對照為實作後人工／瀏覽器驗收；本次僅讀取稿件，沒有宣稱渲染或後端整合已通過。
+6. TASK-003 產品標籤的樣式尺寸及 close 圖示幾何仍依其步驟進行瀏覽器／Figma 對照；TASK-006 的視覺顯示測試依使用者指示暫緩，不阻擋本輪開發與審查狀態。未執行的視覺檢查不得記為通過，亦不宣稱已驗證後端整合。
 
 ## VI. Review Status / Plan Validation
 
@@ -233,11 +241,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 - [x] 分類來源／多分類格式與數值契約已確認。
 - [x] 錯誤文案、搜尋與分頁刷新邊界已納入計畫。
 - [x] 所有需求已有對應實作步驟與測試策略。
+- [x] TASK-006 視覺測試暫緩已納入驗證策略，功能與回歸測試維持。
 - [ ] Implementation Plan 已完成人工審核。
 - [ ] 本次差異 Development 完成。
 - [ ] 本次差異 Code Review 通過。
 
-既有版本曾通過 Code Review：`npm test` 22 個測試檔、181 項通過，`npm run lint` 通過；這是本次需求變更前的歷史驗證，不代表本次差異已開發或驗收。本次待實作 TASK-001／003／004／005／006；TASK-002 維持 DONE。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；新增標籤 close 圖示與瀏覽器版面驗收屬本次差異。
+既有版本曾通過 Code Review：`npm test` 22 個測試檔、181 項通過，`npm run lint` 通過；這是本次需求變更前的歷史驗證，不代表本次差異已開發或驗收。本次待實作 TASK-001／003／004／005／006；TASK-002 維持 DONE。Figma 左右分頁圖示已下載至 `public/icon/` 並套用；TASK-003 的新增標籤 close 圖示對照仍列本輪驗證，TASK-006 的瀏覽器版面驗收暫緩。
 
 ### Handoff 條件
 
