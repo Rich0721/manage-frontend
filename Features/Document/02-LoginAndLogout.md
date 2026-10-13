@@ -116,6 +116,7 @@ Response Body:
                 "label_names": "<label_names>",
                 "cost": "<product_cost>",
                 "price": "<product_price>",
+                "stock": "<product_stock>",
                 "deleted": "<product_deleted>",
                 "updated_user": "<product_updated_user>",
                 "updated_at": "<product_updated_at>"
