@@ -87,12 +87,12 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
-| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-003 | 商品分類輸入 | ADD | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-004 | 共用商品表單與浮動視窗 | ADD | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
+| TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | REVIEW FIX | 2026-10-13 | 2026-10-13 |
 
 ## IV. Technical Stack / System Design
 
