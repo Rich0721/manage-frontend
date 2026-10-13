@@ -1,6 +1,6 @@
 # TASK-002 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-002
 
 ## Resolution
 
-Status: OPEN。待 Programmer 修正後重新審查。
+Status: RESOLVED。2026-10-13 複審：畫面切片與顯示頁碼共用 effectivePage，刷新後依篩選結果限縮頁碼；測試涵蓋 0／1／15／16／18 筆及篩選後刪除末頁唯一商品。複審通過。

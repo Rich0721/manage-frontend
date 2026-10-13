@@ -34,4 +34,8 @@ TASK-005
 
 ## Resolution
 
-Status: OPEN。待 Programmer 修正後重新審查。
+Status: OPEN。2026-10-13 複審：詳情請求已在切換新增／刪除時取消並以 request id 阻止過期結果覆蓋；刪除確認已顯示名稱與 id。頁面測試已涵蓋重複送出、刷新失敗只重試 GET、非第一頁新增保留頁碼、刪除後頁碼有效及過期 Session 回應。仍有下列測試缺口，因此 TASK-005 未通過複審。
+
+## Remaining Review Issue
+
+`src/App.test.tsx` 只有初始清單 GET 401 的 Session 測試；CRUD 401 測試僅在 `ProductPage.test.tsx` 斷言 `onSessionExpired('使用者未授權')` 被呼叫，沒有經 App 驗證 Session 清除、返回登入頁與指定提示只出現一次。Implementation Plan TASK-005 Testing 與原 Review Issue 3 明確要求此整合回歸。請補一項以 App 為受測邊界的 CRUD 401 測試，驗證上述可觀察結果；不需改動已通過的產品程式碼。

@@ -1,6 +1,6 @@
 # TASK-004 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-004
 
 ## Resolution
 
-Status: OPEN。待 Programmer 修正後重新審查。
+Status: RESOLVED。2026-10-13 複審：ProductForm 使用 noValidate，低於最小值時由自訂驗證顯示欄位錯誤；ProductForm、FormField、Modal 測試已涵蓋數值下限、焦點進入／限制／返回及 Escape。複審通過。

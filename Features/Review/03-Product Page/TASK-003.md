@@ -1,6 +1,6 @@
 # TASK-003 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-003
 
 ## Resolution
 
-Status: OPEN。待 Programmer 補測後重新審查。
+Status: RESOLVED。2026-10-13 複審：元件測試涵蓋 IME Enter、單一標籤移除；頁面測試涵蓋已載入分類去重、即時候選及多分類編輯回填／送出。複審通過。

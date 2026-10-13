@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -34,4 +34,4 @@ TASK-001
 
 ## Resolution
 
-Status: OPEN。待 Programmer 修正後重新審查。
+Status: RESOLVED。2026-10-13 複審：服務已對新增／更新明確映射契約欄位，回應驗證成本／售價至少 1、庫存至少 0，讀取 JSON 期間可區分外部取消與逾時。服務測試涵蓋多餘欄位、數值下限、非法 JSON、取消／逾時與損壞的 mutation 回應；複審通過。

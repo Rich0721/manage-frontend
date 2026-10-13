@@ -1,6 +1,6 @@
 # TASK-006 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -32,4 +32,4 @@ TASK-006
 
 ## Resolution
 
-Status: OPEN。待 Programmer 補測後重新審查。
+Status: RESOLVED。2026-10-13 複審：測試確認批次按鈕觸發檔案選擇、重選同一檔案後 input 清空、商品 mutation API 無副作用及下載按鈕 disabled；左右箭頭使用本地資產。程式碼複審通過；Figma 畫面幾何仍需依計畫另作瀏覽器人工驗收。
