@@ -85,7 +85,3 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-14）
 
 頁面測試新增預設 stock 0 的新增 payload 與清單顯示斷言；原自訂 stock 新增案例改以刷新後的非零庫存驗證表格呈現，空白 stock 與負數均驗證不呼叫 API。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
-
-## 2026-10-14 Stock Review Fix 複審
-
-Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。Page 測試驗證預設 0 經新增 service 傳為 Number，空白與負數不呼叫 API；另一新增案例的表格斷言使用刷新結果 stock 13，與送出值 12 區分。原缺測已補足，編輯詳情與更新 payload 測試保留；前次定向測試 99 項與 lint 通過，本次未重跑。
