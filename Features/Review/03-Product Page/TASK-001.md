@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: RESOLVED
+Status: OPEN
 
 ## Task ID
 
@@ -39,3 +39,19 @@ Status: RESOLVED。2026-10-13 複審：服務已對新增／更新明確映射�
 ## 2026-10-13 本次 Plan 更新複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-13。`parseProduct` 僅對未提供的 stock 補 0，已提供的欄位仍驗證 Number、finite 與非負；新增／更新以明確欄位映射排除 stock。服務測試涵蓋清單／詳情／mutation 缺省、有效與非法 stock，以及請求內容不送 stock。未發現本次差異的待修問題。
+
+## 2026-10-14 Get Product URI 更正審查
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-14。
+
+### Review Issue
+
+`src/services/product-service.ts:95`：抽取共用 `requestResponse()` 後，JSON body 解析失敗的既有訊息由「產品回應不是有效 JSON」改為「產品回應內容格式錯誤」。最新 Plan TASK-001 要求保留原查詢的錯誤行為，且此訊息會由 ProductPage 顯示。現有測試僅檢查 `kind: 'protocol'`，未發現此回歸。
+
+### Expected Behavior / Suggested Area To Fix
+
+保留既有 JSON 解析錯誤訊息與取消／逾時分類，同時讓 Blob 讀取失敗有合適的訊息。檢查 `requestResponse()` 與 JSON request 呼叫端，補對應回歸測試。共用 URI、單筆陣列解析、mutation 物件解析及編碼本身已符合本輪 Plan，無需重作。
+
+### Resolution
+
+Status: OPEN。待 Programmer 修正並重新驗證。

@@ -1,5 +1,11 @@
 # 03 - Product Page Code Review
 
+## 2026-10-14 商品檔案 API 與 Get Product URI 審查（最新結果）
+
+審查最新 Plan 中六項 `DEVELOPED DONE` 任務。TASK-003／005 通過，Implementation Status 為 `DONE`、Review Status 為 `RESOLVED`；TASK-001／007～009 標為 `REVIEW FIX`，Review Status 為 `OPEN`。TASK-002／004／006 的既有 `DONE` 不變。主要待修問題：共用 request 改變舊 JSON 錯誤文案；上傳缺失敗／晚到回應測試；下載錯把非 Excel `text/plain` 成功回應當成檔案，且檔名、資源清理及錯誤／重複請求測試不足。各 Task 詳見同目錄 `TASK-001.md`、`TASK-007.md`、`TASK-008.md`、`TASK-009.md`。
+
+Reviewer 核對 Plan、程式、相關測試與先前審查紀錄，並獨立執行 Product service／Page 定向測試 68 項及 ProductLabelInput／App 定向測試 21 項，均通過。全套 196 項、build 與 lint 通過為 Programmer 交接結果；本次未重跑。審查只更新 Plan／Review 文件，未修改 Production 或 Test Code，未連接實際後端。
+
 ## Programmer Fix Handoff（2026-10-13）
 
 TASK-005 缺少頁面表格庫存顯示 0 的斷言已補齊，Plan 狀態為 `DEVELOPED DONE`，等待複審；Review Status 仍為 `OPEN`。定向測試 33 項、全套 186 項、build 與 lint 通過。TASK-003 的 close 圖示 CSS 已調整為 12px；程式及自動化測試完成，但本機瀏覽器控制介面無可用瀏覽器，Figma 實際渲染對照未完成，故維持 `PLAN UPDATED`。

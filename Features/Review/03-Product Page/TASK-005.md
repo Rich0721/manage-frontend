@@ -1,6 +1,6 @@
 # TASK-005 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -61,3 +61,7 @@ Suggested Area To Fix：檢查 `src/pages/ProductPage.test.tsx` 的清單顯示�
 ## Programmer Fix Handoff
 
 2026-10-13：`src/pages/ProductPage.test.tsx` 的清單顯示案例使用正規化後 `stock: 0` 商品，並以該商品列斷言表格庫存儲存格顯示 `0`。定向 ProductPage／ProductLabelInput 測試 33 項通過；全套 Vitest 22 個測試檔、186 項通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。Implementation Status 已更新為 `DEVELOPED DONE`，本 Review Status 保持 `OPEN`，等待複審。
+
+## 2026-10-14 Stock 差異複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。`ProductPage.test.tsx` 的表格案例已以 `stock: 0` 商品斷言庫存格實際顯示 0；服務測試另驗證 API 缺省時正規化。新增／編輯仍不送 stock，既有詳情切換、Session 401、refresh 與頁碼回歸未見本輪修改破壞。Reviewer 執行 Product service／Page 測試 68 項及 ProductLabelInput／App 測試 21 項通過。先前 OPEN Issue 已解決，本次沒有新增待修問題。

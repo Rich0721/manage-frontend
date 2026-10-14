@@ -119,15 +119,15 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
+| TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
-| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
-| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
 
 ## IV. Technical Stack / System Design
 
@@ -375,3 +375,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 已完成 TASK-001／007～009：Get Product 與 Get All 共用查詢 URI，單筆 GET 驗證陣列恰有目標商品，新增／更新仍驗證物件；批次上傳以 `FormData.file` 傳檔並在成功後重新查詢清單；模板與報表以 Blob 觸發瀏覽器下載，優先採回應檔名、否則使用已確認的固定檔名。報表傳送全部符合篩選條件的商品 ID，0 筆時停用下載。未改動既有登入註冊、庫存及其他 CRUD 契約。
 
 測試新增單筆 URI／回應形狀、multipart 上傳、Excel 下載、跨頁篩選 ID、401、重複上傳與清單重查失敗。`npm.cmd test -- --run`：22 個測試檔／196 項通過；`npm.cmd run build`、`npm.cmd run lint` 均通過；`git diff --check` 通過。未連接實際後端驗證檔案傳輸。TASK-001／007～009 狀態為 `DEVELOPED DONE`，交由 Code Review Agent 審查；`DONE` 尚未設定。
+
+### Code Review（2026-10-14）
+
+本輪審查 Requirement List 中全部六項 `DEVELOPED DONE` 任務。TASK-003／005 通過並更新為 `DONE`，Review Status 為 `RESOLVED`；TASK-001／007～009 均為 `REVIEW FIX`，Review Status 為 `OPEN`，Code Review Date 均為 2026-10-14。TASK-001 的共用 request 重構改變既有 JSON 錯誤文案；TASK-007 缺 Plan 指定的上傳失敗與晚到回應頁面測試；TASK-008／009 的共用 Blob 解析接受非 Excel 的 `text/plain` 回應，下載檔名／清理及錯誤／重複請求測試亦不足。詳細位置與修正範圍記錄於各 Task Review 文件。審查未修改 Production 或 Test Code；Reviewer 定向執行 Product service／Page 測試 68 項及 ProductLabelInput／App 測試 21 項，均通過。Programmer 前次全套 196 項、build 與 lint 通過屬前次驗證紀錄，不能取代本輪發現的缺口。
