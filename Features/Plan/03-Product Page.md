@@ -6,9 +6,9 @@
 - 原始需求與計畫：`Features/Document/02-LoginAndLogout.md`、`Features/Plan/02-LoginAndLogout.md`。
 - Scenario：`Features/Document/Scenarios/03-Product Page/` 下 `01-Product Page.feature`、`02-Add Product.feature`、`03-Edit Product.feature`、`04-Delete Product.feature`。
 - Flow：`Features/Document/flows/03-Product Page/` 下三份新增、編輯、刪除流程。
-- Requirement Type：原始工作為 **Requirement Change**；2026-10-13 追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-003／006 介面視覺驗證暫緩）；2026-10-14 追加 **New Requirement**（2-2-5～2-2-7 檔案操作）及 **Bug / Behavior Correction**（Get Product URI 更正）。
+- Requirement Type：原始工作為 **Requirement Change**；2026-10-13 追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-003／006 介面視覺驗證暫緩）；2026-10-14 追加 **New Requirement**（2-2-5～2-2-7 檔案操作）、**Bug / Behavior Correction**（Get Product URI 更正），以及 **Requirement Change**（Stock 後端完成，解除暫行契約）。
 - Plan Date：2026-10-13。
-- Plan Status：**Awaiting Review**。2026-10-14 的檔案傳輸與報表 ID 規則已確認，計畫已完成檢查，待人工審閱後交付實作。
+- Plan Status：**Awaiting Review**。最新 Stock 需求變更之計畫已完成檢查，待人工審閱後交付實作；先前檔案操作的開發與 Code Review 紀錄保留於下方歷史章節。
 - 本次僅調整計畫，不修改需求文件、Production Code 或測試；工作區現有 `vite.config.ts` 變更非本計畫寫入。
 
 ### 2026-10-13 需求變更（本次）
@@ -74,7 +74,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 2. 每頁 15 筆，0 筆保留表頭且顯示 Pages 1/1；不再於 tbody 放「目前無產品」資料列。第一／最後頁對應方向 disabled；18 筆分為 15 與 3 筆。
 3. 僅商品名稱與商品分類支援文字模糊搜尋；搜尋不分大小寫，兩欄同時輸入時以 AND 篩選，符合條件時顯示整筆商品。其他表頭不加入篩選。每次篩選文字變更回到第一頁，總頁數依篩選結果重算。
 4. 批次管理只開啟 Excel 選檔視窗，不解析、上傳或呼叫未定義 API。
-5. 新增編號空白且不可編輯，名稱／分類／成本／售價必填，成本與售價至少 1。Stock API 暫未實作：商品清單、詳情與新增／更新成功回應缺少 `stock` 時顯示 0；新增及編輯視窗的庫存欄固定顯示 0 並停用編輯，不參與驗證，也不加入新增／更新 request body。
+5. 新增編號空白且不可編輯，名稱／分類／成本／售價必填，成本與售價至少 1。依最新 Stock 需求變更，新增表單庫存預設 0 且可編輯，編輯表單顯示詳情取得的庫存；庫存送出時為至少 0 的有限 Number。清單、詳情、新增／更新與批次上傳的成功商品回應須包含有效 `stock`，缺少時不得再補 0。
 6. 分類 Enter 或選取建議後，均以 Figma「產品標籤」的黃色膠囊與單一 close 圖示顯示；右側清除全部 x 仍為獨立操作。輸入即時篩選，候選從已載入商品的 `label_names` 拆分、去重產生，僅代表目前清單資料，不聲稱是後端全部分類。表單以標籤呈現，API 的 `label_names` 將所有分類用 `,` 串成單一字串；詳情回填反向轉換成標籤。尚未存在的分類可先作為當次商品的文字標籤隨商品送出，不另外發新增分類請求；後端自動新增分類尚未實作。
 7. 編輯前先 Get Product，成功取得詳情後才顯示可編輯表單；取消不執行 mutation，也不追加請求。先前已執行的 GET 不屬於取消副作用。
 8. 新增／編輯／刪除成功才關閉對話框並重新查詢 Table；新增後維持原頁碼，新增第 16 筆且原在第一頁時顯示 1/2。
@@ -88,7 +88,7 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 | --- | --- | --- | --- |
 | OQ-001 | RESOLVED | 新增第 16 筆停第一頁、1/2，依本次使用者回覆 | TASK-002、005 |
 | OQ-002 | RESOLVED | 標籤顯示，以 `,` 合併為單一 `label_names` 字串；候選取已載入商品的分類去重，不增分類 API。未存在分類保留為文字標籤隨商品送出，本階段不另行建立分類 | TASK-001、003、004、005 |
-| OQ-003 | SUPERSEDED（Stock 部分） | 原決議為 cost／price／stock 均為 Number；本次以 Stock API 暫未實作的過渡契約取代 stock 必填／送出規則。cost／price Number、單次 Update 與 Uid／Authorization 放 headers 的決議仍有效 | TASK-001、004、005 |
+| OQ-003 | RESTORED（2026-10-14） | 使用者確認 Stock 後端已完成，撤銷 2026-10-13 的暫行省略規則；恢復 cost／price／stock 均以 Number 傳送，stock 最小值 0、預設 0 且可編輯。單次 Update 與 Uid／Authorization 放 headers 的決議仍有效 | TASK-001、004、005、007 |
 | OQ-004 | RESOLVED | Add 409 顯示「商品產生ID衝突，請重新送出」，留窗與輸入，使用者可手動重送；Scenario 已更新 | TASK-001、005 |
 | OQ-005 | RESOLVED | 商品名稱與分類模糊搜尋均不分大小寫；雙欄以 AND 過濾，呈現整筆商品；未指定前後空白特例，不擴充其他正規化規則 | TASK-002 |
 | OQ-006 | RESOLVED | 新增後保留目前頁碼，即使總頁數增加；篩選文字變動後跳第一頁、總頁數重算。刪除導致現有頁碼超出新總頁數時，將頁碼限縮到新最後頁，維持有效顯示狀態 | TASK-002、005 |
@@ -119,13 +119,13 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
@@ -146,21 +146,21 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 ### HTTP 契約
 
-所有請求沿用同源代理，HTTP request headers 為 Content-Type: application/json、Uid、Authorization。使用者身分只由 Uid／Authorization 傳送，不加入商品 `body.info`。Status／Message 僅從 HTTP response headers 取得，不從 JSON headers 補值；保留 JSON 的 body.info 層。Stock API 暫未實作期間，Update 仍以**單一 PUT** 一次送出 id、name、label_names、cost、price，不拆成逐欄更新，也不送 stock。
+JSON 商品請求沿用同源代理，HTTP request headers 為 Content-Type: application/json、Uid、Authorization；批次上傳沿用瀏覽器產生的 multipart Content-Type。使用者身分只由 Uid／Authorization 傳送，不加入商品 `body.info`。Status／Message 僅從 HTTP response headers 取得，不從 JSON headers 補值；保留 JSON 的 body.info 層。依最新 Stock 需求變更，Update 以**單一 PUT** 一次送出 id、name、label_names、cost、price、stock，不拆成逐欄更新。
 
 | 操作 | Method / URI | JSON body.info | 成功內容 |
 | --- | --- | --- | --- |
-| 清單 | GET `/productController/getProducts?productId=all` | 無 body | 商品陣列 |
-| 詳情 | GET `/productController/getProduct?productId=<encoded id>` | 無 body | 商品物件 |
-| 新增 | POST `/productController/addProduct` | name、label_names、cost、price；不傳 id 或 stock | 商品物件，stock 可缺省 |
-| 更新 | PUT `/productController/updateProduct` | id、name、label_names、cost、price，一次送出；不傳 stock | 商品物件，stock 可缺省 |
+| 清單 | GET `/productController/getProducts?productId=all` | 無 body | 商品陣列，每筆須含 stock |
+| 詳情 | GET `/productController/getProducts?productId=<encoded id>` | 無 body | 含目標商品的單筆陣列，商品須含 stock |
+| 新增 | POST `/productController/addProduct` | name、label_names、cost、price、stock；不傳 id | 商品物件，stock 必須存在 |
+| 更新 | PUT `/productController/updateProduct` | id、name、label_names、cost、price、stock，一次送出 | 商品物件，stock 必須存在 |
 | 刪除 | DELETE `/productController/deleteProduct` | id | id、deleted、updated_user、updated_at |
 
-以 HTTP 狀態碼先辨識 401／409；404 如 API 狀態表所列，屬一般非成功 HTTP 錯誤，不另設撤回的畫面情境。200 仍需 HTTP Status=success 及有效 JSON。外部資料 unknown 逐欄驗證，不使用型別斷言假裝成功。`cost`、`price` 均為有限的 JSON Number 且至少 1，空白不可自動轉成 0。清單、詳情、新增及更新成功回應**未提供** `stock` 欄位時，僅在解析邊界補成數值 `0` 供 Product 與 UI 使用；若回應**有提供** `stock`，仍須是有限且至少 0 的 Number，`null`、字串、負數或非有限值不可默默轉 0。`label_names` 是以 `,` 分隔的 String；前端標籤來回轉換時保留順序，標籤文字不得包含分隔符。稽核欄位目前不顯示，不為未定義的稽核型別加阻擋驗證；刪除回應至少需正確 id。不自行依 deleted 過濾清單，不改排序。
+以 HTTP 狀態碼先辨識 401／409；404 如 API 狀態表所列，屬一般非成功 HTTP 錯誤，不另設撤回的畫面情境。200 仍需 HTTP Status=success 及有效 JSON。外部資料 unknown 逐欄驗證，不使用型別斷言假裝成功。`cost`、`price` 均為有限的 JSON Number 且至少 1，空白不可自動轉成 0。清單、詳情、新增、更新及批次上傳成功回應的每筆商品都必須提供 `stock`，且為有限、至少 0 的 JSON Number；缺少、`null`、字串、負數或非有限值均視為 protocol error，不再補 0。表單中只有新增時預設的 `stock` 為 0，編輯必須採詳情實值；使用者清空欄位不得轉成 0。`label_names` 是以 `,` 分隔的 String；前端標籤來回轉換時保留順序，標籤文字不得包含分隔符。稽核欄位目前不顯示，不為未定義的稽核型別加阻擋驗證；刪除回應至少需正確 id。不自行依 deleted 過濾清單，不改排序。
 
 ## V. Implementation Steps
 
-以下原始實作步驟保留初次開發脈絡；目前列出的檔案／元件均已存在。本次只執行各 Task 的「2026-10-13 本次差異」，若與初次實作步驟衝突，以本次差異與上方最新 HTTP 契約為準。不新增頂層架構或 index.ts。
+以下原始實作步驟與 2026-10-13 差異保留歷史脈絡；目前列出的檔案／元件均已存在。**本輪只執行文末「2026-10-14 Stock 暫行契約解除」的 TASK-001／004／005／007 最新差異**；舊段落凡提到固定 0、停用庫存、回應缺省補 0 或 request 不送 stock，均由最新章節及上方 HTTP 契約取代。不新增頂層架構或 index.ts。
 
 ### TASK-001 產品型別與 API 服務
 
@@ -387,3 +387,61 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Code Review Fix Validation（2026-10-14）
 
 重新審查 TASK-001／007／008／009 的既有 OPEN Issue 與最新實作。JSON 讀取錯誤維持原訊息及取消／逾時分類；上傳頁面測試涵蓋 401、一般 HTTP／404／協定錯誤與卸載後晚到成功；下載共用服務拒絕 `text/plain`，頁面測試涵蓋檔名、object URL 清理、錯誤／401 不觸發下載及等待中防重複請求。未發現本次修正造成的 Plan 範圍內回歸。實際執行 `npm.cmd test -- --run`：22 檔／209 項通過；`npm.cmd run build`、`npm.cmd run lint` 通過。四份 Review Status 更新為 `RESOLVED`，四項 Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-14。尚未以真實後端驗證檔案傳輸契約。
+
+## VII. 2026-10-14 Stock 暫行契約解除（最新計畫）
+
+### Requirement Change 與差異
+
+- **來源**：本次使用者明確告知「庫存的部分後端已開發完畢，請解除 Stock 被暫時忽略的設計」，對照 `Features/Document/03-Product Page.md` 2-2-1～2-2-3、2-3，以及新增／編輯 Gherkin。原 PM 需求文件的 Stock 規則未曾移除；2026-10-13 僅以暫行契約覆蓋。
+- **Original Behavior（目前實作）**：`parseProduct()` 對缺省 `stock` 補 0；`ProductWriteInput` 不含 stock，新增／更新服務與 Page 均不送 stock；新增與編輯表單固定顯示停用的 0，驗證器不檢查庫存。批次上傳成功商品陣列也經過同一個 `parseCollection()`，因此目前接受缺省 stock。
+- **Required Behavior**：恢復原需求的庫存欄位。新增表單初始值為 0，編輯表單以 Get Product 詳情的實際 stock 回填；兩者皆可編輯，送出值為有限且至少 0 的 JSON Number。新增／更新 payload 均包含 stock。清單、詳情、新增／更新與批次上傳成功回應的商品均要求有效 stock，缺省不得再轉 0；表格顯示服務驗證後的真實庫存。
+- **Difference / Compatibility**：取消僅為後端尚未實作而設的前端容錯與停用行為；舊後端若仍省略 stock，成功回應將改判為 protocol error。既有 `Product.stock: number`、ProductTable 七欄、Get Product 共用 URI 與陣列形狀、HTTP headers、CRUD 狀態碼、分頁／篩選／下載規則維持。未取得真實後端回應或進行端對端驗證，後端完成情況以本次使用者告知為需求依據。
+- **規則邊界**：Stock 以 JSON Number 傳輸；接受 0 與符合 Number／finite／非負條件的數值，不自行新增整數、上限或小數位限制。空白欄位不可因 `Number('')` 變成 0；無效輸入保留表單並顯示欄位錯誤及既有摘要，不呼叫 API。不對 Excel 檔案內容新增前端解析或驗證，批次上傳檔案仍由後端處理。
+
+### Impact Analysis
+
+| 範圍 | 變更 | 既有模組／資料流 |
+| --- | --- | --- |
+| API 解析與寫入 | MODIFY | `src/services/product-service.ts` 的 `parseProduct`、`ProductWriteInput`、`addProduct`、`updateProduct`；`src/services/product-service.test.tsx` 的正常／錯誤回應與 payload 案例。既有 `Product` 型別已要求 stock，無需新增型別檔。 |
+| 商品表單與驗證 | MODIFY | `src/components/ProductForm/ProductForm.tsx`、`.test.tsx`、`src/pages/product-validation.ts`、`.test.tsx`；重用 FormField 的 number、min、error 與 aria 處理，無需修改共用 FormField 或 Modal。 |
+| Page 協調 | MODIFY | `src/pages/ProductPage.tsx` 的 `toWriteInput` 與 `ProductPage.test.tsx` 的新增／編輯／顯示案例；沿用現有詳情載入、成功後 refresh、Session 與錯誤處理。 |
+| 批次上傳 | MODIFY（共用解析影響） | `uploadProducts()` 仍使用 FormData.file 與 `parseCollection()`；其成功 fixture 須包含 stock，缺省／非法 stock 須驗證為 protocol error。不修改上傳 URI 或檔案傳輸格式。 |
+| 商品表格、App、下載 | NO CHANGE | ProductTable 已直接呈現 `Product.stock`，App Session 擁有權與下載 ID 資料流不變；若相關測試 fixture 依新回應契約需補 stock，僅更新受影響資料。 |
+| 設定／依賴／資料庫 | NO CHANGE | 不修改 `vite.config.ts`、代理、npm 套件或前端儲存結構；Repository 無本功能後端程式或資料庫 schema。 |
+
+### Implementation Steps（覆蓋相同 Task 的舊 Stock 差異）
+
+#### TASK-001 產品型別與 API 服務 — MODIFY／PLAN UPDATED
+
+- **File / Target**：MODIFY `src/services/product-service.ts` 的 `parseProduct()`、`ProductWriteInput`、`addProduct()`、`updateProduct()`；MODIFY `src/services/product-service.test.tsx`。
+- **Implementation**：`ProductWriteInput` 要求 `stock: number`；新增與更新仍分別明確映射契約欄位，新增不送 id、更新僅一次 PUT，兩者都送 stock，且不以 spread 帶出額外執行期欄位。`parseProduct()` 不再為缺省欄位補 0；每筆商品的 stock 必須是有限且至少 0 的 Number，維持既有 protocol error 分類。`getProducts`／`getProduct` 的 URI、單筆陣列檢查與 mutation 物件檢查不變。
+- **Error Handling / Testing**：清單、詳情、新增、更新及共用 `parseCollection()` 使用者的正常 fixture 包含 stock；驗證 0 與非零可讀取，缺省、null、字串、負數與非有限值拒絕；驗證新增／更新 `body.info.stock` 為 Number 且不洩漏額外欄位，保留 HTTP、取消、逾時及 Session 錯誤回歸。
+
+#### TASK-004 共用商品表單與浮動視窗 — MODIFY／PLAN UPDATED
+
+- **File / Target**：MODIFY `src/components/ProductForm/ProductForm.tsx`、`.test.tsx`、`src/pages/product-validation.ts`、`.test.tsx`；目標為 `ProductFormValues`、`ProductFormErrors`、`validateProduct()` 與庫存欄位。
+- **Implementation**：將 stock 納入字串草稿與驗證錯誤，新增初始值 `'0'`、編輯以 `String(initialProduct.stock)` 初始化。庫存欄使用既有 FormField number、`min="0"`、可編輯與錯誤呈現；表單清空後保留空字串供使用者修正。驗證 stock 非空、Number 可轉換、finite 且至少 0；不新增整數、最大值或精度政策。保留成本／售價最小 1、分類、Modal 與原有摘要／紅框規則。
+- **Error Handling / Testing**：驗證新增初始 0 可提交、編輯顯示詳情真值且可修改，空白／負數／非數值拒絕且不呼叫 onSubmit，0 與正數可提交，欄位錯誤可於更正後清除。原停用 0 與「不驗證 Stock」案例改按新契約更新。
+
+#### TASK-005 CRUD 協調、Session 與清單重整 — MODIFY／PLAN UPDATED
+
+- **File / Target**：MODIFY `src/pages/ProductPage.tsx` 的 `toWriteInput()`；MODIFY `src/pages/ProductPage.test.tsx`。
+- **Implementation**：在表單驗證通過後將庫存草稿轉為 Number，加入 ProductWriteInput，新增與編輯均傳給既有 service；編輯保留詳情的 id，不以清單值覆蓋。清單顯示回應中的真實 stock；成功關窗及刷新、401、409、重複提交與頁碼流程不變。
+- **Error Handling / Testing**：頁面測試檢查新增預設 0 與自訂非零 stock、編輯詳情非零 stock 回填並修改、兩種 service 呼叫的實際數值 payload、空白／負數拒絕不送 API、刷新後表格顯示後端 stock。保留取消、Session、refresh 失敗及 CRUD 回歸；不再期待缺省 stock 顯示 0。
+
+#### TASK-007 Excel 批次上傳服務與頁面流程 — MODIFY／PLAN UPDATED
+
+- **File / Target**：MODIFY `src/services/product-service.test.tsx` 的 `uploadProducts()` 成功與格式錯誤案例；必要時調整 `src/pages/ProductPage.test.tsx` 的上傳結果 fixture。正式服務沿用 TASK-001 修改後的 `parseCollection()`，不另加解析分支。
+- **Implementation / Testing**：驗證上傳成功商品陣列含 stock 0／非零時可解析並刷新清單，缺少或非法 stock 時不視為成功且不觸發成功刷新；原 multipart 檔案本體、HTTP headers、401、重複送出與晚到回應測試維持。
+
+### Plan Validation 與 Handoff
+
+- [x] Requirement Type 為 Requirement Change；原暫行契約、恢復後行為及不相容處已列出。
+- [x] 原需求、Gherkin、現有 service／表單／驗證器／Page／測試及共用上傳解析已核對；受影響檔案、資料流與可重用元件均已指明。
+- [x] API input／output、數值驗證、錯誤處理、Session、回歸策略及不修改範圍已定義；無新套件、設定或 DB 工作。
+- [x] TASK-001／004／005／007 已設 `PLAN UPDATED` 並清除舊開發／審查日期；其餘完成任務維持 `DONE`。
+- [ ] 本輪 Implementation Plan 人工審閱完成。
+- [ ] 本輪 Development 完成；建議依 TASK-001 → TASK-004 → TASK-005 → TASK-007 驗證順序執行，先跑相關 Vitest，再跑全套測試、build 與 lint。
+- [ ] 本輪 Code Review 通過。
+
+本輪 Plan Status：**Awaiting Review**。依 `agents/system-design-agent.md` 的 Plan Review 流程，人工審閱完成後交 Programmer 實作；Handoff 包含本需求變更、原 PM 文件、上述四項 Task 與 Stock JSON Number／必填回應契約。僅變更 Stock 相關 service、表單、Page 與測試；保留 `vite.config.ts` 現有工作區修改，不改無關登入、下載、標籤或分頁規則。
