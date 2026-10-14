@@ -53,3 +53,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date
 ### Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-14）
+
+上傳服務測試驗證成功回應同時含 stock 0／非零、缺省與負數 stock 回應以 protocol 拒絕；頁面上傳成功案例確認重新載入後的非零庫存顯示於表格。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。

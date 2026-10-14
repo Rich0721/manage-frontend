@@ -119,13 +119,13 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
@@ -453,3 +453,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Code Review Result（2026-10-14 Stock 契約）
 
 本輪僅審查 TASK-001／004／005／007 的最新 Stock 差異。服務解析、明確 payload 映射、表單草稿與驗證、Page 數值轉換及共用上傳解析均符合主要實作要求；Reviewer 定向執行四個相關測試檔，94 項通過。仍缺 Plan 明列的測試：TASK-001 非有限 stock 回應、TASK-004 預設 0 直接提交與欄位錯誤互動、TASK-005 預設 0 payload／空白阻止 API／刷新後後端庫存顯示，以及 TASK-007 上傳 stock 0／非法值與刷新顯示。四項 Review Status 設為 `OPEN`、Implementation Status 設為 `REVIEW FIX`，Code Review Date 為 2026-10-14；詳細修正範圍見 `Features/Review/03-Product Page/TASK-001.md`、`TASK-004.md`、`TASK-005.md`、`TASK-007.md`。既有已解決的歷史 Issue 不重開，未修改 Production 或 Test Code。
+
+### Programmer Review Fix Handoff（2026-10-14）
+
+依四項 OPEN Review Issue 補齊測試：TASK-001 使用 JSON `1e999` 確認非有限 stock 回應分類為 protocol；TASK-004 驗證新增表單預設 0 可提交，以及負數錯誤更正後可提交；TASK-005 驗證預設 0 payload、空白 stock 阻止 service 呼叫，並確認新增成功刷新後顯示回應庫存；TASK-007 驗證上傳回應的 0／非零 stock 可解析、缺省／負數拒絕，且成功刷新後表格顯示後端庫存。四個定向測試檔 99 項通過，`npm.cmd run lint` 與 `git diff --check` 通過。TASK-001／004／005／007 已更新為 `DEVELOPED DONE`，Review Status 維持 `OPEN`，交 Code Reviewer 複審。

@@ -65,3 +65,7 @@ Review Date：2026-10-13
 最新 Plan 的 TASK-001／004／005／007 共四項待審。本輪核對程式與測試後，主要 Stock 資料流已實作，但四項任務各缺少 Plan 明列的回歸斷言；詳細問題與期望行為分別記錄於同目錄的 `TASK-001.md`、`TASK-004.md`、`TASK-005.md`、`TASK-007.md`。四項 Implementation Status 為 `REVIEW FIX`，Review Status 為 `OPEN`，Code Review Date 為 2026-10-14。先前已解決的歷史 Issue 保持原紀錄，其他任務狀態不變。
 
 Reviewer 執行 Stock 相關四個測試檔，94 項通過；沙箱中的 esbuild 無法讀取 Vitest 設定，因此同一命令於核准的沙箱外執行成功。本輪未修改 Production／Test Code，未重跑全套測試、build 或 lint；Programmer 的全套 217 項、build 及 lint 通過屬前次驗證紀錄。尚未連接真實後端。
+
+### Programmer Review Fix Handoff（2026-10-14）
+
+Programmer 已補齊上述四項 Review Issue 所列測試，四個定向測試檔 99 項及 lint 通過；Plan 中 TASK-001／004／005／007 已恢復 `DEVELOPED DONE`。各 Task Review Status 維持 `OPEN`，待 Code Reviewer 複審。未修改 Production Code，也未重跑全套測試或 build。

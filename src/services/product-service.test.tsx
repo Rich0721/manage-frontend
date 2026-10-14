@@ -129,6 +129,13 @@ describe('product service', () => {
     await expect(getProducts(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
   })
 
+  it('rejects a non-finite stock Number from a successful product response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"body":{"info":[{"id":"p1","name":"Item","label_names":"A","cost":1,"price":2,"stock":1e999}]}}', {
+      status: 200, headers: { Status: 'Success' },
+    })))
+    await expect(getProducts(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+  })
+
   it.each([
     ['cost below the form minimum', { cost: 0, price: 2, stock: 0 }],
     ['price below the form minimum', { cost: 1, price: -1, stock: 0 }],
@@ -261,13 +268,14 @@ describe('product service', () => {
     await expect(getProduct(session, 'p1', new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
   })
 
-  it('uploads the selected File in multipart form data without setting Content-Type and validates products', async () => {
+  it('uploads the selected File in multipart form data and accepts zero and non-zero stock', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
-      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 8 },
+      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 },
+      { id: 'p2', name: 'Item 2', label_names: 'A', cost: 1, price: 2, stock: 8 },
     ] } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     const file = new File(['excel'], 'products.xlsx')
-    await expect(uploadProducts(session, file, new AbortController().signal)).resolves.toMatchObject([{ id: 'p1', stock: 8 }])
+    await expect(uploadProducts(session, file, new AbortController().signal)).resolves.toMatchObject([{ id: 'p1', stock: 0 }, { id: 'p2', stock: 8 }])
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe('/productController/batchProducts')
     expect(init.method).toBe('POST')
@@ -276,10 +284,13 @@ describe('product service', () => {
     expect((init.body as FormData).get('file')).toBe(file)
   })
 
-  it('rejects a batch upload response whose products omit stock', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
-      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2 },
-    ] } }), { status: 200, headers: { Status: 'Success' } })))
+  it.each([
+    ['missing stock', { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2 }],
+    ['negative stock', { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: -1 }],
+  ])('rejects a batch upload response with %s', async (_label, product) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [product] } }), {
+      status: 200, headers: { Status: 'Success' },
+    })))
     await expect(uploadProducts(session, new File(['excel'], 'products.xlsx'), new AbortController().signal))
       .rejects.toMatchObject({ kind: 'protocol' })
   })

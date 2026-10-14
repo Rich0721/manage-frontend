@@ -53,3 +53,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date
 ### Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-14）
+
+新增表單元件測試直接提交預設 0，並驗證負數 stock 顯示欄位錯誤、修正後錯誤清除且可提交。頁面測試另驗證空白 stock 保留表單錯誤且不呼叫新增 API。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。

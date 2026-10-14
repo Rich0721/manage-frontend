@@ -138,7 +138,7 @@ describe('ProductPage', () => {
   })
 
   it('creates a product with comma-joined labels and numeric fields then refreshes the list', async () => {
-    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'New product', 'A,B', 0)])
+    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'New product', 'A,B', 13)])
     addProductMock.mockResolvedValue(product('p1', 'New product', 'A,B', 12))
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
@@ -159,7 +159,27 @@ describe('ProductPage', () => {
     await user.click(screen.getByRole('button', { name: '確認' }))
     expect(addProductMock).toHaveBeenCalledWith(session, { name: 'New product', label_names: 'A,B', cost: 12, price: 18, stock: 12 }, expect.any(AbortSignal))
     expect(await screen.findByText('New product')).toBeInTheDocument()
+    expect(within(screen.getByRole('row', { name: /p1 New product/ })).getByText('13')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('creates a product with the default zero stock payload', async () => {
+    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'Zero stock', 'A', 0)])
+    addProductMock.mockResolvedValue(product('p1', 'Zero stock', 'A', 0))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '加入商品' }))
+    await user.type(screen.getByRole('textbox', { name: '商品名稱' }), 'Zero stock')
+    await user.type(screen.getByRole('textbox', { name: '商品分類' }), 'A')
+    await user.keyboard('{Enter}')
+    await user.type(screen.getByRole('spinbutton', { name: '成本' }), '1')
+    await user.type(screen.getByRole('spinbutton', { name: '售價' }), '2')
+    expect(screen.getByRole('spinbutton', { name: '庫存' })).toHaveValue(0)
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    expect(addProductMock).toHaveBeenCalledWith(session, { name: 'Zero stock', label_names: 'A', cost: 1, price: 2, stock: 0 }, expect.any(AbortSignal))
+    const row = screen.getByRole('row', { name: /p1 Zero stock/ })
+    expect(within(row).getByText('0')).toBeInTheDocument()
   })
 
   it('keeps page 1 after adding the sixteenth product', async () => {
@@ -210,7 +230,10 @@ describe('ProductPage', () => {
     expect(addProductMock).not.toHaveBeenCalled()
   })
 
-  it('keeps the create form open and skips the request when stock is below zero', async () => {
+  it.each([
+    ['below zero', '-1'],
+    ['blank', ''],
+  ])('keeps the create form open and skips the request when stock is %s', async (_label, stockValue) => {
     getProductsMock.mockResolvedValue([])
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
@@ -223,7 +246,7 @@ describe('ProductPage', () => {
     await user.type(screen.getByRole('spinbutton', { name: '售價' }), '2')
     const stock = screen.getByRole('spinbutton', { name: '庫存' })
     await user.clear(stock)
-    await user.type(stock, '-1')
+    if (stockValue) await user.type(stock, stockValue)
     await user.click(screen.getByRole('button', { name: '確認' }))
     expect(screen.getByRole('alert')).toHaveTextContent('請填寫完整的產品資料')
     expect(stock).toHaveAttribute('aria-invalid', 'true')
@@ -417,8 +440,8 @@ describe('ProductPage', () => {
   })
 
   it('uploads a selected Excel file and refreshes the table without resending it', async () => {
-    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'Imported')])
-    uploadProductsMock.mockResolvedValue([product('p1', 'Imported')])
+    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'Imported', 'Group', 22)])
+    uploadProductsMock.mockResolvedValue([product('p1', 'Imported', 'Group', 22)])
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     await screen.findByText('目前無產品')
     const input = document.querySelector<HTMLInputElement>('input[type="file"]')
@@ -426,6 +449,7 @@ describe('ProductPage', () => {
     const file = new File(['x'], 'products.xlsx')
     fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
     expect(await screen.findByText('Imported')).toBeInTheDocument()
+    expect(within(screen.getByRole('row', { name: /p1 Imported/ })).getByText('22')).toBeInTheDocument()
     expect(uploadProductsMock).toHaveBeenCalledOnce()
     expect(uploadProductsMock.mock.calls[0]?.[1]).toBe(file)
     expect(getProductsMock).toHaveBeenCalledTimes(2)

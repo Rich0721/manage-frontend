@@ -75,3 +75,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date
 ### Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-14）
+
+已新增成功清單回應包含 JSON `1e999` stock 的案例；`getProducts()` 必須以 `protocol` 拒絕非有限 Number。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
