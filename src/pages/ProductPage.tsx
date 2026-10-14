@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import type { AuthSession, Product } from '../types/auth'
 import { AuthServiceError } from '../services/auth-service'
-import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct, type ProductWriteInput } from '../services/product-service'
+import { addProduct, deleteProduct, downloadProductData, downloadProductTemplate, getProduct, getProducts, ProductServiceError, updateProduct, uploadProducts, type ProductDownload, type ProductWriteInput } from '../services/product-service'
 import { SiteHeader } from '../components/SiteHeader/SiteHeader'
 import { Button } from '../components/Button/Button'
 import { Modal } from '../components/Modal/Modal'
@@ -57,7 +57,9 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
   const [dialogError, setDialogError] = useState('')
   const [operationMessage, setOperationMessage] = useState('')
   const [detailLoading, setDetailLoading] = useState(false)
+  const [fileBusy, setFileBusy] = useState(false)
   const uploadInputRef = useRef<HTMLInputElement>(null)
+  const fileControllerRef = useRef<AbortController | null>(null)
   const operationControllerRef = useRef<AbortController | null>(null)
   const detailControllerRef = useRef<AbortController | null>(null)
   const detailRequestIdRef = useRef(0)
@@ -120,6 +122,7 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
       controller.abort()
       detailControllerRef.current?.abort()
       operationControllerRef.current?.abort()
+      fileControllerRef.current?.abort()
     }
   }, [loadProducts, onSessionExpired, session])
 
@@ -255,8 +258,62 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
   }
 
   const handleFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files?.length) setOperationMessage('批次上傳功能尚未開放，檔案未上傳。')
+    const file = event.target.files?.[0]
     event.target.value = ''
+    if (!file || fileControllerRef.current) return
+    const controller = new AbortController()
+    fileControllerRef.current = controller
+    setFileBusy(true)
+    setOperationMessage('')
+    void (async () => {
+      try {
+        await uploadProducts(session, file, controller.signal)
+        if (sessionRef.current !== session) return
+        await refreshProducts()
+      } catch (reason: unknown) {
+        if (sessionRef.current !== session || (reason instanceof DOMException && reason.name === 'AbortError')) return
+        if (reason instanceof ProductServiceError && reason.kind === 'unauthorized') onSessionExpired('使用者未授權')
+        else setOperationMessage(reason instanceof Error ? reason.message : '商品檔案上傳失敗')
+      } finally {
+        if (fileControllerRef.current === controller) fileControllerRef.current = null
+        if (sessionRef.current === session) setFileBusy(false)
+      }
+    })()
+  }
+
+  const saveDownload = ({ blob, filename }: ProductDownload) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+  }
+
+  const handleDownload = (kind: 'template' | 'report') => {
+    if (fileControllerRef.current || (kind === 'report' && filteredProducts.length === 0)) return
+    const controller = new AbortController()
+    fileControllerRef.current = controller
+    setFileBusy(true)
+    setOperationMessage('')
+    void (async () => {
+      try {
+        const download = kind === 'template'
+          ? await downloadProductTemplate(session, controller.signal)
+          : await downloadProductData(session, filteredProducts.map((product) => product.id), controller.signal)
+        if (sessionRef.current !== session) return
+        saveDownload(download)
+      } catch (reason: unknown) {
+        if (sessionRef.current !== session || (reason instanceof DOMException && reason.name === 'AbortError')) return
+        if (reason instanceof ProductServiceError && reason.kind === 'unauthorized') onSessionExpired('使用者未授權')
+        else setOperationMessage(reason instanceof Error ? reason.message : '商品檔案下載失敗')
+      } finally {
+        if (fileControllerRef.current === controller) fileControllerRef.current = null
+        if (sessionRef.current === session) setFileBusy(false)
+      }
+    })()
   }
 
   return (
@@ -264,14 +321,15 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
       <SiteHeader authenticated activePage="products" onLogout={onLogout} onPermissions={() => window.alert('權限管理尚未開放')} />
       <section className="product-page__content" aria-label="商品管理">
         <div className="product-page__toolbar">
-          <Button variant="secondary" className="product-page__batch" onClick={() => uploadInputRef.current?.click()}>批次管理</Button>
+          <Button variant="secondary" className="product-page__batch" disabled={fileBusy} onClick={() => uploadInputRef.current?.click()}>批次管理</Button>
           <input ref={uploadInputRef} className="product-page__file-input" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="選擇 Excel 檔案" onChange={handleFileSelected} />
           <Button className="product-page__add" onClick={openCreateDialog}>加入商品</Button>
         </div>
         <div className="product-page__downloads" aria-label="商品檔案功能">
-          <Button variant="text" disabled aria-label="下載批次新增商品模板（尚未開放）">下載批次新增商品模板</Button>
-          <Button variant="text" disabled aria-label="下載商品報表（尚未開放）">下載商品報表</Button>
+          <Button variant="text" disabled={fileBusy} onClick={() => handleDownload('template')}>下載批次新增商品模板</Button>
+          <Button variant="text" disabled={fileBusy || filteredProducts.length === 0} onClick={() => handleDownload('report')}>下載商品報表</Button>
         </div>
+        {fileBusy ? <p role="status">商品檔案處理中…</p> : null}
         {detailLoading ? <p role="status">載入商品詳細資料…</p> : null}
         {operationMessage ? <p className="product-page__notice" role="status">{operationMessage}</p> : null}
         {loading ? <p role="status">載入中…</p> : null}

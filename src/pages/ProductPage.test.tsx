@@ -2,12 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductPage } from './ProductPage'
-import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from '../services/product-service'
+import { addProduct, deleteProduct, downloadProductData, downloadProductTemplate, getProduct, getProducts, ProductServiceError, updateProduct, uploadProducts } from '../services/product-service'
 import { AuthServiceError } from '../services/auth-service'
 import type { AuthSession, Product } from '../types/auth'
 
 vi.mock('../services/product-service', () => ({
   getProducts: vi.fn(), getProduct: vi.fn(), addProduct: vi.fn(), updateProduct: vi.fn(), deleteProduct: vi.fn(),
+  uploadProducts: vi.fn(), downloadProductTemplate: vi.fn(), downloadProductData: vi.fn(),
   ProductServiceError: class ProductServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
 }))
 const getProductsMock = vi.mocked(getProducts)
@@ -15,10 +16,16 @@ const getProductMock = vi.mocked(getProduct)
 const addProductMock = vi.mocked(addProduct)
 const updateProductMock = vi.mocked(updateProduct)
 const deleteProductMock = vi.mocked(deleteProduct)
+const uploadProductsMock = vi.mocked(uploadProducts)
+const downloadProductTemplateMock = vi.mocked(downloadProductTemplate)
+const downloadProductDataMock = vi.mocked(downloadProductData)
 const session: AuthSession = { uid: 'u1', authorization: 'token', userName: 'Tester' }
 const product = (id: string, name: string, label_names = 'Group', stock = 4): Product => ({ id, name, label_names, cost: 10, price: 20, stock })
 afterEach(() => {
   getProductsMock.mockReset(); getProductMock.mockReset(); addProductMock.mockReset(); updateProductMock.mockReset(); deleteProductMock.mockReset()
+  uploadProductsMock.mockReset(); downloadProductTemplateMock.mockReset(); downloadProductDataMock.mockReset()
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 describe('ProductPage', () => {
@@ -381,19 +388,25 @@ describe('ProductPage', () => {
     expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權')
   })
 
-  it('handles Excel selection without uploading or calling APIs', async () => {
-    getProductsMock.mockResolvedValue([])
+  it('uploads a selected Excel file and refreshes the table without resending it', async () => {
+    getProductsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([product('p1', 'Imported')])
+    uploadProductsMock.mockResolvedValue([product('p1', 'Imported')])
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     await screen.findByText('目前無產品')
     const input = document.querySelector<HTMLInputElement>('input[type="file"]')
     expect(input).not.toBeNull()
-    fireEvent.change(input as HTMLInputElement, { target: { files: [new File(['x'], 'products.xlsx')] } })
-    expect(await screen.findByText('批次上傳功能尚未開放，檔案未上傳。')).toBeInTheDocument()
+    const file = new File(['x'], 'products.xlsx')
+    fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
+    expect(await screen.findByText('Imported')).toBeInTheDocument()
+    expect(uploadProductsMock).toHaveBeenCalledOnce()
+    expect(uploadProductsMock.mock.calls[0]?.[1]).toBe(file)
+    expect(getProductsMock).toHaveBeenCalledTimes(2)
     expect(addProductMock).not.toHaveBeenCalled()
   })
 
-  it('opens the native file picker, permits reselecting the same file, and keeps download actions disabled', async () => {
+  it('opens the native picker, ignores cancellation, and allows selecting the same file again', async () => {
     getProductsMock.mockResolvedValue([])
+    uploadProductsMock.mockResolvedValue([])
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     await screen.findByText('目前無產品')
@@ -407,17 +420,88 @@ describe('ProductPage', () => {
     expect(addProductMock).not.toHaveBeenCalled()
     expect(updateProductMock).not.toHaveBeenCalled()
     expect(deleteProductMock).not.toHaveBeenCalled()
+    fireEvent.change(input as HTMLInputElement, { target: { files: [] } })
+    expect(uploadProductsMock).not.toHaveBeenCalled()
     const file = new File(['x'], 'products.xlsx')
     fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
     expect(input).toHaveValue('')
+    await vi.waitFor(() => expect(uploadProductsMock).toHaveBeenCalledOnce())
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: '批次管理' })).toBeEnabled())
     fireEvent.change(input as HTMLInputElement, { target: { files: [file] } })
-    expect(screen.getByText('批次上傳功能尚未開放，檔案未上傳。')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '下載批次新增商品模板（尚未開放）' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: '下載商品報表（尚未開放）' })).toBeDisabled()
+    await vi.waitFor(() => expect(uploadProductsMock).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: '下載批次新增商品模板' })).toBeEnabled())
+    expect(screen.getByRole('button', { name: '下載商品報表' })).toBeDisabled()
     expect(getProductMock).not.toHaveBeenCalled()
     expect(addProductMock).not.toHaveBeenCalled()
     expect(updateProductMock).not.toHaveBeenCalled()
     expect(deleteProductMock).not.toHaveBeenCalled()
+  })
+
+  it('sends all filtered IDs across pages for a report and disables it for no matches', async () => {
+    const products = Array.from({ length: 18 }, (_, index) => product(`p${index}`, `Item ${index}`, index === 17 ? 'Red' : 'Blue'))
+    getProductsMock.mockResolvedValue(products)
+    downloadProductDataMock.mockResolvedValue({ blob: new Blob(['excel']), filename: 'product-report.xlsx' })
+    const createObjectURL = vi.fn(() => 'blob:report')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Item 0')
+    await user.click(screen.getByRole('button', { name: '下一頁' }))
+    await user.click(screen.getByRole('button', { name: '下載商品報表' }))
+    await vi.waitFor(() => expect(downloadProductDataMock).toHaveBeenCalledOnce())
+    expect(downloadProductDataMock.mock.calls[0]?.[1]).toEqual(products.map((item) => item.id))
+    await user.type(screen.getByRole('searchbox', { name: '篩選商品分類' }), 'red')
+    await user.click(screen.getByRole('button', { name: '下載商品報表' }))
+    await vi.waitFor(() => expect(downloadProductDataMock).toHaveBeenCalledTimes(2))
+    expect(downloadProductDataMock.mock.calls[1]?.[1]).toEqual(['p17'])
+    await user.clear(screen.getByRole('searchbox', { name: '篩選商品分類' }))
+    await user.type(screen.getByRole('searchbox', { name: '篩選商品分類' }), 'missing')
+    expect(screen.getByRole('button', { name: '下載商品報表' })).toBeDisabled()
+    expect(downloadProductDataMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('downloads the template on click and delegates a 401 to the session owner', async () => {
+    getProductsMock.mockResolvedValue([])
+    downloadProductTemplateMock.mockResolvedValueOnce({ blob: new Blob(['excel']), filename: 'product-template.xlsx' })
+      .mockRejectedValueOnce(new ProductServiceError('unauthorized', 'expired'))
+    const createObjectURL = vi.fn(() => 'blob:template')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const onSessionExpired = vi.fn()
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '下載批次新增商品模板' }))
+    await vi.waitFor(() => expect(clickSpy).toHaveBeenCalledOnce())
+    expect(createObjectURL).toHaveBeenCalledOnce()
+    expect(downloadProductTemplateMock).toHaveBeenCalledWith(session, expect.any(AbortSignal))
+    expect(screen.getByRole('button', { name: '下載批次新增商品模板' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: '下載批次新增商品模板' }))
+    await vi.waitFor(() => expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權'))
+    expect(downloadProductTemplateMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not upload twice while pending and only retries the list after refresh fails', async () => {
+    getProductsMock.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('refresh failed')).mockResolvedValueOnce([product('p1', 'Imported')])
+    let finishUpload: ((products: Product[]) => void) | undefined
+    uploadProductsMock.mockImplementationOnce(() => new Promise<Product[]>((resolve) => { finishUpload = resolve }))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    const input = screen.getByLabelText('選擇 Excel 檔案')
+    fireEvent.change(input, { target: { files: [new File(['x'], 'products.xlsx')] } })
+    expect(screen.getByRole('button', { name: '批次管理' })).toBeDisabled()
+    fireEvent.change(input, { target: { files: [new File(['x'], 'products.xlsx')] } })
+    expect(uploadProductsMock).toHaveBeenCalledOnce()
+    await act(async () => { finishUpload?.([product('p1', 'Imported')]) })
+    expect(await screen.findByText('操作已完成，但清單重新載入失敗。請重新整理清單。')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '重新載入' }))
+    expect(await screen.findByText('Imported')).toBeInTheDocument()
+    expect(uploadProductsMock).toHaveBeenCalledOnce()
+    expect(getProductsMock).toHaveBeenCalledTimes(3)
   })
 
   it('delegates list 401 to the session owner and preserves ordinary errors', async () => {

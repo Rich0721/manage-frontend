@@ -2,7 +2,7 @@ import type { AuthSession, Product } from '../types/auth'
 import { getHttpResponseMessage, getHttpResponseStatus } from './api-response'
 import { AuthServiceError } from './auth-service'
 
-const PRODUCTS_ENDPOINT = '/productController/getProducts?productId=all'
+const PRODUCTS_ENDPOINT = '/productController/getProducts'
 const REQUEST_TIMEOUT_MS = 30_000
 
 export interface ProductWriteInput {
@@ -53,13 +53,19 @@ function parseProduct(value: unknown): Product {
   }
 }
 
-async function request(
+function productsEndpoint(productId: string): string {
+  return `${PRODUCTS_ENDPOINT}?productId=${encodeURIComponent(productId)}`
+}
+
+async function requestResponse<T>(
   endpoint: string,
   session: AuthSession,
   signal: AbortSignal,
   method: string,
-  payload?: { info: ProductWriteInput | { id: string } },
-): Promise<{ response: Response; body: unknown }> {
+  read: (response: Response) => Promise<T>,
+  body?: BodyInit,
+  contentType?: string,
+): Promise<{ response: Response; body: T }> {
   if (signal.aborted) throw abortError()
   const controller = new AbortController()
   let timedOut = false
@@ -69,8 +75,8 @@ async function request(
   try {
     const response = await fetch(endpoint, {
       method,
-      headers: { 'Content-Type': 'application/json', Uid: session.uid, Authorization: session.authorization },
-      ...(payload ? { body: JSON.stringify({ body: { info: payload.info } }) } : {}),
+      headers: { ...(contentType ? { 'Content-Type': contentType } : {}), Uid: session.uid, Authorization: session.authorization },
+      ...(body ? { body } : {}),
       signal: controller.signal,
     })
     if (signal.aborted) throw abortError()
@@ -81,15 +87,15 @@ async function request(
     const status = getHttpResponseStatus(response.headers)
     if (!status) throw new ProductServiceError('protocol', '產品回應缺少 HTTP Status')
     if (status !== 'success') throw new ProductServiceError('http', getHttpResponseMessage(response.headers) ?? '產品操作失敗')
-    let body: unknown
-    try { body = await response.json() }
+    let result: T
+    try { result = await read(response) }
     catch {
       if (signal.aborted) throw abortError()
       if (timedOut) throw new ProductServiceError('timeout', '產品操作逾時，請重新查詢結果')
-      throw new ProductServiceError('protocol', '產品回應不是有效 JSON')
+      throw new ProductServiceError('protocol', '產品回應內容格式錯誤')
     }
     if (signal.aborted) throw abortError()
-    return { response, body }
+    return { response, body: result }
   } catch (error: unknown) {
     if (error instanceof ProductServiceError) throw error
     if (error instanceof AuthServiceError) throw error
@@ -101,6 +107,22 @@ async function request(
     clearTimeout(timeout)
     signal.removeEventListener('abort', onAbort)
   }
+}
+
+function request(
+  endpoint: string,
+  session: AuthSession,
+  signal: AbortSignal,
+  method: string,
+  payload?: { info: ProductWriteInput | { id: string } },
+): Promise<{ response: Response; body: unknown }> {
+  return requestResponse(endpoint, session, signal, method, (response) => response.json() as Promise<unknown>,
+    payload ? JSON.stringify({ body: { info: payload.info } }) : undefined, 'application/json')
+}
+
+function requestDownload(endpoint: string, session: AuthSession, signal: AbortSignal, payload?: { ids: string }): Promise<{ response: Response; body: Blob }> {
+  return requestResponse(endpoint, session, signal, payload ? 'POST' : 'GET', (response) => response.blob(),
+    payload ? JSON.stringify({ body: { info: payload } }) : undefined, 'application/json')
 }
 
 function parseCollection(body: unknown): Product[] {
@@ -117,15 +139,22 @@ function parseSingle(body: unknown): Product {
   return parseProduct(body.body.info)
 }
 
+function parseDetail(body: unknown, productId: string): Product {
+  const products = parseCollection(body)
+  if (products.length !== 1 || products[0].id !== productId) {
+    throw new ProductServiceError('protocol', '商品詳情回應格式錯誤')
+  }
+  return products[0]
+}
+
 export async function getProducts(session: AuthSession, signal: AbortSignal): Promise<Product[]> {
-  const { body } = await request(PRODUCTS_ENDPOINT, session, signal, 'GET')
+  const { body } = await request(productsEndpoint('all'), session, signal, 'GET')
   return parseCollection(body)
 }
 
 export async function getProduct(session: AuthSession, productId: string, signal: AbortSignal): Promise<Product> {
-  const endpoint = `/productController/getProduct?productId=${encodeURIComponent(productId)}`
-  const { body } = await request(endpoint, session, signal, 'GET')
-  return parseSingle(body)
+  const { body } = await request(productsEndpoint(productId), session, signal, 'GET')
+  return parseDetail(body, productId)
 }
 
 export async function addProduct(session: AuthSession, input: ProductWriteInput, signal: AbortSignal): Promise<Product> {
@@ -145,4 +174,44 @@ export async function deleteProduct(session: AuthSession, productId: string, sig
   if (!record(body) || !record(body.body) || !record(body.body.info) || body.body.info.id !== productId) {
     throw new ProductServiceError('protocol', '刪除商品回應格式錯誤')
   }
+}
+
+export async function uploadProducts(session: AuthSession, file: File, signal: AbortSignal): Promise<Product[]> {
+  const form = new FormData()
+  form.append('file', file)
+  const { body } = await requestResponse('/productController/batchProducts', session, signal, 'POST',
+    (response) => response.json() as Promise<unknown>, form)
+  return parseCollection(body)
+}
+
+export interface ProductDownload {
+  blob: Blob
+  filename: string
+}
+
+function downloadFilename(response: Response, fallback: string): string {
+  const disposition = response.headers.get('Content-Disposition')
+  const encoded = disposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const plain = disposition?.match(/filename="?([^";]+)"?/i)?.[1]
+  let name = fallback
+  try { name = encoded ? decodeURIComponent(encoded) : plain ?? fallback } catch { return fallback }
+  return name.trim() && !/[\\/\r\n]/.test(name) ? name : fallback
+}
+
+function parseDownload(response: Response, blob: Blob, fallback: string): ProductDownload {
+  const type = response.headers.get('Content-Type')?.toLowerCase()
+  if (!blob.size || type?.includes('json') || type?.includes('html')) {
+    throw new ProductServiceError('protocol', '下載檔案回應格式錯誤')
+  }
+  return { blob, filename: downloadFilename(response, fallback) }
+}
+
+export async function downloadProductTemplate(session: AuthSession, signal: AbortSignal): Promise<ProductDownload> {
+  const { response, body } = await requestDownload('/productController/downloadTemplate', session, signal)
+  return parseDownload(response, body, 'product-template.xlsx')
+}
+
+export async function downloadProductData(session: AuthSession, ids: string[], signal: AbortSignal): Promise<ProductDownload> {
+  const { response, body } = await requestDownload('/productController/downloadProductData', session, signal, { ids: ids.join(',') })
+  return parseDownload(response, body, 'product-report.xlsx')
 }

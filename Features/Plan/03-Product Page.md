@@ -119,15 +119,15 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
-| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
-| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
+| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
+| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
 
 ## IV. Technical Stack / System Design
 
@@ -367,5 +367,11 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 - [x] OQ-008～011 已依使用者回覆處理；舊版 `file_path`／JSON 下載範例與新契約的差異已記錄，後端仍須與本節契約一致。
 - [x] 下載範圍使用篩選後全量清單，0 筆停用；Session、逾時及重複請求已納入測試策略。
 - [ ] Implementation Plan 已完成人工審核。
-- [ ] TASK-001／007～009 Development 完成。
+- [x] TASK-001／007～009 Development 完成。
 - [ ] TASK-001／007～009 Code Review 通過。
+
+### Programmer Handoff（2026-10-14）
+
+已完成 TASK-001／007～009：Get Product 與 Get All 共用查詢 URI，單筆 GET 驗證陣列恰有目標商品，新增／更新仍驗證物件；批次上傳以 `FormData.file` 傳檔並在成功後重新查詢清單；模板與報表以 Blob 觸發瀏覽器下載，優先採回應檔名、否則使用已確認的固定檔名。報表傳送全部符合篩選條件的商品 ID，0 筆時停用下載。未改動既有登入註冊、庫存及其他 CRUD 契約。
+
+測試新增單筆 URI／回應形狀、multipart 上傳、Excel 下載、跨頁篩選 ID、401、重複上傳與清單重查失敗。`npm.cmd test -- --run`：22 個測試檔／196 項通過；`npm.cmd run build`、`npm.cmd run lint` 均通過；`git diff --check` 通過。未連接實際後端驗證檔案傳輸。TASK-001／007～009 狀態為 `DEVELOPED DONE`，交由 Code Review Agent 審查；`DONE` 尚未設定。

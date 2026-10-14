@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from './product-service'
+import { addProduct, deleteProduct, downloadProductData, downloadProductTemplate, getProduct, getProducts, ProductServiceError, updateProduct, uploadProducts } from './product-service'
 import type { ProductWriteInput } from './product-service'
 import type { AuthSession } from '../types/auth'
 
@@ -197,12 +197,15 @@ describe('product service', () => {
   })
 
   it('encodes detail identifiers and sends add and delete payloads in one request each', async () => {
-    const fetchMock = vi.fn().mockImplementation(() => new Response(JSON.stringify({ body: { info: {
+    const detail = {
       id: 'p /1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0,
-    } } }), { status: 200, headers: { Status: 'Success' } }))
+    }
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ body: { info: [detail] } }), { status: 200, headers: { Status: 'Success' } }))
+      .mockImplementation(() => new Response(JSON.stringify({ body: { info: detail } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     await getProduct(session, 'p /1', new AbortController().signal)
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProduct?productId=p%20%2F1')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProducts?productId=p%20%2F1')
     await addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2 }, new AbortController().signal)
     await deleteProduct(session, 'p /1', new AbortController().signal)
     expect(fetchMock).toHaveBeenCalledTimes(3)
@@ -211,9 +214,9 @@ describe('product service', () => {
   })
 
   it('defaults stock to zero for a detail response without the field', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [{
       id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2,
-    } } }), { status: 200, headers: { Status: 'Success' } })))
+    }] } }), { status: 200, headers: { Status: 'Success' } })))
     await expect(getProduct(session, 'p1', new AbortController().signal)).resolves.toMatchObject({ stock: 0 })
   })
 
@@ -229,5 +232,61 @@ describe('product service', () => {
     })))
     await expect(addProduct(session, { name: 'Item', label_names: 'A', cost: 1, price: 2 }, new AbortController().signal))
       .rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it.each([
+    { label: 'empty', info: [] },
+    { label: 'multiple', info: [{ id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2 }, { id: 'p2', name: 'Other', label_names: 'A', cost: 1, price: 2 }] },
+    { label: 'different ID', info: [{ id: 'wrong', name: 'Item', label_names: 'A', cost: 1, price: 2 }] },
+  ])('rejects a $label detail array without exactly the requested product', async ({ info }) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info } }), { status: 200, headers: { Status: 'Success' } })))
+    await expect(getProduct(session, 'p1', new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it('uploads the selected File in multipart form data without setting Content-Type and validates products', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [
+      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2 },
+    ] } }), { status: 200, headers: { Status: 'Success' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const file = new File(['excel'], 'products.xlsx')
+    await expect(uploadProducts(session, file, new AbortController().signal)).resolves.toMatchObject([{ id: 'p1', stock: 0 }])
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/productController/batchProducts')
+    expect(init.method).toBe('POST')
+    expect(init.headers).toEqual({ Uid: 'u1', Authorization: 'token' })
+    expect(init.body).toBeInstanceOf(FormData)
+    expect((init.body as FormData).get('file')).toBe(file)
+  })
+
+  it('keeps upload 400 and 401 failures separate', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response('{}', { status: 400, headers: { Message: 'Invalid file' } }))
+      .mockResolvedValueOnce(new Response('{}', { status: 401 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const file = new File(['x'], 'products.xlsx')
+    await expect(uploadProducts(session, file, new AbortController().signal)).rejects.toMatchObject({ kind: 'http', message: 'Invalid file' })
+    await expect(uploadProducts(session, file, new AbortController().signal)).rejects.toMatchObject({ kind: 'unauthorized' })
+  })
+
+  it('downloads Excel bytes and uses response or fallback filenames', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response('template bytes', { status: 200, headers: { Status: 'Success', 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } }))
+      .mockResolvedValueOnce(new Response('report bytes', { status: 200, headers: { Status: 'Success', 'Content-Disposition': 'attachment; filename="report.xlsx"' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const template = await downloadProductTemplate(session, new AbortController().signal)
+    expect(template.filename).toBe('product-template.xlsx')
+    expect(await template.blob.text()).toBe('template bytes')
+    const report = await downloadProductData(session, ['p1', 'p2'], new AbortController().signal)
+    expect(report.filename).toBe('report.xlsx')
+    expect(await report.blob.text()).toBe('report bytes')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/downloadTemplate')
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('/productController/downloadProductData')
+    expect(fetchMock.mock.calls[1]?.[1]?.headers).toEqual({ 'Content-Type': 'application/json', Uid: 'u1', Authorization: 'token' })
+    expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toEqual({ body: { info: { ids: 'p1,p2' } } })
+  })
+
+  it('does not download an empty or JSON success body as Excel', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 200, headers: { Status: 'Success', 'Content-Type': 'application/json' } })))
+    await expect(downloadProductTemplate(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
   })
 })
