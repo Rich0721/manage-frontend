@@ -1,6 +1,6 @@
 # TASK-007 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -33,3 +33,7 @@ TASK-007
 ## Resolution
 
 Status: OPEN。待 Programmer 補測並重新驗證。
+
+## 2026-10-14 Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。頁面測試已驗證上傳 401 通知 Session 擁有者且不刷新；一般 HTTP、404 與協定錯誤顯示失敗、不刷新也不結束 Session；卸載時中止請求，並忽略晚到的成功結果。原 Review Issue 已解決。

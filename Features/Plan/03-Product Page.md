@@ -119,15 +119,15 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
+| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
+| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
 ## IV. Technical Stack / System Design
 
@@ -368,7 +368,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 - [x] 下載範圍使用篩選後全量清單，0 筆停用；Session、逾時及重複請求已納入測試策略。
 - [ ] Implementation Plan 已完成人工審核。
 - [x] TASK-001／007～009 Development 完成。
-- [ ] TASK-001／007～009 Code Review 通過。
+- [x] TASK-001／007～009 Code Review 通過。
 
 ### Programmer Handoff（2026-10-14）
 
@@ -383,3 +383,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Programmer Review Fix Handoff（2026-10-14）
 
 依 `Features/Review/03-Product Page/` 的 TASK-001／007／008／009 OPEN Issue 完成修正：JSON 讀取失敗恢復既有文案「產品回應不是有效 JSON」，Blob 讀取失敗保留檔案專屬錯誤；Excel 下載拒絕 `text/plain` 等非 Excel Content-Type；下載連結觸發失敗時也移除暫時 DOM 節點並釋放 object URL。新增上傳 401、HTTP／404／協定錯誤及卸載晚到回應測試；下載測試驗證檔名、object URL 清理、HTTP／協定錯誤、401 與等待中防重複請求。已通過定向測試 2 檔／81 項、完整 Vitest 22 檔／209 項、`npm.cmd run build`、`npm.cmd run lint` 與 `git diff --check`。四項 Implementation Status 由 `REVIEW FIX` 更新為 `DEVELOPED DONE`，交由 Code Reviewer 複審；Review Status 仍為 `OPEN`，不由 Programmer 修改。未連接真實後端驗證檔案傳輸。
+
+### Code Review Fix Validation（2026-10-14）
+
+重新審查 TASK-001／007／008／009 的既有 OPEN Issue 與最新實作。JSON 讀取錯誤維持原訊息及取消／逾時分類；上傳頁面測試涵蓋 401、一般 HTTP／404／協定錯誤與卸載後晚到成功；下載共用服務拒絕 `text/plain`，頁面測試涵蓋檔名、object URL 清理、錯誤／401 不觸發下載及等待中防重複請求。未發現本次修正造成的 Plan 範圍內回歸。實際執行 `npm.cmd test -- --run`：22 檔／209 項通過；`npm.cmd run build`、`npm.cmd run lint` 通過。四份 Review Status 更新為 `RESOLVED`，四項 Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-14。尚未以真實後端驗證檔案傳輸契約。

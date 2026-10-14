@@ -1,6 +1,6 @@
 # TASK-009 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -33,3 +33,7 @@ TASK-009
 ## Resolution
 
 Status: OPEN。待 Programmer 修正並重新驗證。
+
+## 2026-10-14 Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。報表沿用已修正的 Blob 解析與下載資源清理；頁面測試驗證報表 401、一般 HTTP／協定錯誤不下載、等待中防重複請求、檔名及 object URL 清理；跨頁與篩選結果 ID 資料流仍正確。原 Review Issue 已解決。

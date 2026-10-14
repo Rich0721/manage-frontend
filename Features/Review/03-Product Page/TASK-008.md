@@ -1,6 +1,6 @@
 # TASK-008 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -34,3 +34,7 @@ TASK-008
 ## Resolution
 
 Status: OPEN。待 Programmer 修正並重新驗證。
+
+## 2026-10-14 Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。共用下載解析已拒絕 `text/plain` 等非 Excel 媒體型別；模板測試驗證一般 HTTP／協定錯誤不觸發下載、401 通知 Session 擁有者、實際連結檔名、成功及點擊失敗時的 DOM／object URL 清理，以及等待中防重複請求。原 Review Issue 已解決。

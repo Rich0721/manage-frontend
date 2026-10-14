@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -55,3 +55,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date
 ### Resolution
 
 Status: OPEN。待 Programmer 修正並重新驗證。
+
+## 2026-10-14 Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。`requestResponse()` 的 JSON 讀取失敗預設訊息已恢復為「產品回應不是有效 JSON」，Blob 讀取失敗則使用檔案專屬訊息；服務測試明確斷言兩者，既有取消／逾時分類未被更動。原 Review Issue 已解決。
