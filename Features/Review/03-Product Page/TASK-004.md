@@ -1,6 +1,6 @@
 # TASK-004 Code Review
 
-Status: RESOLVED
+Status: OPEN
 
 ## Task ID
 
@@ -37,3 +37,19 @@ Status: RESOLVED。2026-10-13 複審：ProductForm 使用 noValidate，低於最
 ## 2026-10-13 本次 Plan 更新複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-13。新增與編輯表單的庫存欄固定為停用的 0，不進入草稿、驗證錯誤或提交值；兩種模式與成本／售價驗證均有對應測試。共用 `FormField` 原有 disabled 屬性可直接重用。未發現本次差異的待修問題。
+
+## 2026-10-14 Stock 契約審查
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-14。先前已解決的 Issue 不重開。
+
+### Review Issue（Missing Test）
+
+`src/components/ProductForm/ProductForm.test.tsx:24-55` 驗證新增初始 0、改成 12 後送出及編輯改值；`src/pages/product-validation.test.tsx:7-26` 驗證純函式的 0／空白／負數／非數值。最新 Plan TASK-004 另要求驗證新增初始 0 可直接提交、無效 stock 在表單不呼叫 `onSubmit` 且更正後清除欄位錯誤。目前沒有這些元件層斷言，無法保護自訂驗證與欄位錯誤的實際互動。
+
+### Expected Behavior / Suggested Area To Fix
+
+在 ProductForm 元件測試，以其餘欄位有效的狀態提交預設 0，並驗證空白／負數或非數值 stock 阻止 `onSubmit`、保留輸入、顯示欄位錯誤，修正後錯誤清除且能提交。無需修改已符合契約的表單程式碼。
+
+### Resolution
+
+Status: OPEN。待 Programmer 補測後複審。

@@ -65,3 +65,19 @@ Suggested Area To Fix：檢查 `src/pages/ProductPage.test.tsx` 的清單顯示�
 ## 2026-10-14 Stock 差異複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。`ProductPage.test.tsx` 的表格案例已以 `stock: 0` 商品斷言庫存格實際顯示 0；服務測試另驗證 API 缺省時正規化。新增／編輯仍不送 stock，既有詳情切換、Session 401、refresh 與頁碼回歸未見本輪修改破壞。Reviewer 執行 Product service／Page 測試 68 項及 ProductLabelInput／App 測試 21 項通過。先前 OPEN Issue 已解決，本次沒有新增待修問題。
+
+## 2026-10-14 Stock 恢復審查
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-14。先前已解決的 Issue 不重開。
+
+### Review Issue（Missing Test）
+
+`src/pages/ProductPage.test.tsx:140-163,213-254` 驗證新增預設 0 但只送出自訂 12、編輯 9 改 15，以及負數阻止新增；`src/pages/ProductPage.test.tsx:33-40` 僅斷言初始清單的 0。最新 Plan TASK-005 明訂頁面層測試新增預設 0 的數值 payload、空白 stock 不呼叫 API，以及成功刷新後表格顯示後端 stock。目前這三項沒有直接頁面斷言；純函式的空白驗證和初始清單 0 無法取代新增／刷新資料流測試。
+
+### Expected Behavior / Suggested Area To Fix
+
+在 ProductPage 測試補足預設 0 提交、空白 stock 阻止 service 呼叫，以及新增或編輯成功後使用刷新結果的非零 stock 顯示於目標商品列。保留既有詳情 id、Session、refresh 失敗與頁碼測試。
+
+### Resolution
+
+Status: OPEN。待 Programmer 補測後複審。

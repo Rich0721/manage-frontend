@@ -1,6 +1,6 @@
 # TASK-007 Code Review
 
-Status: RESOLVED
+Status: OPEN
 
 ## Task ID
 
@@ -37,3 +37,19 @@ Status: OPEN。待 Programmer 補測並重新驗證。
 ## 2026-10-14 Review Fix 複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。頁面測試已驗證上傳 401 通知 Session 擁有者且不刷新；一般 HTTP、404 與協定錯誤顯示失敗、不刷新也不結束 Session；卸載時中止請求，並忽略晚到的成功結果。原 Review Issue 已解決。
+
+## 2026-10-14 Stock 契約審查
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-14。先前已解決的 Issue 不重開。
+
+### Review Issue（Missing Test）
+
+`src/services/product-service.test.tsx:264-285` 的上傳成功回應只有非零 stock 8，格式錯誤只有缺省 stock；最新 Plan TASK-007 要求驗證上傳成功陣列含 0／非零均可解析、非法 stock 判為 `protocol`。頁面上傳成功測試 `src/pages/ProductPage.test.tsx:419-433` 的刷新結果未斷言庫存值，故也未直接驗證上傳後刷新顯示真實 stock。共用 `parseCollection()` 程式路徑正確，缺少的是指定的上傳回歸案例。
+
+### Expected Behavior / Suggested Area To Fix
+
+在 uploadProducts 服務測試加入 stock 0 成功與非法 stock 失敗案例；於相關頁面上傳測試確認成功刷新後商品列顯示後端庫存，並沿用既有 protocol 錯誤不刷新測試。無需新增 Excel 內容解析或服務分支。
+
+### Resolution
+
+Status: OPEN。待 Programmer 補測後複審。

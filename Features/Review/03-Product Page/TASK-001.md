@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: RESOLVED
+Status: OPEN
 
 ## Task ID
 
@@ -59,3 +59,19 @@ Status: OPEN。待 Programmer 修正並重新驗證。
 ## 2026-10-14 Review Fix 複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。`requestResponse()` 的 JSON 讀取失敗預設訊息已恢復為「產品回應不是有效 JSON」，Blob 讀取失敗則使用檔案專屬訊息；服務測試明確斷言兩者，既有取消／逾時分類未被更動。原 Review Issue 已解決。
+
+## 2026-10-14 Stock 契約審查
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-14。先前已解決的 Issue 不重開。
+
+### Review Issue（Missing Test）
+
+`src/services/product-service.test.tsx:132-143` 已驗證缺省、null、字串及負數 stock，但沒有驗證最新 Plan TASK-001 明列的非有限數值。`parseProduct()` 已使用 `Number.isFinite`，本次缺的是服務邊界回歸測試；現有 94 項定向測試通過不代表此條件已受測。
+
+### Expected Behavior / Suggested Area To Fix
+
+在產品成功回應測試加入可經 JSON 解析成非有限 Number 的 stock 案例，確認 `getProducts()` 以 `protocol` 拒絕。保留既有清單、詳情、mutation、HTTP 及取消／逾時測試。
+
+### Resolution
+
+Status: OPEN。待 Programmer 補測後複審。

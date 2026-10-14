@@ -59,3 +59,9 @@ Review Date：2026-10-13
 ## 初次複審驗證與界線
 
 該次檢查最新 Plan、產品服務、頁面／元件、相關測試與既有架構規範。Programmer 前次提供的同版程式驗證為 20 個測試檔、149 項測試通過，build 與 lint 通過；該次僅改審查文件與 Plan 狀態，未修改 Production 或 Test Code，未重跑全套測試。以 jsdom 確認無效的 `min` input 會阻止原生 submit event。尚未連接真實後端或完成瀏覽器人工視覺驗收。
+
+## 2026-10-14 Stock 契約 Code Review
+
+最新 Plan 的 TASK-001／004／005／007 共四項待審。本輪核對程式與測試後，主要 Stock 資料流已實作，但四項任務各缺少 Plan 明列的回歸斷言；詳細問題與期望行為分別記錄於同目錄的 `TASK-001.md`、`TASK-004.md`、`TASK-005.md`、`TASK-007.md`。四項 Implementation Status 為 `REVIEW FIX`，Review Status 為 `OPEN`，Code Review Date 為 2026-10-14。先前已解決的歷史 Issue 保持原紀錄，其他任務狀態不變。
+
+Reviewer 執行 Stock 相關四個測試檔，94 項通過；沙箱中的 esbuild 無法讀取 Vitest 設定，因此同一命令於核准的沙箱外執行成功。本輪未修改 Production／Test Code，未重跑全套測試、build 或 lint；Programmer 的全套 217 項、build 及 lint 通過屬前次驗證紀錄。尚未連接真實後端。
