@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -79,3 +79,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-14）
 
 已新增成功清單回應包含 JSON `1e999` stock 的案例；`getProducts()` 必須以 `protocol` 拒絕非有限 Number。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-14 Stock Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。核對成功清單回應的 JSON `1e999` 測試確實經 `getProducts()` 與 `parseProduct()`，非有限 Number 以 `protocol` 拒絕。原缺測已補足，既有欄位及 payload 回歸保留；前次定向測試 99 項與 lint 通過，本次未重跑。

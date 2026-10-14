@@ -119,13 +119,13 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
@@ -442,7 +442,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 - [x] TASK-001／004／005／007 已設 `PLAN UPDATED` 並清除舊開發／審查日期；其餘完成任務維持 `DONE`。
 - [ ] 本輪 Implementation Plan 人工審閱完成。
 - [x] 本輪 Development 完成；依 TASK-001 → TASK-004 → TASK-005 → TASK-007 驗證，Stock 相關 4 檔／94 項與完整 Vitest 22 檔／217 項、build、lint 均通過。
-- [ ] 本輪 Code Review 通過。
+- [x] 本輪 Code Review 通過。
 
 本輪 Plan Status：**Awaiting Review**。依 `agents/system-design-agent.md` 的 Plan Review 流程，人工審閱完成後交 Programmer 實作；Handoff 包含本需求變更、原 PM 文件、上述四項 Task 與 Stock JSON Number／必填回應契約。僅變更 Stock 相關 service、表單、Page 與測試；保留 `vite.config.ts` 現有工作區修改，不改無關登入、下載、標籤或分頁規則。
 
@@ -457,3 +457,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Programmer Review Fix Handoff（2026-10-14）
 
 依四項 OPEN Review Issue 補齊測試：TASK-001 使用 JSON `1e999` 確認非有限 stock 回應分類為 protocol；TASK-004 驗證新增表單預設 0 可提交，以及負數錯誤更正後可提交；TASK-005 驗證預設 0 payload、空白 stock 阻止 service 呼叫，並確認新增成功刷新後顯示回應庫存；TASK-007 驗證上傳回應的 0／非零 stock 可解析、缺省／負數拒絕，且成功刷新後表格顯示後端庫存。四個定向測試檔 99 項通過，`npm.cmd run lint` 與 `git diff --check` 通過。TASK-001／004／005／007 已更新為 `DEVELOPED DONE`，Review Status 維持 `OPEN`，交 Code Reviewer 複審。
+
+### Code Review Fix Validation（2026-10-14 Stock 契約）
+
+複審 TASK-001／004／005／007 的四項 OPEN Issue，逐一核對最新測試與現有服務、表單及頁面資料流。非有限 stock 由服務判為 protocol；預設 0 可提交，負數欄位錯誤可更正；新增預設 0、空白拒絕與刷新後庫存顯示均有頁面斷言；上傳 0／非零、缺省／負數與成功刷新顯示亦已涵蓋。確認 Programmer 修正後的四檔定向測試 99 項及 lint 通過；本次僅更新 Review 與 Plan 文件，未重跑測試。四項 Review Status 更新為 `RESOLVED`，Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-14。未使用真實後端驗證 API 整合。

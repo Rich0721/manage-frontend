@@ -1,6 +1,6 @@
 # TASK-007 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -57,3 +57,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-14）
 
 上傳服務測試驗證成功回應同時含 stock 0／非零、缺省與負數 stock 回應以 protocol 拒絕；頁面上傳成功案例確認重新載入後的非零庫存顯示於表格。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-14 Stock Review Fix 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-14。上傳服務測試直接呼叫 `uploadProducts()`，驗證 0／非零可解析、缺省／負數為 protocol；頁面成功上傳後重新查詢並斷言表格顯示回應 stock 22，既有 protocol 失敗不刷新測試仍有效。原缺測已補足；前次定向測試 99 項與 lint 通過，本次未重跑。
