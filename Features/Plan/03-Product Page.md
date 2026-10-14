@@ -119,15 +119,15 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
-| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
-| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | REVIEW FIX | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 
 ## IV. Technical Stack / System Design
 
@@ -379,3 +379,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Code Review（2026-10-14）
 
 本輪審查 Requirement List 中全部六項 `DEVELOPED DONE` 任務。TASK-003／005 通過並更新為 `DONE`，Review Status 為 `RESOLVED`；TASK-001／007～009 均為 `REVIEW FIX`，Review Status 為 `OPEN`，Code Review Date 均為 2026-10-14。TASK-001 的共用 request 重構改變既有 JSON 錯誤文案；TASK-007 缺 Plan 指定的上傳失敗與晚到回應頁面測試；TASK-008／009 的共用 Blob 解析接受非 Excel 的 `text/plain` 回應，下載檔名／清理及錯誤／重複請求測試亦不足。詳細位置與修正範圍記錄於各 Task Review 文件。審查未修改 Production 或 Test Code；Reviewer 定向執行 Product service／Page 測試 68 項及 ProductLabelInput／App 測試 21 項，均通過。Programmer 前次全套 196 項、build 與 lint 通過屬前次驗證紀錄，不能取代本輪發現的缺口。
+
+### Programmer Review Fix Handoff（2026-10-14）
+
+依 `Features/Review/03-Product Page/` 的 TASK-001／007／008／009 OPEN Issue 完成修正：JSON 讀取失敗恢復既有文案「產品回應不是有效 JSON」，Blob 讀取失敗保留檔案專屬錯誤；Excel 下載拒絕 `text/plain` 等非 Excel Content-Type；下載連結觸發失敗時也移除暫時 DOM 節點並釋放 object URL。新增上傳 401、HTTP／404／協定錯誤及卸載晚到回應測試；下載測試驗證檔名、object URL 清理、HTTP／協定錯誤、401 與等待中防重複請求。已通過定向測試 2 檔／81 項、完整 Vitest 22 檔／209 項、`npm.cmd run build`、`npm.cmd run lint` 與 `git diff --check`。四項 Implementation Status 由 `REVIEW FIX` 更新為 `DEVELOPED DONE`，交由 Code Reviewer 複審；Review Status 仍為 `OPEN`，不由 Programmer 修改。未連接真實後端驗證檔案傳輸。

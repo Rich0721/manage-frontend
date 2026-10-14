@@ -35,7 +35,7 @@ describe('product service', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{bad json', {
       status: 200, headers: { Status: 'Success' },
     })))
-    await expect(getProducts(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+    await expect(getProducts(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol', message: '產品回應不是有效 JSON' })
   })
 
   it('uses HTTP 401 to distinguish an expired session', async () => {
@@ -271,7 +271,7 @@ describe('product service', () => {
   it('downloads Excel bytes and uses response or fallback filenames', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response('template bytes', { status: 200, headers: { Status: 'Success', 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } }))
-      .mockResolvedValueOnce(new Response('report bytes', { status: 200, headers: { Status: 'Success', 'Content-Disposition': 'attachment; filename="report.xlsx"' } }))
+      .mockResolvedValueOnce(new Response('report bytes', { status: 200, headers: { Status: 'Success', 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="report.xlsx"' } }))
     vi.stubGlobal('fetch', fetchMock)
     const template = await downloadProductTemplate(session, new AbortController().signal)
     expect(template.filename).toBe('product-template.xlsx')
@@ -288,5 +288,22 @@ describe('product service', () => {
   it('does not download an empty or JSON success body as Excel', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 200, headers: { Status: 'Success', 'Content-Type': 'application/json' } })))
     await expect(downloadProductTemplate(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it('rejects plain text success responses for both Excel downloads', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('not an Excel file', {
+      status: 200, headers: { Status: 'Success', 'Content-Type': 'text/plain; charset=utf-8' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(downloadProductTemplate(session, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+    await expect(downloadProductData(session, ['p1'], new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it('keeps binary body read errors distinct from JSON parse errors', async () => {
+    const response = new Response('binary', { status: 200, headers: { Status: 'Success' } })
+    vi.spyOn(response, 'blob').mockRejectedValue(new Error('read failed'))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
+    await expect(downloadProductTemplate(session, new AbortController().signal))
+      .rejects.toMatchObject({ kind: 'protocol', message: '下載檔案回應格式錯誤' })
   })
 })

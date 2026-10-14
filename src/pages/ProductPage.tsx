@@ -284,12 +284,18 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
   const saveDownload = ({ blob, filename }: ProductDownload) => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+    let clicked = false
+    try {
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      clicked = true
+    } finally {
+      link.remove()
+      if (clicked) window.setTimeout(() => URL.revokeObjectURL(url), 0)
+      else URL.revokeObjectURL(url)
+    }
   }
 
   const handleDownload = (kind: 'template' | 'report') => {

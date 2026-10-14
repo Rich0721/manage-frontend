@@ -404,6 +404,47 @@ describe('ProductPage', () => {
     expect(addProductMock).not.toHaveBeenCalled()
   })
 
+  it('delegates upload 401 to the session owner without refreshing', async () => {
+    getProductsMock.mockResolvedValue([])
+    uploadProductsMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    const onSessionExpired = vi.fn()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('目前無產品')
+    fireEvent.change(screen.getByLabelText('選擇 Excel 檔案'), { target: { files: [new File(['x'], 'products.xlsx')] } })
+    await vi.waitFor(() => expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權'))
+    expect(onSessionExpired).toHaveBeenCalledOnce()
+    expect(getProductsMock).toHaveBeenCalledOnce()
+  })
+
+  it.each(['http', 'not-found', 'protocol'] as const)('shows upload %s failure without refreshing or ending the session', async (kind) => {
+    getProductsMock.mockResolvedValue([])
+    uploadProductsMock.mockRejectedValue(new ProductServiceError(kind, `Upload ${kind}`))
+    const onSessionExpired = vi.fn()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('目前無產品')
+    fireEvent.change(screen.getByLabelText('選擇 Excel 檔案'), { target: { files: [new File(['x'], 'products.xlsx')] } })
+    expect(await screen.findByText(`Upload ${kind}`)).toBeInTheDocument()
+    expect(getProductsMock).toHaveBeenCalledOnce()
+    expect(onSessionExpired).not.toHaveBeenCalled()
+  })
+
+  it('ignores an upload result that resolves after unmount', async () => {
+    getProductsMock.mockResolvedValue([])
+    let finishUpload: ((products: Product[]) => void) | undefined
+    uploadProductsMock.mockImplementation((_session, _file, signal) => new Promise<Product[]>((resolve) => {
+      finishUpload = resolve
+      expect(signal.aborted).toBe(false)
+    }))
+    const { unmount } = render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    fireEvent.change(screen.getByLabelText('選擇 Excel 檔案'), { target: { files: [new File(['x'], 'products.xlsx')] } })
+    const signal = uploadProductsMock.mock.calls[0]?.[2]
+    unmount()
+    expect(signal?.aborted).toBe(true)
+    await act(async () => { finishUpload?.([product('p1', 'Late')]) })
+    expect(getProductsMock).toHaveBeenCalledOnce()
+  })
+
   it('opens the native picker, ignores cancellation, and allows selecting the same file again', async () => {
     getProductsMock.mockResolvedValue([])
     uploadProductsMock.mockResolvedValue([])
@@ -444,7 +485,8 @@ describe('ProductPage', () => {
     const createObjectURL = vi.fn(() => 'blob:report')
     const revokeObjectURL = vi.fn()
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const filenames: string[] = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { filenames.push(this.download) })
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
     await screen.findByText('Item 0')
@@ -456,6 +498,9 @@ describe('ProductPage', () => {
     await user.click(screen.getByRole('button', { name: '下載商品報表' }))
     await vi.waitFor(() => expect(downloadProductDataMock).toHaveBeenCalledTimes(2))
     expect(downloadProductDataMock.mock.calls[1]?.[1]).toEqual(['p17'])
+    expect(filenames).toEqual(['product-report.xlsx', 'product-report.xlsx'])
+    await vi.waitFor(() => expect(revokeObjectURL).toHaveBeenCalledTimes(2))
+    expect(document.querySelector('a[download]')).toBeNull()
     await user.clear(screen.getByRole('searchbox', { name: '篩選商品分類' }))
     await user.type(screen.getByRole('searchbox', { name: '篩選商品分類' }), 'missing')
     expect(screen.getByRole('button', { name: '下載商品報表' })).toBeDisabled()
@@ -469,7 +514,8 @@ describe('ProductPage', () => {
     const createObjectURL = vi.fn(() => 'blob:template')
     const revokeObjectURL = vi.fn()
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
-    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const filenames: string[] = []
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { filenames.push(this.download) })
     const onSessionExpired = vi.fn()
     const user = userEvent.setup()
     render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
@@ -477,11 +523,84 @@ describe('ProductPage', () => {
     await user.click(screen.getByRole('button', { name: '下載批次新增商品模板' }))
     await vi.waitFor(() => expect(clickSpy).toHaveBeenCalledOnce())
     expect(createObjectURL).toHaveBeenCalledOnce()
+    expect(filenames).toEqual(['product-template.xlsx'])
+    await vi.waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:template'))
+    expect(document.querySelector('a[download]')).toBeNull()
     expect(downloadProductTemplateMock).toHaveBeenCalledWith(session, expect.any(AbortSignal))
     expect(screen.getByRole('button', { name: '下載批次新增商品模板' })).toBeEnabled()
     await user.click(screen.getByRole('button', { name: '下載批次新增商品模板' }))
     await vi.waitFor(() => expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權'))
     expect(downloadProductTemplateMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('cleans up the temporary download link and URL if the browser click fails', async () => {
+    getProductsMock.mockResolvedValue([])
+    downloadProductTemplateMock.mockResolvedValue({ blob: new Blob(['excel']), filename: 'product-template.xlsx' })
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:broken'), revokeObjectURL })
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { throw new Error('download blocked') })
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '下載批次新增商品模板' }))
+    expect(await screen.findByText('download blocked')).toBeInTheDocument()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:broken')
+    expect(document.querySelector('a[download]')).toBeNull()
+  })
+
+  it.each(['template', 'report'] as const)('does not start a %s download on HTTP or protocol failure', async (kind) => {
+    getProductsMock.mockResolvedValue([product('p1', 'Item')])
+    const request = kind === 'template' ? downloadProductTemplateMock : downloadProductDataMock
+    request.mockRejectedValueOnce(new ProductServiceError('http', 'Download failed'))
+      .mockRejectedValueOnce(new ProductServiceError('protocol', 'Invalid Excel response'))
+    const createObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() })
+    const onSessionExpired = vi.fn()
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('Item')
+    const name = kind === 'template' ? '下載批次新增商品模板' : '下載商品報表'
+    await user.click(screen.getByRole('button', { name }))
+    expect(await screen.findByText('Download failed')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name }))
+    expect(await screen.findByText('Invalid Excel response')).toBeInTheDocument()
+    expect(createObjectURL).not.toHaveBeenCalled()
+    expect(onSessionExpired).not.toHaveBeenCalled()
+    expect(request).toHaveBeenCalledTimes(2)
+  })
+
+  it('delegates report 401 to the session owner without starting a download', async () => {
+    getProductsMock.mockResolvedValue([product('p1', 'Item')])
+    downloadProductDataMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    const createObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() })
+    const onSessionExpired = vi.fn()
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={onSessionExpired} />)
+    await screen.findByText('Item')
+    await user.click(screen.getByRole('button', { name: '下載商品報表' }))
+    await vi.waitFor(() => expect(onSessionExpired).toHaveBeenCalledWith('使用者未授權'))
+    expect(createObjectURL).not.toHaveBeenCalled()
+  })
+
+  it.each(['template', 'report'] as const)('blocks a second %s request while downloading', async (kind) => {
+    getProductsMock.mockResolvedValue([product('p1', 'Item')])
+    let finishDownload: ((download: { blob: Blob; filename: string }) => void) | undefined
+    const request = kind === 'template' ? downloadProductTemplateMock : downloadProductDataMock
+    request.mockImplementationOnce(() => new Promise((resolve) => { finishDownload = resolve }))
+    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:pending'), revokeObjectURL: vi.fn() })
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Item')
+    const name = kind === 'template' ? '下載批次新增商品模板' : '下載商品報表'
+    const button = screen.getByRole('button', { name })
+    await user.click(button)
+    expect(button).toBeDisabled()
+    fireEvent.click(button)
+    expect(request).toHaveBeenCalledOnce()
+    await act(async () => { finishDownload?.({ blob: new Blob(['excel']), filename: 'file.xlsx' }) })
+    await vi.waitFor(() => expect(button).toBeEnabled())
   })
 
   it('does not upload twice while pending and only retries the list after refresh fails', async () => {

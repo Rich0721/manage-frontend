@@ -65,6 +65,7 @@ async function requestResponse<T>(
   read: (response: Response) => Promise<T>,
   body?: BodyInit,
   contentType?: string,
+  readErrorMessage = '產品回應不是有效 JSON',
 ): Promise<{ response: Response; body: T }> {
   if (signal.aborted) throw abortError()
   const controller = new AbortController()
@@ -92,7 +93,7 @@ async function requestResponse<T>(
     catch {
       if (signal.aborted) throw abortError()
       if (timedOut) throw new ProductServiceError('timeout', '產品操作逾時，請重新查詢結果')
-      throw new ProductServiceError('protocol', '產品回應內容格式錯誤')
+      throw new ProductServiceError('protocol', readErrorMessage)
     }
     if (signal.aborted) throw abortError()
     return { response, body: result }
@@ -122,7 +123,7 @@ function request(
 
 function requestDownload(endpoint: string, session: AuthSession, signal: AbortSignal, payload?: { ids: string }): Promise<{ response: Response; body: Blob }> {
   return requestResponse(endpoint, session, signal, payload ? 'POST' : 'GET', (response) => response.blob(),
-    payload ? JSON.stringify({ body: { info: payload } }) : undefined, 'application/json')
+    payload ? JSON.stringify({ body: { info: payload } }) : undefined, 'application/json', '下載檔案回應格式錯誤')
 }
 
 function parseCollection(body: unknown): Product[] {
@@ -199,8 +200,14 @@ function downloadFilename(response: Response, fallback: string): string {
 }
 
 function parseDownload(response: Response, blob: Blob, fallback: string): ProductDownload {
-  const type = response.headers.get('Content-Type')?.toLowerCase()
-  if (!blob.size || type?.includes('json') || type?.includes('html')) {
+  const type = response.headers.get('Content-Type')?.split(';', 1)[0].trim().toLowerCase()
+  const isExcelType = !type || [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'application/octet-stream',
+    'application/zip',
+  ].includes(type)
+  if (!blob.size || !isExcelType) {
     throw new ProductServiceError('protocol', '下載檔案回應格式錯誤')
   }
   return { blob, filename: downloadFilename(response, fallback) }
