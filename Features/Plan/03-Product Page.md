@@ -6,9 +6,9 @@
 - 原始需求與計畫：`Features/Document/02-LoginAndLogout.md`、`Features/Plan/02-LoginAndLogout.md`。
 - Scenario：`Features/Document/Scenarios/03-Product Page/` 下 `01-Product Page.feature`、`02-Add Product.feature`、`03-Edit Product.feature`、`04-Delete Product.feature`。
 - Flow：`Features/Document/flows/03-Product Page/` 下三份新增、編輯、刪除流程。
-- Requirement Type：原始工作為 **Requirement Change**；本次追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-003／006 介面視覺驗證暫緩）。
+- Requirement Type：原始工作為 **Requirement Change**；2026-10-13 追加為 **Bug / Behavior Correction**（下載入口擁擠、標籤樣式）與 **Requirement Change**（Stock API 暫行契約、TASK-003／006 介面視覺驗證暫緩）；2026-10-14 追加 **New Requirement**（2-2-5～2-2-7 檔案操作）及 **Bug / Behavior Correction**（Get Product URI 更正）。
 - Plan Date：2026-10-13。
-- Plan Status：**Awaiting Review**。本次需求變更已完成分析；人工審閱前不進入實作。
+- Plan Status：**Awaiting Review**。2026-10-14 的檔案傳輸與報表 ID 規則已確認，計畫已完成檢查，待人工審閱後交付實作。
 - 本次僅調整計畫，不修改需求文件、Production Code 或測試；工作區現有 `vite.config.ts` 變更非本計畫寫入。
 
 ### 2026-10-13 需求變更（本次）
@@ -119,12 +119,15 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | — |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-13 | DEVELOPED DONE | 2026-10-13 | 2026-10-13 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
+| TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
+| TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | TODO | — | — |
 
 ## IV. Technical Stack / System Design
 
@@ -280,3 +283,89 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Handoff 條件
 
 本計畫的本次差異已進入 Awaiting Review。依 `agents/system-design-agent.md` 的 Plan Review 流程，審閱完成並允許實作後，Handoff 應包含本計畫、03 原始需求與本次使用者補充、Requirement Change／Bug Correction 類型及 TASK-001／003／004／005／006 的差異範圍；TASK-002 保持 DONE。不得修改登入註冊規則、權限管理、Excel 上下載 API、分類自動新增後端或進行無關重構。
+
+## VII. 2026-10-14 擴充規劃：商品檔案 API 與 Get Product URI
+
+> 本節是新一輪計畫；上方 2026-10-13 的「本次」、下載功能 disabled 占位及 Handoff 文字均為歷史紀錄。本輪以本節及 III 節最新任務狀態為準。僅規劃，未修改應用程式或測試。
+
+### 需求來源、類型與差異
+
+- **來源**：`Features/Document/03-Product Page.md` 的 2-2-5～2-2-7、2-3 批次管理及兩項下載行為；使用者於 2026-10-14 指出 Get Product URI 原先寫錯，可與 Get All 共用，要求評估重構。
+- **New Requirement**：由既有選檔入口實際呼叫批次上傳，啟用 Excel 模板及商品報表下載。批次上傳成功後重新查詢商品清單；報表以目前**全部符合篩選條件**的商品 ID 組字串，並非只有目前 15 筆可見列；未篩選時使用所有已載入商品 ID。
+- **Bug / Behavior Correction**：既有 `getProduct()` 使用 `/productController/getProduct?productId=<id>`，與更正後需求不符。應與清單同用 `/productController/getProducts`，以 `productId=all` 或編碼後的單筆 ID 區分。使用者已確認兩者的 `body.info` 均改為陣列；`getProducts()` 公開介面與清單行為不變，ProductPage 編輯前查詳情流程不變。
+- **Original → Required → Difference**：檔案入口目前只有 Excel 選檔提示及兩個 disabled 下載按鈕 → 需與三個後端 API 整合 → 新增檔案傳輸、下載觸發、操作狀態與測試。單筆詳情目前走另一 URI 且解析物件 → 共用清單 URI 並解析陣列中的單筆商品 → 修改 service URL 組成、單筆解析及其測試，必要時抽取同一個私有 endpoint builder；保留兩個公開方法的回傳型別。
+
+### 已核對系統與影響
+
+| 檔案 | 現況及計畫影響 |
+| --- | --- |
+| `src/services/product-service.ts`、`.test.tsx` | 已有 `request()`、HTTP Uid／Authorization、30 秒 timeout／Abort、JSON／Status 解析及 `parseCollection`／`parseSingle`。TASK-001 修改單筆 URI 並測試；TASK-007～009 評估共用認證、逾時、錯誤分類，但檔案回應不得直接經過固定 `response.json()`。 |
+| `src/pages/ProductPage.tsx`、`.test.tsx`、`.css` | 已有原生 Excel input、`uploadInputRef`、`filteredProducts`、`visibleProducts`、operation message、refreshProducts() 與兩個 disabled 下載入口。新增選檔後上傳、下載觸發、等待／失敗呈現；報表 ID 來自 `filteredProducts`，不是 `visibleProducts`。 |
+| `src/components/Button/Button.tsx` | 既有 Button 支援 disabled，可重用；不必改共用按鈕。 |
+| `src/App.tsx` | Session 清理由 App 統一持有；檔案請求若回 401，沿用 `onSessionExpired('使用者未授權')`。 |
+| `vite.config.ts`、`nginx/default.conf.template` | 既有 `/productController` 代理前綴涵蓋新路徑；目前不規劃修改。 |
+
+不新增 Excel parser 或下載套件；下載交由瀏覽器處理，僅在後端契約需要時再評估相容 API。無前端資料庫、路由或權限規則變更。勿將檔案內容、下載位置、token 記錄至 console。
+
+### 尚待確認的 API 契約與阻礙
+
+| ID | 需求文件現況 | 必須補充的內容及影響 |
+| --- | --- | --- |
+| OQ-008 | **RESOLVED**：使用者於 2026-10-14 確認 Get Product 與 Get All 的 `body.info` 都是陣列。 | `getProduct()` 預期陣列中恰有一筆對應 ID 的商品；空陣列、多筆或 ID 不符應視為 protocol error，HTTP 404 仍依原錯誤分類處理。 |
+| OQ-009 | **主要傳輸型式 RESOLVED**：使用者於 2026-10-14 確認 POST 使用 `multipart/form-data` 傳 Excel 檔案本體。 | 採表單欄位 `file`（對應需求既有欄位名）；瀏覽器自動產生含 boundary 的 Content-Type，前端不手動設 `application/json` 或 multipart Content-Type。成功回應仍按需求文件的 JSON `body.info` 商品陣列解析；400／404 的訊息如未提供，沿用 HTTP 通用處理。檔案大小上限未定，不自行新增限制。 |
+| OQ-010 | **RESOLVED**：使用者於 2026-10-14 指定兩個下載 API 直接回 Excel 位元資料，交由瀏覽器儲存在其設定的下載位置；同意固定檔名。 | 成功回應以 Blob 讀取，絕不解析需求文件中的舊 `body.info.file` 路徑。若後端提供有效 `Content-Disposition` 檔名則採用，否則模板用 `product-template.xlsx`、報表用 `product-report.xlsx`。前端不指定本機任意路徑。 |
+| OQ-011 | **RESOLVED**：使用者於 2026-10-14 指定 0 筆符合篩選時停用報表下載，商品 ID 不含逗號；後端會按逗號切割 `ids` 查詢。 | 依篩選後全部商品 ID 以逗號合併；無資料不送 POST。模板與報表其他非成功 HTTP 統一按既有 401／一般 HTTP 錯誤處理，不自行新增特殊狀態碼。 |
+
+需求文件所列 JSON `headers` 依 `instructions/project.md` 視為真正 HTTP headers；不能把認證資料包在 JSON body。檔案傳輸型式以 2026-10-14 使用者補充為準，取代文件中 `file_path` 與 JSON Content-Type 的舊範例；後端仍需同步實際契約。OQ-008～011 均已依使用者回覆關閉。
+
+### Implementation Steps
+
+#### TASK-001 Get Product URI 更正與有限重構（PLAN UPDATED）
+
+- **File / Target / Plan Type**：MODIFY `src/services/product-service.ts` 的 `getProducts()`、`getProduct()` 與產品 endpoint 常數；MODIFY `src/services/product-service.test.tsx` 的單筆／清單請求案例。
+- **Current Behavior**：清單 URL 是 `/productController/getProducts?productId=all`，詳情 URL 是 `/productController/getProduct?productId=<encoded id>`；分別由 `parseCollection`／`parseSingle` 驗證。
+- **Expected Behavior / Implementation**：兩者共用 `/productController/getProducts` 基底與同一個 productId URL 組成規則；單筆 ID 使用 `encodeURIComponent`，`all` 僅代表清單查詢。保留 `getProducts`／`getProduct` 的方法、型別、認證、Abort 與錯誤邊界；將 `parseSingle` 調整為驗證 `body.info` 為陣列且恰有一筆、其 id 與要求的 productId 相符，回傳該 Product。其他新增／更新的單筆物件回應仍沿用原 parser，須拆開解析責任，不能因 Get 更正破壞 mutation。
+- **Reuse / Impact / Error Handling**：沿用現有 `request()`、`parseProduct()`、清單及編輯載入流程；不改 CRUD 其他 endpoint。401／404／network／timeout 的分類維持原狀。
+- **Testing**：同時斷言清單及單筆共用路徑、單筆 ID 正確 URL 編碼、陣列單筆成功、空陣列／多筆／ID 不符、錯誤格式、新增／更新物件回應不回歸、編輯頁面仍先取得詳情再開窗。避免只測新常數而漏掉實際 fetch URL。
+
+#### TASK-007 Excel 批次上傳（TODO）
+
+- **File / Target / Plan Type**：MODIFY `src/services/product-service.ts`、`.test.tsx`，新增私有／匯出的上傳服務函數；MODIFY `src/pages/ProductPage.tsx`、`.test.tsx` 的 `handleFileSelected`、操作狀態及批次管理按鈕。
+- **Current Behavior**：input 僅選擇 `.xlsx,.xls`，選後提示尚未開放，不送 API；重選同檔可再次觸發。
+- **Expected Behavior / Implementation**：選檔後呼叫 POST `/productController/batchProducts`；以 `FormData` 的 `file` 欄放入選定 Excel `File`，附 HTTP Uid／Authorization，不送本機路徑，且不手動設定 Content-Type。成功按需求文件的 JSON `body.info` 商品陣列驗證，然後沿用 `refreshProducts()` 更新 Table 與原有篩選／有效頁碼；選檔取消不送請求，同一檔案可重選。上傳期間禁止重複送出，卸載／Session 變更要停止套用舊結果。
+- **Reuse / Impact / Error Handling**：沿用 input、頁面訊息、401 Session 過期處理與 refresh；400／404／網路／timeout 不宣稱成功，顯示後端允許的訊息。後端可能已收檔但前端 timeout 時不自動重送；上傳成功而清單 refresh 失敗時只提供重查清單，不重新上傳。
+- **Testing**：取消選檔 0 次 POST、實際選檔只送一次、檔案本體／headers 符合確認的契約、成功刷新清單、401 清 Session、400／404 及協定錯誤呈現、重選同檔、重複點擊、取消／卸載的晚到回應、refresh 失敗不重複 POST。
+
+#### TASK-008 Excel 模板下載（TODO）
+
+- **File / Target / Plan Type**：MODIFY `src/services/product-service.ts`、`.test.tsx` 增加下載模板呼叫；MODIFY `src/pages/ProductPage.tsx`、`.test.tsx` 啟用既有「下載批次新增商品模板」入口並呈現等待／錯誤。
+- **Current Behavior**：disabled 占位，不發請求。
+- **Expected Behavior / Implementation**：使用者點擊時 GET `/productController/downloadTemplate`，帶 HTTP Uid／Authorization；成功時讀取 Excel Blob，建立暫時 object URL 並觸發瀏覽器下載，儲存位置由瀏覽器設定決定。不得將位元資料交給既有 `response.json()`；不把舊 `file_path` 範例當成實際回應。下載流程只由點擊觸發，進行中避免重複請求。
+- **Reuse / Impact / Error Handling**：重用 Button、Page Session 處理及 service 的 HTTP／401／timeout 錯誤分類；成功以 Blob 讀取，HTTP 非成功不得當成 Excel 下載；優先採用有效 `Content-Disposition` 檔名，否則使用 `product-template.xlsx`。object URL 使用後釋放。
+- **Testing**：一次點擊一次 GET、Session headers、成功下載資料／檔名依確認契約、401、非成功 HTTP、格式錯誤、重複點擊與清理；不以僅移除 disabled 代表完成。
+
+#### TASK-009 篩選結果商品報表下載（TODO）
+
+- **File / Target / Plan Type**：MODIFY `src/services/product-service.ts`、`.test.tsx` 增加報表請求；MODIFY `src/pages/ProductPage.tsx`、`.test.tsx` 啟用「下載商品報表」。
+- **Current Behavior**：disabled 占位；`filteredProducts` 已依名稱與分類搜尋推導全量結果，`visibleProducts` 只代表當頁 15 筆。
+- **Expected Behavior / Implementation**：點擊時取 `filteredProducts.map(product => product.id)`，以逗號合併後放入 POST `/productController/downloadProductData` 的 `body.info.ids`，供後端切割後查詢；商品 ID 不含逗號。有篩選時只含所有符合項，無篩選時含所有已載入商品，不受頁碼影響。0 筆符合時停用下載，不送 POST；成功回 Excel Blob，重用 TASK-008 的瀏覽器下載處理與有效 `Content-Disposition` 檔名處理，缺少檔名時使用 `product-report.xlsx`。
+- **Reuse / Impact / Error Handling**：重用現有篩選結果與 TASK-008 確認後的下載處理，不另做一套搜尋；帶 Session headers，401 沿用 App 清理；逾時／網路錯誤不自動重送 POST，避免重複產生報表。
+- **Testing**：未篩選傳全量 ID、雙欄篩選傳所有符合 ID、第二頁仍包含第一頁符合商品、無資料依 OQ-011、Session／HTTP／協定錯誤、成功下載與重複點擊。測試實際 `body.info.ids`，不能只驗證 UI 文案。
+
+### 執行順序、驗證及 Review
+
+1. OQ-008～011 已確認；實作時按本節的 HTTP request／response 契約執行。若 PM 同步更新需求文件，以更新後文件為準，若與本節衝突須重新分析。
+2. TASK-001 的 URI 與回應形狀修正可獨立進行設計審閱。TASK-007 與 TASK-008 可於契約確認後分別實作，TASK-009 重用 TASK-008 的已驗證下載處理。若調整已完成 TASK-006 的 input／disabled 入口，僅作 TASK-007～009 的必要修改，不重置其歷史 DONE。
+3. 定向執行 `product-service.test.tsx`、`ProductPage.test.tsx` 及 Session 回歸，再執行 `npm test -- --run`、`npm run build`、`npm run lint`。只有本計畫完成後的實際結果可記入新一輪驗證紀錄；目前沒有新增測試或執行驗證。
+4. 本輪計畫狀態為 **Awaiting Review**；通過人工審閱後，再進入 Programmer Handoff。Handoff 包含原始需求文件、本節使用者補充、TASK-001／007～009 的實作範圍與檔案傳輸契約；不得修改登入註冊、無關 CRUD／庫存規則或引入 Excel parser。2026-10-13 已完成的其他 Task 狀態保持原樣，TASK-001 因重新修改規格標為 `PLAN UPDATED` 並清除舊開發／審查日期；新任務標為 `TODO`。
+
+### Plan Validation（2026-10-14）
+
+- [x] 新需求與 URI 更正已分別判定 Requirement Type，記錄原行為、目標行為及差異。
+- [x] 已核對既有 service、Page、篩選／分頁資料流、Session、測試、代理設定及可重用的 Button／refresh 邏輯。
+- [x] 每個 Task 均指定已存在的實作與測試檔案、方法、錯誤路徑和驗證方式；未新增無關依賴、資料庫或設定變更。
+- [x] OQ-008～011 已依使用者回覆處理；舊版 `file_path`／JSON 下載範例與新契約的差異已記錄，後端仍須與本節契約一致。
+- [x] 下載範圍使用篩選後全量清單，0 筆停用；Session、逾時及重複請求已納入測試策略。
+- [ ] Implementation Plan 已完成人工審核。
+- [ ] TASK-001／007～009 Development 完成。
+- [ ] TASK-001／007～009 Code Review 通過。
