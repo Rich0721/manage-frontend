@@ -229,14 +229,133 @@ Status Code與情境:
 | 401         | Failed | 使用者未授權 |
 | 404| Failed | 商品不存在|
 
-#### 2-2-5. Download Product File Template API
-待設計
+#### 2-2-5. Upload Product File API
+API URI: `productController/batchProducts`
+METHOD: POST
+Request Body:
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Uid": "<user_id>",
+        "Authorization": "<auth_token>"
+    },
+    "body": {
+        "info": {
+            "file": "<file_path>"
+        }
+    }
+}
+```
 
-#### 2-2-6. Download Product File API
-待設計
+Response Body:
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Status": "success",
+        "Message": "Product file uploaded successfully"
+    },
+    "body": {
+        "info": [{
+            "id": "<product_id>",
+            "name": "<product_name>",
+            "label_names": "<label_names>",
+            "cost": "<product_cost>",
+            "price": "<product_price>",
+            "stock": "<product_stock>",
+            "deleted": "<product_deleted>",
+            "updated_user":"<product_updated_user>",
+            "updated_at": "<product_updated_at>"
+            }
+        ]
+    }
+}
+```
 
-#### 2-2-7. Upload Product File API
-待設計
+Status Code與情境:
+
+| Status Code | Status |  情境 |
+|-------------|--------|-----|
+| 200         | Success| 成功上傳商品檔案 |
+| 400         | Failed | 檔案內容檢查缺失 |
+| 401         | Failed | 使用者未授權 |
+| 404         | Failed | 商品不存在 |
+
+
+
+#### 2-2-6. Download Product File Template API
+API URI: `productController/downloadTemplate`
+METHOD: GET
+Request Header:
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Uid": "<user_id>",
+        "Authorization": "<auth_token>"
+    }
+}
+```
+
+Response Body:
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Status": "success",
+        "Message": "Product file template downloaded successfully"
+    },
+    "body": {
+        "info": {
+            "file": "<file_path>"
+        }
+    }
+}
+```
+
+#### 2-2-7. Download Product File API
+API URI: `productController/downloadProductData`
+METHOD : POST
+Request body:
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Uid": "<user_id>",
+        "Authorization": "<auth_token>"
+    },
+    "body": {
+        "info": {
+            "ids": "<product_id1>,<product_id2>,<product_id3>"
+        }
+    }
+}
+```
+
+Response Body:
+
+```json
+{
+    "headers": {
+        "Content-Type": "application/json",
+        "Status": "success",
+        "Message": "Product data downloaded successfully"
+    },
+    "body": {
+        "info": {
+            "file": "<file_path>"
+        }
+    }
+}
+```
+
+Status Code與情境:
+
+| Status Code | Status |  情境 |
+|-------------|--------|-----|
+| 200         | Success| 成功下載商品檔案 |
+| 401         | Failed | 使用者未授權 |
 
 ### 2-3. Business Logic
 
@@ -251,7 +370,7 @@ Status Code與情境:
 - Table Column Title只有*商品名稱*, *商品分類*可以進行Filter，其餘欄位不可進行Filter。
     - 商品名稱：根據使用者輸入文字進行**模糊搜尋**。
     - 商品分類：根據使用者輸入文字進行**模糊搜尋**，只要符合條件的分類都會顯示。
-- 當使用者點擊**批次管理**時，會跳出可以上傳Excel檔案的選擇視窗，目前*尚未實作上傳功能*。
+- 當使用者點擊**批次管理**時，會跳出可以上傳Excel檔案的選擇視窗，當使用者選擇檔案後，執行**Upload Product File API**，並刷新Table顯示最新的商品資料。
 - 當使用者點擊**加入商品**時，會跳出浮動視窗(顯示方式參考`新增商品`)，提供給使用者新增單一商品的功能。
     - 商品編號: 空值且不可編輯
     - 商品名稱: 空值且可編輯，必填
@@ -271,3 +390,7 @@ Status Code與情境:
 - 當使用者點擊Table內刪除列的`Trash icon`時，會跳出確認視窗，提供給使用者刪除該商品的功能。
     - 使用者點擊**確認**後，會執行**Delete Product API**，並且關閉視窗重新整理Table。
     - 使用者點擊**取消**後，會關閉浮動視窗且不會執行任何API。
+- 當使用者點擊**下載商品報表**時，會將目前於前端顯示的商品資料將`商品編號`組成String後，呼叫**Download Product File API**下載商品報表。
+    - 如果使用者有進行過濾操作，下載的商品報表將只包含符合過濾條件的商品。
+    - 如果使用者未進行過濾操作，下載的商品報表將包含所有商品。
+- 當使用者點擊**下載批次新增商品模板**時，會呼叫**Download Product File Template API**下載批次新增商品的Excel模板。
