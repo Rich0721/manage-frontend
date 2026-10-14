@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { validateProduct, type ProductFormValues } from './product-validation'
 
-const validValues: ProductFormValues = { name: 'Item', labelNames: ['A'], cost: '1', price: '10' }
+const validValues: ProductFormValues = { name: 'Item', labelNames: ['A'], cost: '1', price: '10', stock: '0' }
 
 describe('validateProduct', () => {
-  it('accepts minimum prices without validating the read-only stock field', () => {
+  it('accepts the zero stock minimum with valid product fields', () => {
     expect(validateProduct({ ...validValues, cost: '1', price: '1' })).toEqual({})
   })
 
@@ -15,5 +15,13 @@ describe('validateProduct', () => {
       cost: '成本最小值為 1', price: '售價最小值為 1',
       summary: '請填寫完整的產品資料',
     })
+  })
+
+  it.each([
+    ['blank', ''],
+    ['negative', '-1'],
+    ['not a number', 'abc'],
+  ])('rejects %s stock', (_label, stock) => {
+    expect(validateProduct({ ...validValues, stock })).toMatchObject({ stock: '庫存最小值為 0', summary: '請填寫完整的產品資料' })
   })
 })

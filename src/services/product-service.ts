@@ -11,6 +11,7 @@ export interface ProductWriteInput {
   label_names: string
   cost: number
   price: number
+  stock: number
 }
 
 export type ProductServiceErrorKind = 'unauthorized' | 'not-found' | 'conflict' | 'http' | 'protocol' | 'network' | 'timeout'
@@ -39,7 +40,7 @@ function parseProduct(value: unknown): Product {
     typeof value.price !== 'number' || !Number.isFinite(value.price) || value.price < 1) {
     throw new ProductServiceError('protocol', '產品回應欄位格式錯誤')
   }
-  const stock = value.stock === undefined ? 0 : value.stock
+  const stock = value.stock
   if (typeof stock !== 'number' || !Number.isFinite(stock) || stock < 0) {
     throw new ProductServiceError('protocol', '產品回應欄位格式錯誤')
   }
@@ -159,13 +160,13 @@ export async function getProduct(session: AuthSession, productId: string, signal
 }
 
 export async function addProduct(session: AuthSession, input: ProductWriteInput, signal: AbortSignal): Promise<Product> {
-  const info = { name: input.name, label_names: input.label_names, cost: input.cost, price: input.price }
+  const info = { name: input.name, label_names: input.label_names, cost: input.cost, price: input.price, stock: input.stock }
   const { body } = await request('/productController/addProduct', session, signal, 'POST', { info })
   return parseSingle(body)
 }
 
 export async function updateProduct(session: AuthSession, input: ProductWriteInput & { id: string }, signal: AbortSignal): Promise<Product> {
-  const info = { id: input.id, name: input.name, label_names: input.label_names, cost: input.cost, price: input.price }
+  const info = { id: input.id, name: input.name, label_names: input.label_names, cost: input.cost, price: input.price, stock: input.stock }
   const { body } = await request('/productController/updateProduct', session, signal, 'PUT', { info })
   return parseSingle(body)
 }

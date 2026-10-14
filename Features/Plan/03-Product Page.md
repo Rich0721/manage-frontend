@@ -119,13 +119,13 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | PLAN UPDATED | — | — |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | — |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
@@ -441,7 +441,11 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 - [x] API input／output、數值驗證、錯誤處理、Session、回歸策略及不修改範圍已定義；無新套件、設定或 DB 工作。
 - [x] TASK-001／004／005／007 已設 `PLAN UPDATED` 並清除舊開發／審查日期；其餘完成任務維持 `DONE`。
 - [ ] 本輪 Implementation Plan 人工審閱完成。
-- [ ] 本輪 Development 完成；建議依 TASK-001 → TASK-004 → TASK-005 → TASK-007 驗證順序執行，先跑相關 Vitest，再跑全套測試、build 與 lint。
+- [x] 本輪 Development 完成；依 TASK-001 → TASK-004 → TASK-005 → TASK-007 驗證，Stock 相關 4 檔／94 項與完整 Vitest 22 檔／217 項、build、lint 均通過。
 - [ ] 本輪 Code Review 通過。
 
 本輪 Plan Status：**Awaiting Review**。依 `agents/system-design-agent.md` 的 Plan Review 流程，人工審閱完成後交 Programmer 實作；Handoff 包含本需求變更、原 PM 文件、上述四項 Task 與 Stock JSON Number／必填回應契約。僅變更 Stock 相關 service、表單、Page 與測試；保留 `vite.config.ts` 現有工作區修改，不改無關登入、下載、標籤或分頁規則。
+
+### Programmer Stock Plan Update Handoff（2026-10-14）
+
+依最新 Stock 暫行契約解除計畫完成 TASK-001／004／005／007：Product service 要求清單、詳情、CRUD 與批次上傳商品回應皆提供有限且非負的 JSON Number `stock`，新增／更新 payload 明確帶入 stock；新增表單預設 0、編輯表單回填詳情值，兩者可編輯，空白／負數／非法值均阻止送出並顯示欄位錯誤。沿用既有 `parseCollection()`，不改 multipart 傳輸與頁面 Session／CRUD 流程。Stock 相關定向測試 4 檔／94 項、完整 Vitest 22 檔／217 項、`npm.cmd run build`、`npm.cmd run lint` 及 `git diff --check` 通過。四項 Implementation Status 更新為 `DEVELOPED DONE`，Code Review Date 留空，交由 Code Reviewer 審查。未連接實際後端驗證 API 整合；工作區原有 `vite.config.ts` 修改予以保留。

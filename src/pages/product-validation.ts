@@ -3,6 +3,7 @@ export interface ProductFormValues {
   labelNames: string[]
   cost: string
   price: string
+  stock: string
 }
 
 export interface ProductFormErrors {
@@ -10,6 +11,7 @@ export interface ProductFormErrors {
   labelNames?: string
   cost?: string
   price?: string
+  stock?: string
   summary?: string
 }
 
@@ -21,6 +23,8 @@ export function validateProduct(values: ProductFormValues): ProductFormErrors {
   if (!values.cost.trim() || !Number.isFinite(cost) || cost < 1) errors.cost = '成本最小值為 1'
   const price = Number(values.price)
   if (!values.price.trim() || !Number.isFinite(price) || price < 1) errors.price = '售價最小值為 1'
+  const stock = Number(values.stock)
+  if (!values.stock.trim() || !Number.isFinite(stock) || stock < 0) errors.stock = '庫存最小值為 0'
   if (Object.keys(errors).length > 0) errors.summary = '請填寫完整的產品資料'
   return errors
 }
