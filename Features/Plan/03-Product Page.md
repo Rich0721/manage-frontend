@@ -119,13 +119,13 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 |  |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | REVIEW FIX | 2026-10-15 | 2026-10-15 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
-| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 |  |
+| TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-15 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | REVIEW FIX | 2026-10-15 | 2026-10-15 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
-| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-15 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 | TASK-009 | 篩選結果商品報表下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
 
@@ -462,7 +462,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 
 - **Requirement Source**：使用者本次要求，以及 `Features/Document/03-Product Page.md` 2-2-2～2-2-4 的最新 Response 範例。需求文件已有使用者未提交變更，本計畫不修改該文件。
 - **Requirement Type**：Requirement Change（API Response 形狀）及 Bug / Behavior Correction（正常回應被前端判為失敗）。
-- **Plan Status**：Implementation 完成，等待 Code Review。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
+- **Plan Status**：Code Review 發現測試缺口，TASK-001／005 等待 Review Fix。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
 
 ### 差異與影響
 
@@ -501,3 +501,11 @@ Add Product 仍回傳單一物件；Get All 與批次上傳仍回傳陣列。HTT
 ### Programmer Handoff（2026-10-15）
 
 已完成 TASK-001／005：Update Product 與 Delete Product 成功回應改按 `body.info` 單筆商品陣列驗證，沿用 `parseDetail()` 確認商品內容有效且 ID 符合請求；Add Product 仍按物件解析。服務測試覆蓋兩支 API 的有效陣列、空陣列、多筆、ID 不符及無效商品回應；頁面測試確認編輯／刪除成功後關閉視窗並重新取得清單。定向測試 `product-service.test.tsx`、`ProductPage.test.tsx`：2 檔／100 項通過；`npm.cmd run lint` 與 `npm.cmd run build` 通過。未連接實際後端驗證契約。TASK-001／005 已設為 `DEVELOPED DONE`，Code Review Date 留空，交由 Code Reviewer 複審。
+
+### Code Review Result（2026-10-15）
+
+本輪審查 TASK-001／005 的最新陣列回應差異。Production Code 使用 `parseDetail()` 的實作符合計畫；已完成的 100 項定向測試、lint 與 build 為 Programmer Handoff 紀錄，本次 Code Review 未重跑。TASK-001 缺 Update／Delete 非陣列回應測試，且 Update 缺少 stock 案例沿用舊物件形狀；TASK-005 缺編輯／刪除協定錯誤後留窗、顯示錯誤且不刷新清單的頁面測試。詳見 `Features/Review/03-Product Page/TASK-001.md` 與 `TASK-005.md` 的 2026-10-15 審查節。兩項 Review Status 為 `OPEN`、Implementation Status 為 `REVIEW FIX`，Code Review Date 為 2026-10-15；交由 Programmer 補測後複審。
+
+### Code Review 補充：其餘 DEVELOPED DONE 任務（2026-10-15）
+
+依 Requirement List 補審 TASK-004／007 的 2026-10-14 Stock Review Fix。表單預設 0 直接提交、編輯庫存回填、更正欄位錯誤，以及上傳回應 stock 0／非零解析、非法值拒絕、刷新後顯示真實庫存，均有對應實作與測試；兩項先前 OPEN Issue 已解決。TASK-004／007 Review Status 更新為 `RESOLVED`，Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-15。詳細紀錄見各 Task Review 文件。本次未重跑測試；Programmer 前次四個相關測試檔 99 項及 lint 通過紀錄供審查參考。TASK-001／005 仍為 `REVIEW FIX`。

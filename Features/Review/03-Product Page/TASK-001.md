@@ -79,3 +79,21 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-14）
 
 已新增成功清單回應包含 JSON `1e999` stock 的案例；`getProducts()` 必須以 `protocol` 拒絕非有限 Number。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-15 Get／Update／Delete 回應陣列契約審查
+
+Review Result：未通過；Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-15。此節只處理最新計畫的 API 回應形狀差異，歷史 Issue 不重開。
+
+### 已符合計畫
+
+`updateProduct()` 與 `deleteProduct()` 已共用 `parseDetail()`，能要求成功回應為恰一筆且 ID 相符的有效商品陣列；Add Product 保留物件解析。有效陣列、空陣列、多筆、ID 不符與無效商品欄位已有服務測試，請求 payload 及 HTTP 處理未見本輪回歸。
+
+### Review Issue（Missing Test）
+
+`src/services/product-service.test.tsx` 的 Update／Delete 格式錯誤案例只有陣列輸入，未驗證最新計畫 TASK-001 明列的「非陣列 `body.info` 皆為 protocol error」。此外，既有 `it.each(['add', 'update'])` 缺少 stock 案例仍對 Update 使用舊物件回應；該測試因回應形狀已錯而通過，無法驗證新陣列回應中的 stock 缺省處理。
+
+Expected Behavior：Update／Delete 都應以非陣列回應驗證 `protocol` 分類；Update 缺少 stock 的案例應採用有效形狀的單筆陣列，確認真正因欄位缺省而拒絕。Add Product 案例仍使用物件。
+
+Suggested Area To Fix：補強 `src/services/product-service.test.tsx` 的 Update／Delete 格式錯誤表格案例與缺少 stock 的 mutation 案例；維持現有服務實作及其餘回歸測試。
+
+Resolution：`OPEN`，待 Programmer 補測後複審。

@@ -85,3 +85,21 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-14）
 
 頁面測試新增預設 stock 0 的新增 payload 與清單顯示斷言；原自訂 stock 新增案例改以刷新後的非零庫存驗證表格呈現，空白 stock 與負數均驗證不呼叫 API。四個相關測試檔合計 99 項通過，lint 通過。Review Status 保持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-15 Get／Update／Delete 回應陣列契約審查
+
+Review Result：未通過；Review Status：`OPEN`；Implementation Status：`REVIEW FIX`；Code Review Date：2026-10-15。歷史 Issue 不重開。
+
+### 已符合計畫
+
+`src/pages/ProductPage.test.tsx` 已在編輯及刪除成功案例確認視窗關閉、清單重查及更新後內容顯示。`ProductPage.tsx` 既有成功流程無須修改。
+
+### Review Issue（Missing Test）
+
+最新計畫 TASK-005 明訂「格式錯誤仍留窗並顯示錯誤」。目前頁面測試有編輯／刪除成功及 401 案例，但沒有讓 `updateProduct()` 或 `deleteProduct()` 回傳 `ProductServiceError('protocol', ...)`，因此無法證明兩種操作遇到格式錯誤時都不會關窗、刷新清單或誤報成功。
+
+Expected Behavior：編輯與刪除各有頁面測試，驗證協定錯誤時視窗仍開啟、錯誤訊息可見且 `getProducts()` 不新增刷新呼叫。
+
+Suggested Area To Fix：補強 `src/pages/ProductPage.test.tsx` 的編輯／刪除失敗流程測試，重用現有 ProductServiceError 與頁面互動 fixture；無須調整 Production Code。
+
+Resolution：`OPEN`，待 Programmer 補測後複審。

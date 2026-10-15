@@ -69,3 +69,11 @@ Reviewer 執行 Stock 相關四個測試檔，94 項通過；沙箱中的 esbuil
 ### Programmer Review Fix Handoff（2026-10-14）
 
 Programmer 已補齊上述四項 Review Issue 所列測試，四個定向測試檔 99 項及 lint 通過；Plan 中 TASK-001／004／005／007 已恢復 `DEVELOPED DONE`。各 Task Review Status 維持 `OPEN`，待 Code Reviewer 複審。未修改 Production Code，也未重跑全套測試或 build。
+
+## 2026-10-15 Get／Update／Delete 回應陣列契約 Code Review
+
+審查最新計畫的 TASK-001／005。服務改用 `parseDetail()` 驗證 Update／Delete 的單筆商品陣列，符合計畫，頁面成功後關窗及重查的流程也有對應斷言。仍缺 TASK-001 的非陣列回應及新陣列形狀下缺少 stock 的測試；TASK-005 尚未驗證編輯／刪除協定錯誤後留窗、顯示錯誤且不刷新。詳細位置與補測範圍記於 `TASK-001.md`、`TASK-005.md` 最新章節。兩項 Review Status 設 `OPEN`、Implementation Status 設 `REVIEW FIX`，Code Review Date 為 2026-10-15。Programmer 前次定向測試 2 檔／100 項、lint、build 通過；本次僅審查原始碼、測試及計畫，未重跑測試或修改 Production／Test Code。
+
+### 其餘 DEVELOPED DONE 任務補審（2026-10-15）
+
+Requirement List 中 TASK-004／007 仍標為 `DEVELOPED DONE`，本次已一併複審其 2026-10-14 Stock Review Fix。TASK-004 的預設庫存提交、編輯回填、錯誤阻擋與修正後提交；TASK-007 的上傳 stock 0／非零解析、缺省／負數拒絕及刷新顯示，都符合最新計畫並補足原 OPEN Issue。兩項 Review Status 更新為 `RESOLVED`、Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-15。TASK-001／005 維持 `REVIEW FIX`。本次未重跑測試或修改 Production／Test Code；Programmer 前次四個相關測試檔 99 項及 lint 通過。
