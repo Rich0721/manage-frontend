@@ -150,9 +150,9 @@ describe('product service', () => {
   })
 
   it('sends one complete numeric update including stock with identity in HTTP headers', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [{
       id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 4,
-    } } }), { status: 200, headers: { Status: 'Success' } }))
+    }] } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     const input = { id: 'p1', name: 'Item', label_names: 'A,B', cost: 10, price: 20, stock: 4 }
     await expect(updateProduct(session, input, new AbortController().signal)).resolves.toMatchObject({ stock: 4 })
@@ -164,9 +164,13 @@ describe('product service', () => {
   })
 
   it('maps create and update payloads to only the fields allowed by the API contract', async () => {
-    const fetchMock = vi.fn().mockImplementation(() => new Response(JSON.stringify({ body: { info: {
+    const fetchMock = vi.fn()
+      .mockImplementationOnce(() => new Response(JSON.stringify({ body: { info: {
       id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 4,
-    } } }), { status: 200, headers: { Status: 'Success' } }))
+      } } }), { status: 200, headers: { Status: 'Success' } }))
+      .mockImplementationOnce(() => new Response(JSON.stringify({ body: { info: [{
+        id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 4,
+      }] } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     const input = { id: 'must-not-be-created-with-this-id', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 4, updated_user: 'forbidden' } as unknown as ProductWriteInput
     await expect(addProduct(session, input, new AbortController().signal)).resolves.toMatchObject({ stock: 4 })
@@ -216,7 +220,8 @@ describe('product service', () => {
     }
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ body: { info: [detail] } }), { status: 200, headers: { Status: 'Success' } }))
-      .mockImplementation(() => new Response(JSON.stringify({ body: { info: detail } }), { status: 200, headers: { Status: 'Success' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ body: { info: detail } }), { status: 200, headers: { Status: 'Success' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ body: { info: [detail] } }), { status: 200, headers: { Status: 'Success' } }))
     vi.stubGlobal('fetch', fetchMock)
     await getProduct(session, 'p /1', new AbortController().signal)
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/productController/getProducts?productId=p%20%2F1')
@@ -225,6 +230,50 @@ describe('product service', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3)
     expect(fetchMock.mock.calls[1]?.[1]?.method).toBe('POST')
     expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({ body: { info: { id: 'p /1' } } })
+  })
+
+  it.each(['update', 'delete'] as const)("accepts a successful %s response containing one matching product", async (operation) => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: [{
+      id: 'p1', name: 'Changed', label_names: 'A', cost: 1, price: 2, stock: 3,
+    }] } }), { status: 200, headers: { Status: 'Success' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    if (operation === 'update') {
+      await expect(updateProduct(session, { id: 'p1', name: 'Changed', label_names: 'A', cost: 1, price: 2, stock: 3 }, new AbortController().signal))
+        .resolves.toMatchObject({ id: 'p1', stock: 3 })
+    } else {
+      await expect(deleteProduct(session, 'p1', new AbortController().signal)).resolves.toBeUndefined()
+    }
+  })
+
+  it.each([
+    ['empty array', []],
+    ['multiple products', [
+      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 },
+      { id: 'p2', name: 'Other', label_names: 'A', cost: 1, price: 2, stock: 0 },
+    ]],
+    ['mismatched id', [{ id: 'p2', name: 'Other', label_names: 'A', cost: 1, price: 2, stock: 0 }]],
+    ['invalid product', [{ id: 'p1', name: 'Item', label_names: 'A', cost: 0, price: 2, stock: 0 }]],
+  ])('rejects update response with %s as a protocol error', async (_label, info) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info } }), {
+      status: 200, headers: { Status: 'Success' },
+    })))
+    await expect(updateProduct(session, { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }, new AbortController().signal))
+      .rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it.each([
+    ['empty array', []],
+    ['multiple products', [
+      { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 },
+      { id: 'p2', name: 'Other', label_names: 'A', cost: 1, price: 2, stock: 0 },
+    ]],
+    ['mismatched id', [{ id: 'p2', name: 'Other', label_names: 'A', cost: 1, price: 2, stock: 0 }]],
+    ['invalid product', [{ id: 'p1', name: 'Item', label_names: 'A', cost: 0, price: 2, stock: 0 }]],
+  ])('rejects delete response with %s as a protocol error', async (_label, info) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info } }), {
+      status: 200, headers: { Status: 'Success' },
+    })))
+    await expect(deleteProduct(session, 'p1', new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
   })
 
   it('rejects a detail response that omits stock', async () => {

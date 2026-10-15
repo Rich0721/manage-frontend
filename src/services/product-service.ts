@@ -168,14 +168,12 @@ export async function addProduct(session: AuthSession, input: ProductWriteInput,
 export async function updateProduct(session: AuthSession, input: ProductWriteInput & { id: string }, signal: AbortSignal): Promise<Product> {
   const info = { id: input.id, name: input.name, label_names: input.label_names, cost: input.cost, price: input.price, stock: input.stock }
   const { body } = await request('/productController/updateProduct', session, signal, 'PUT', { info })
-  return parseSingle(body)
+  return parseDetail(body, input.id)
 }
 
 export async function deleteProduct(session: AuthSession, productId: string, signal: AbortSignal): Promise<void> {
   const { body } = await request('/productController/deleteProduct', session, signal, 'DELETE', { info: { id: productId } })
-  if (!record(body) || !record(body.body) || !record(body.body.info) || body.body.info.id !== productId) {
-    throw new ProductServiceError('protocol', '刪除商品回應格式錯誤')
-  }
+  parseDetail(body, productId)
 }
 
 export async function uploadProducts(session: AuthSession, file: File, signal: AbortSignal): Promise<Product[]> {

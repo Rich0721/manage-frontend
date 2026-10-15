@@ -124,6 +124,8 @@ describe('ProductPage', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('t15')
     await user.click(screen.getByRole('button', { name: '確認' }))
     expect(await screen.findByText('Target 14')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(getProductsMock).toHaveBeenCalledTimes(2)
     expect(screen.getByText(/Pages\s+1\/1/)).toBeInTheDocument()
     expect(screen.queryByText('Target 15')).not.toBeInTheDocument()
     expect(screen.queryByText('沒有符合條件的商品')).not.toBeInTheDocument()
@@ -274,6 +276,8 @@ describe('ProductPage', () => {
     expect(updateProductMock).toHaveBeenCalledOnce()
     expect(updateProductMock.mock.calls[0]?.[1]).toEqual({ id: 'p1', name: 'Changed', label_names: 'Old,More', cost: 10, price: 20, stock: 15 })
     expect(await screen.findByText('Changed')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(getProductsMock).toHaveBeenCalledTimes(2)
   })
 
   it('does not let a pending edit detail request replace a newly opened create form', async () => {

@@ -119,11 +119,11 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | PLAN UPDATED |  |  |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 |  |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | PLAN UPDATED |  |  |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 |  |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
@@ -462,7 +462,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 
 - **Requirement Source**：使用者本次要求，以及 `Features/Document/03-Product Page.md` 2-2-2～2-2-4 的最新 Response 範例。需求文件已有使用者未提交變更，本計畫不修改該文件。
 - **Requirement Type**：Requirement Change（API Response 形狀）及 Bug / Behavior Correction（正常回應被前端判為失敗）。
-- **Plan Status**：**Awaiting Review**。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
+- **Plan Status**：Implementation 完成，等待 Code Review。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
 
 ### 差異與影響
 
@@ -494,6 +494,10 @@ Add Product 仍回傳單一物件；Get All 與批次上傳仍回傳陣列。HTT
 - [x] 已核對需求文件、現有 service／Page／測試與歷史計畫；Get 無正式程式差異，Update／Delete 的誤判路徑已定位。
 - [x] TASK-001／005 設為 `PLAN UPDATED`，清除舊 Development Date／Code Review Date；其他 Task 狀態維持原樣。
 - [x] 檔案、函式、解析重用、錯誤處理及定向／回歸測試已定義；不涉及 DB、設定、依賴或登入流程。
-- [ ] 本節人工審閱完成並允許 Programmer 實作。
+- [x] 本次使用者明確要求 Programmer 依計畫實作；TASK-001／005 已完成，等待 Code Review。
 
-審閱通過後交付 Programmer 執行 TASK-001／005 的最小差異。先確認最新需求文件與本節，修改服務及測試，執行定向測試、相關回歸、build、lint，再依 Programmer 流程更新狀態。不得將本次計畫撰寫視為程式已修正或實際後端整合已驗證。
+依本節執行 TASK-001／005 的最小差異，修改服務及測試並完成定向測試、lint 與 build；程式未連接實際後端驗證契約。
+
+### Programmer Handoff（2026-10-15）
+
+已完成 TASK-001／005：Update Product 與 Delete Product 成功回應改按 `body.info` 單筆商品陣列驗證，沿用 `parseDetail()` 確認商品內容有效且 ID 符合請求；Add Product 仍按物件解析。服務測試覆蓋兩支 API 的有效陣列、空陣列、多筆、ID 不符及無效商品回應；頁面測試確認編輯／刪除成功後關閉視窗並重新取得清單。定向測試 `product-service.test.tsx`、`ProductPage.test.tsx`：2 檔／100 項通過；`npm.cmd run lint` 與 `npm.cmd run build` 通過。未連接實際後端驗證契約。TASK-001／005 已設為 `DEVELOPED DONE`，Code Review Date 留空，交由 Code Reviewer 複審。
