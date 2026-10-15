@@ -119,11 +119,11 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | PLAN UPDATED |  |  |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | PLAN UPDATED |  |  |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DEVELOPED DONE | 2026-10-14 | 2026-10-14 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
@@ -457,3 +457,43 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 ### Programmer Review Fix Handoff（2026-10-14）
 
 依四項 OPEN Review Issue 補齊測試：TASK-001 使用 JSON `1e999` 確認非有限 stock 回應分類為 protocol；TASK-004 驗證新增表單預設 0 可提交，以及負數錯誤更正後可提交；TASK-005 驗證預設 0 payload、空白 stock 阻止 service 呼叫，並確認新增成功刷新後顯示回應庫存；TASK-007 驗證上傳回應的 0／非零 stock 可解析、缺省／負數拒絕，且成功刷新後表格顯示後端庫存。四個定向測試檔 99 項通過，`npm.cmd run lint` 與 `git diff --check` 通過。TASK-001／004／005／007 已更新為 `DEVELOPED DONE`，Review Status 維持 `OPEN`，交 Code Reviewer 複審。
+
+## VIII. 2026-10-15 Get／Update／Delete 回應陣列契約修正
+
+- **Requirement Source**：使用者本次要求，以及 `Features/Document/03-Product Page.md` 2-2-2～2-2-4 的最新 Response 範例。需求文件已有使用者未提交變更，本計畫不修改該文件。
+- **Requirement Type**：Requirement Change（API Response 形狀）及 Bug / Behavior Correction（正常回應被前端判為失敗）。
+- **Plan Status**：**Awaiting Review**。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
+
+### 差異與影響
+
+| API | 原實作 | 最新需求 | 影響 |
+| --- | --- | --- | --- |
+| Get Product | `body.info` 為陣列，要求恰一筆且 ID 相符 | 同左 | NO CHANGE；保留回歸測試 |
+| Update Product | `body.info` 按單一物件解析 | `body.info` 為商品陣列 | MODIFY；目前 HTTP 200／Status success 仍會得到 protocol error，編輯視窗不關閉且清單不刷新 |
+| Delete Product | `body.info` 按單一物件檢查 ID | `body.info` 為商品陣列 | MODIFY；目前 HTTP 200／Status success 仍會得到 protocol error，刪除視窗不關閉且清單不刷新 |
+
+Add Product 仍回傳單一物件；Get All 與批次上傳仍回傳陣列。HTTP Status／Message、401／404／409、request payload、stock 欄位驗證、頁面成功後重新取得清單的既有規則不變。Update／Delete 回應的陣列依單筆操作語意要求恰一筆且 ID 等於請求 ID；空陣列、多筆、ID 不符或商品欄位無效均分類為 protocol error，不能誤報操作成功。此判斷沿用 Get Product 的既有 `parseDetail()`，不增加新架構或套件。
+
+### Implementation Steps
+
+#### TASK-001 產品型別與 API 服務 — MODIFY／PLAN UPDATED
+
+- **File / Target**：`src/services/product-service.ts` 的 `updateProduct()`、`deleteProduct()` 與既有 `parseDetail()`；`src/services/product-service.test.tsx` 的三支 API 測試。
+- **Current / Expected Behavior**：Get Product 已能解析單筆陣列；Update／Delete 目前只接受物件，改為接受最新單筆陣列。Update 回傳經驗證的 Product；Delete 在驗證回應商品 ID 後回傳 void。
+- **Implementation**：Update／Delete 共用 `parseDetail(body, input.id 或 productId)`；保留 Add Product 的 `parseSingle()` 與 Get All 的 `parseCollection()`。維持既有 HTTP headers、取消、逾時與錯誤分類。
+- **Testing**：Get Product 有效單筆陣列繼續成功；Update／Delete 各自驗證有效單筆陣列成功，以及空陣列、多筆、ID 不符、非陣列、非法商品欄位均為 protocol error。既有單一物件 fixture 改為新契約；Add Product 物件回應維持成功。
+
+#### TASK-005 CRUD 協調、Session 與清單重整 — MODIFY／PLAN UPDATED
+
+- **File / Target**：`src/pages/ProductPage.test.tsx` 的編輯與刪除成功流程測試；`src/pages/ProductPage.tsx` 僅在測試揭露頁面處理與已定義成功流程不符時修改。
+- **Current / Expected Behavior**：頁面成功流程已會關窗並重新查詢清單，但服務層誤判陣列使流程停在錯誤顯示；修正後正常 200 回應應關窗、刷新並顯示最新商品資料。
+- **Testing**：以服務層實際 Response 陣列或對應整合 fixture 驗證編輯與刪除成功後關窗及重查清單；格式錯誤仍留窗並顯示錯誤。保留 401／404 與取消流程回歸。
+
+### Plan Validation 與 Handoff
+
+- [x] 已核對需求文件、現有 service／Page／測試與歷史計畫；Get 無正式程式差異，Update／Delete 的誤判路徑已定位。
+- [x] TASK-001／005 設為 `PLAN UPDATED`，清除舊 Development Date／Code Review Date；其他 Task 狀態維持原樣。
+- [x] 檔案、函式、解析重用、錯誤處理及定向／回歸測試已定義；不涉及 DB、設定、依賴或登入流程。
+- [ ] 本節人工審閱完成並允許 Programmer 實作。
+
+審閱通過後交付 Programmer 執行 TASK-001／005 的最小差異。先確認最新需求文件與本節，修改服務及測試，執行定向測試、相關回歸、build、lint，再依 Programmer 流程更新狀態。不得將本次計畫撰寫視為程式已修正或實際後端整合已驗證。

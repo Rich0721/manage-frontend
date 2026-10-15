@@ -104,7 +104,7 @@ Response Body:
         "Message": "Product retrieved successfully"
     },
     "body": {
-        "info": {
+        "info": [{
             "id": "<product_id>",
             "name": "<product_name>",
             "label_names": "<label_names>",
@@ -114,7 +114,7 @@ Response Body:
             "deleted": "<product_deleted>",
             "updated_user":"<product_updated_user>",
             "updated_at": "<product_updated_at>"
-        }
+        }]
     }
 }
 ```
@@ -161,7 +161,7 @@ Response Body:
         "Message": "Product updated successfully"
     },
     "body": {
-        "info": {
+        "info": [{
             "id": "<product_id>",
             "name": "<product_name>",
             "label_names": "<label_names>",
@@ -171,7 +171,7 @@ Response Body:
             "deleted": "<product_deleted>",
             "updated_user":"<product_updated_user>",
             "updated_at": "<product_updated_at>"
-        }
+        }]
     }
 }
 ```
@@ -211,12 +211,17 @@ Response Body:
         "Message": "Product deleted successfully"
     },
     "body": {
-        "info": {
+        "info": [{
             "id": "<product_id>",
+            "name": "<product_name>",
+            "label_names": "<label_names>",
+            "cost": "<product_cost>",
+            "price": "<product_price>",
+            "stock": "<product_stock>",
             "deleted": "<product_deleted>",
             "updated_user":"<product_updated_user>",
             "updated_at": "<product_updated_at>"
-        }
+        }]
     }
 }
 ```
