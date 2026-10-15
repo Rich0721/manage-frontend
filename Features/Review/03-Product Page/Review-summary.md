@@ -81,3 +81,7 @@ Requirement List 中 TASK-004／007 仍標為 `DEVELOPED DONE`，本次已一併
 ### Programmer Review Fix Handoff（2026-10-15）
 
 TASK-001／005 已補足 Review Issue 指定的服務及頁面測試。服務與頁面定向測試共 2 檔／104 項通過，lint 與 `git diff --check` 通過。兩項 Implementation Status 更新為 `DEVELOPED DONE`，Review Status 仍為 `OPEN`，等待 Code Reviewer 複審。本次未修改 Production Code，未重跑 build。
+
+### Code Review Fix 複審（2026-10-15）
+
+已核對 TASK-001／005 前次 OPEN Issue：服務測試補足 Update／Delete 非陣列回應及 Update 單筆陣列缺少 stock；頁面測試補足編輯／刪除協定錯誤時留窗、顯示錯誤且不重查。實作及測試符合最新計畫，無新增待修問題。兩項 Review Status 更新為 `RESOLVED`、Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-15；Requirement List 的九項任務目前均為 `DONE`。本次未重跑測試或修改 Production／Test Code，採用 Programmer 前次定向測試 2 檔／104 項、lint 與 `git diff --check` 通過紀錄；尚未以實際後端進行端對端驗證。

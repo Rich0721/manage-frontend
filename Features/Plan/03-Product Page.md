@@ -119,11 +119,11 @@ Requirement Summary: 新增後維持目前頁碼（原在第一頁且新增至 1
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 | --- | --- | --- | --- | --- | --- | --- |
-| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 | 2026-10-15 |
+| TASK-001 | 產品型別與 API 服務 | MODIFY | 2026-10-15 | DONE | 2026-10-15 | 2026-10-15 |
 | TASK-002 | 產品表格、篩選與分頁 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-003 | 商品分類輸入 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-14 |
 | TASK-004 | 共用商品表單與浮動視窗 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-15 |
-| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | DEVELOPED DONE | 2026-10-15 | 2026-10-15 |
+| TASK-005 | CRUD 協調、Session 與清單重整 | MODIFY | 2026-10-15 | DONE | 2026-10-15 | 2026-10-15 |
 | TASK-006 | 批次管理入口與視覺整合 | MODIFY | 2026-10-13 | DONE | 2026-10-13 | 2026-10-13 |
 | TASK-007 | Excel 批次上傳服務與頁面流程 | MODIFY | 2026-10-14 | DONE | 2026-10-14 | 2026-10-15 |
 | TASK-008 | Excel 模板下載服務與頁面流程 | ADD | 2026-10-14 | DONE | 2026-10-14 | 2026-10-14 |
@@ -462,7 +462,7 @@ Programmer 重新依最新計畫核對 Required Delta、相關測試與 Issue；
 
 - **Requirement Source**：使用者本次要求，以及 `Features/Document/03-Product Page.md` 2-2-2～2-2-4 的最新 Response 範例。需求文件已有使用者未提交變更，本計畫不修改該文件。
 - **Requirement Type**：Requirement Change（API Response 形狀）及 Bug / Behavior Correction（正常回應被前端判為失敗）。
-- **Plan Status**：TASK-001／005 Review Fix 已完成，等待 Code Reviewer 複審。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
+- **Plan Status**：TASK-001／005 Review Fix 複審通過，本節任務已完成。本節為最新計畫；上方歷史章節中與本節衝突的回應形狀敘述不再適用。
 
 ### 差異與影響
 
@@ -509,6 +509,10 @@ Add Product 仍回傳單一物件；Get All 與批次上傳仍回傳陣列。HTT
 ### Programmer Review Fix Handoff（2026-10-15）
 
 已補齊 TASK-001／005 Review Issue 指定的測試：Update／Delete 非陣列回應均驗證為 `protocol`；Update 缺少 stock 使用新契約的單筆陣列 fixture；ProductPage 對編輯與刪除協定錯誤分別驗證視窗保留、錯誤訊息顯示且不重查清單。定向測試 `product-service.test.tsx`、`ProductPage.test.tsx` 共 2 檔／104 項通過，`npm.cmd run lint` 與 `git diff --check` 通過。TASK-001／005 更新為 `DEVELOPED DONE`；Review Status 保持 `OPEN`，交由 Code Reviewer 複審。未修改 Production Code，無需重跑 build。
+
+### Code Review Fix 複審結果（2026-10-15）
+
+TASK-001／005 的前次 OPEN Review Issue 已補足：服務測試涵蓋 Update／Delete 非陣列 `body.info`，Update 缺少 stock 使用新契約單筆陣列；頁面測試涵蓋編輯／刪除協定錯誤時保留視窗、顯示錯誤且不刷新清單。正式服務沿用 `parseDetail()`，頁面沿用既有成功／錯誤流程，無需變更 Production Code。兩項 Review Status 更新為 `RESOLVED`、Implementation Status 更新為 `DONE`，Code Review Date 為 2026-10-15。本次複審未重跑測試；Programmer 前次定向測試 2 檔／104 項、lint 與 `git diff --check` 通過。實際後端契約仍未進行端對端驗證。
 
 ### Code Review 補充：其餘 DEVELOPED DONE 任務（2026-10-15）
 

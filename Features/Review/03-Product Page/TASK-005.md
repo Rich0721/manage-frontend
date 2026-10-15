@@ -107,3 +107,9 @@ Resolution：`OPEN`，待 Programmer 補測後複審。
 ## Programmer Review Fix Handoff（2026-10-15）
 
 ProductPage 測試新增編輯與刪除協定錯誤案例，分別確認對話框仍開啟、錯誤訊息可見且產品清單只執行初始載入、未觸發成功後刷新。服務與頁面定向測試共 2 檔／104 項、lint 及 `git diff --check` 通過。Implementation Status 更新為 `DEVELOPED DONE`；本 Review Status 維持 `OPEN`，等待複審。
+
+## 2026-10-15 Review Fix 複審
+
+Review Result：通過；Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-15。
+
+已核對 `ProductPage.test.tsx`：編輯與刪除各自讓服務回傳 `ProductServiceError('protocol', ...)`，確認錯誤訊息可見、對話框保留，且 `getProducts()` 只執行初始載入。既有成功案例確認關窗、重查與最新商品顯示；頁面正式程式無需變更。原 OPEN Issue 已解決。Programmer 前次定向測試 2 檔／104 項、lint 與 `git diff --check` 通過；本次複審未重跑測試或修改程式、測試。

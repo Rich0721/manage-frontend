@@ -101,3 +101,9 @@ Resolution：`OPEN`，待 Programmer 補測後複審。
 ## Programmer Review Fix Handoff（2026-10-15）
 
 Update／Delete 格式錯誤測試表格皆新增非陣列 `body.info` 案例；Update 缺少 stock 案例改用單筆陣列，Add Product 保留物件回應。服務與頁面定向測試共 2 檔／104 項、lint 及 `git diff --check` 通過。Implementation Status 更新為 `DEVELOPED DONE`；本 Review Status 維持 `OPEN`，等待複審。
+
+## 2026-10-15 Review Fix 複審
+
+Review Result：通過；Review Status：`RESOLVED`；Implementation Status：`DONE`；Code Review Date：2026-10-15。
+
+已核對 Update／Delete 的服務測試：兩者皆以非陣列 `body.info` 驗證 `protocol`，並保留有效單筆、空陣列、多筆、ID 不符及無效商品欄位案例。Update 缺少 stock 已改為單筆陣列，Add Product 仍使用物件，因而分別驗證各自最新契約。`updateProduct()`／`deleteProduct()` 沿用 `parseDetail()` 的實作與計畫一致，原 OPEN Issue 已解決。Programmer 前次定向測試 2 檔／104 項、lint 與 `git diff --check` 通過；本次複審未重跑測試或修改程式、測試。
