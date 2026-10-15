@@ -246,6 +246,7 @@ describe('product service', () => {
   })
 
   it.each([
+    ['non-array info', { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }],
     ['empty array', []],
     ['multiple products', [
       { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 },
@@ -262,6 +263,7 @@ describe('product service', () => {
   })
 
   it.each([
+    ['non-array info', { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }],
     ['empty array', []],
     ['multiple products', [
       { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 },
@@ -284,9 +286,10 @@ describe('product service', () => {
   })
 
   it.each(['add', 'update'] as const)('rejects a successful %s response that omits stock', async (operation) => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info: {
-      id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2,
-    } } }), { status: 200, headers: { Status: 'Success' } })))
+    const info = { id: 'p1', name: 'Item', label_names: 'A', cost: 1, price: 2 }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: {
+      info: operation === 'add' ? info : [info],
+    } }), { status: 200, headers: { Status: 'Success' } })))
     const input = { name: 'Item', label_names: 'A', cost: 1, price: 2, stock: 0 }
     const result = operation === 'add'
       ? addProduct(session, input, new AbortController().signal)

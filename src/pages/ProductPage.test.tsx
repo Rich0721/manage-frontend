@@ -280,6 +280,28 @@ describe('ProductPage', () => {
     expect(getProductsMock).toHaveBeenCalledTimes(2)
   })
 
+  it.each(['update', 'delete'] as const)('keeps the %s dialog open and skips refresh on a protocol error', async (operation) => {
+    getProductsMock.mockResolvedValue([product('p1', 'Item')])
+    getProductMock.mockResolvedValue(product('p1', 'Item'))
+    updateProductMock.mockRejectedValue(new ProductServiceError('protocol', '商品回應格式錯誤'))
+    deleteProductMock.mockRejectedValue(new ProductServiceError('protocol', '刪除商品回應格式錯誤'))
+    const user = userEvent.setup()
+    render(<ProductPage session={session} onLogout={() => undefined} onSessionExpired={() => undefined} />)
+    await screen.findByText('Item')
+
+    if (operation === 'update') {
+      await user.click(screen.getByRole('button', { name: '編輯商品 Item' }))
+      await screen.findByRole('dialog')
+    } else {
+      await user.click(screen.getByRole('button', { name: '刪除商品 Item' }))
+    }
+    await user.click(screen.getByRole('button', { name: '確認' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(operation === 'update' ? '商品回應格式錯誤' : '刪除商品回應格式錯誤')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(getProductsMock).toHaveBeenCalledOnce()
+  })
+
   it('does not let a pending edit detail request replace a newly opened create form', async () => {
     getProductsMock.mockResolvedValue([product('p1', 'Original')])
     let resolveDetail!: (value: Product) => void

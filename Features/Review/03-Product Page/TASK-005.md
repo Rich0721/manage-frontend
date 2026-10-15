@@ -103,3 +103,7 @@ Expected Behavior：編輯與刪除各有頁面測試，驗證協定錯誤時視
 Suggested Area To Fix：補強 `src/pages/ProductPage.test.tsx` 的編輯／刪除失敗流程測試，重用現有 ProductServiceError 與頁面互動 fixture；無須調整 Production Code。
 
 Resolution：`OPEN`，待 Programmer 補測後複審。
+
+## Programmer Review Fix Handoff（2026-10-15）
+
+ProductPage 測試新增編輯與刪除協定錯誤案例，分別確認對話框仍開啟、錯誤訊息可見且產品清單只執行初始載入、未觸發成功後刷新。服務與頁面定向測試共 2 檔／104 項、lint 及 `git diff --check` 通過。Implementation Status 更新為 `DEVELOPED DONE`；本 Review Status 維持 `OPEN`，等待複審。

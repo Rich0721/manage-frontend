@@ -97,3 +97,7 @@ Expected Behavior：Update／Delete 都應以非陣列回應驗證 `protocol` �
 Suggested Area To Fix：補強 `src/services/product-service.test.tsx` 的 Update／Delete 格式錯誤表格案例與缺少 stock 的 mutation 案例；維持現有服務實作及其餘回歸測試。
 
 Resolution：`OPEN`，待 Programmer 補測後複審。
+
+## Programmer Review Fix Handoff（2026-10-15）
+
+Update／Delete 格式錯誤測試表格皆新增非陣列 `body.info` 案例；Update 缺少 stock 案例改用單筆陣列，Add Product 保留物件回應。服務與頁面定向測試共 2 檔／104 項、lint 及 `git diff --check` 通過。Implementation Status 更新為 `DEVELOPED DONE`；本 Review Status 維持 `OPEN`，等待複審。
