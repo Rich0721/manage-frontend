@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Development Complete / Awaiting Code Review**。PM 已確認訂單金額彙總、商品行價格與整單調整價格規則；五項 Task 已完成實作與自動化驗證，等待 Code Review。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照未執行，因本次工作階段未提供可用瀏覽器。
+- Plan Status：**Code Review Failed / Awaiting Review Fix**。PM 已確認訂單金額彙總、商品行價格與整單調整價格規則；五項 Task 於 2026-10-20 審查後均有待修正問題，詳見 `Features/Review/04-Sell Page/`。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
 
 ## II. Requirement Summary
 
@@ -36,11 +36,11 @@
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
+| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
 
 ## V. Technical Stack / System Design
 
@@ -111,3 +111,7 @@
 ### Programmer Handoff（2026-10-20）
 
 五項 Task 已依計畫實作並標記 `DEVELOPED DONE`。`npm.cmd test`：26 個測試檔、257 項通過；`npm.cmd run build` 與 `npm.cmd run lint` 通過。瀏覽器桌面／窄畫面與 Figma 視覺核對尚未執行；本次 `cua` 瀏覽器清單為空且無法建立 `iab`，請 Code Reviewer 在可用瀏覽器環境補核對。未驗證真實後端訂單整合。
+
+### Code Review（2026-10-20）
+
+五項 Task 審查結果均為 `REVIEW FIX`，Review Status 為 `OPEN`；問題與修正範圍記錄於 `Features/Review/04-Sell Page/TASK-001.md` 至 `TASK-005.md`。主要缺陷為快速掃碼可能遺漏商品，以及訂單送出期間仍可變更清單而導致已提交內容與成功後清空內容不一致。另有明訂測試缺口及商品行 key 與計畫不符。Reviewer 執行 5 個相關測試檔、37 項通過；因沙箱限制，測試在核准的沙箱外執行。未進行桌面／窄畫面與 Figma 視覺核對，也未驗證真實後端整合。
