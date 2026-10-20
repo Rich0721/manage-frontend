@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Development Complete / Awaiting Code Review**。TASK-001、005 的 Review Fix 已完成並待複審；TASK-002～004 維持已通過。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Code Review Passed**。TASK-001～005 均已通過程式碼審查。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
 
 ## II. Requirement Summary
 
@@ -36,11 +36,11 @@
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
 | TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
 | TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
 | TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
 
 ## V. Technical Stack / System Design
 
@@ -106,7 +106,7 @@
 - [x] 金額 payload／驗證規則已完成 Plan Validation。
 - [x] Implementation Plan 已完成人工審核。
 - [x] Development 完成。
-- [ ] Code Review 通過。
+- [x] Code Review 通過。
 
 ### Programmer Handoff（2026-10-20）
 
@@ -127,3 +127,7 @@ TASK-002、003、004 的原 Review Issue 已解決，Review Status 更新為 `RE
 ### Programmer Review Fix Handoff（2026-10-20，複審修正）
 
 TASK-001 對同一登入狀態的 Session 失效處理加入冪等保護，新增 App 整合測試：兩筆並行販售查詢同時回傳 401 時只清除 Session 並顯示一次提示。TASK-005 新增一般查詢錯誤下保留商品與調整金額的測試、實際頁面結帳按鈕送出期間停用及僅呼叫一次 API 的測試，以及清空重置清單／金額並忽略晚到查詢結果的測試。驗證：定向測試 2 個檔案、34 項通過；全套測試 26 個檔案、282 項通過；`npm.cmd run lint`、`npm.cmd run build` 及 `git diff --check` 通過。TASK-001、TASK-005 標記 `DEVELOPED DONE`，Review Status 維持 `OPEN` 等待複審。
+
+### Code Review 複審結論（2026-10-20）
+
+TASK-001 的 Session 失效處理對同一登入狀態具冪等性，並行兩筆販售查詢 401 的整合測試驗證只顯示一次提示且清除 Session。TASK-005 的一般查詢失敗、送出期間防重複及清空後晚到回應測試均覆蓋前次 Issue，未發現新的計畫符合性問題。Reviewer 重跑 `src/App.test.tsx` 與 `src/pages/SellPage.test.tsx`：2 個檔案、34 項通過；Programmer 已記錄全套 282 項測試、Lint 與 Build 通過。TASK-001、005 的 Review Status 更新為 `RESOLVED`、Implementation Status 更新為 `DONE`。桌面／窄畫面及 Figma 視覺核對、真實後端整合仍未驗證。

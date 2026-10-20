@@ -1,6 +1,6 @@
 # TASK-001 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -57,3 +57,7 @@ Status: OPEN。待 Programmer 修正後複審。
 ## Programmer Fix Handoff（2026-10-20，複審修正）
 
 `src/App.tsx` 對目前 Session 的失效回呼加入冪等保護；登入成功時重置保護狀態。`src/App.test.tsx` 新增兩筆並行販售查詢同時回傳 401 的整合測試，驗證回到登入頁、Session 清除且只顯示一次授權提示。定向測試 34 項及全套測試 282 項通過；Lint、Build、`git diff --check` 通過。Review Status 維持 `OPEN`，待 Code Reviewer 複審。
+
+## 2026-10-20 複審結論
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。`App.tsx` 在首次 Session 失效時同步設定保護狀態，後續同一登入狀態的 401 不再重複清除或提示；登入成功會重置保護狀態。新增 App 整合測試控制兩筆並行查詢同時拒絕，驗證 Session 清除、返回登入頁及提示僅一次。Reviewer 重跑 App 與 SellPage 定向測試，共 34 項通過。原 Review Issue 已解決。

@@ -1,6 +1,6 @@
 # TASK-005 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -61,3 +61,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-20，複審修正）
 
 `src/pages/SellPage.test.tsx` 新增一般查詢失敗時顯示錯誤並保留商品清單與調整金額的案例；送出期間驗證頁面結帳按鈕 disabled 且訂單 API 僅呼叫一次；清空操作驗證清單及金額重置、待處理請求取消且晚到回應不會重新加入商品。定向測試 34 項及全套測試 282 項通過；Lint、Build、`git diff --check` 通過。Review Status 維持 `OPEN`，待 Code Reviewer 複審。
+
+## 2026-10-20 複審結論
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。一般網路查詢失敗測試驗證錯誤提示、既有商品與整單調整金額保留；送出期間測試從實際頁面結帳按鈕再次操作並確認 API 只呼叫一次；清空測試驗證列表與金額重置、查詢取消及晚到回應被忽略。Reviewer 重跑 App 與 SellPage 定向測試，共 34 項通過。前次三項測試缺口已補足，未發現新的實作問題。
