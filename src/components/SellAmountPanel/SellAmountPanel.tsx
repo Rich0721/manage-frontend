@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { parsePositiveInteger } from '../../pages/sell-validation'
 import { Button } from '../Button/Button'
 import './SellAmountPanel.css'
@@ -19,11 +19,9 @@ interface SellAmountPanelProps {
 export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, lookupBusy = false, message, onProductId, onAdjustedTotalChange, onCheckout, onClear }: SellAmountPanelProps) {
   const [productId, setProductId] = useState('')
   const [adjustedTotalDraft, setAdjustedTotalDraft] = useState(adjustedTotal)
-  const lastTriggered = useRef('')
   useEffect(() => { setAdjustedTotalDraft(adjustedTotal) }, [adjustedTotal])
   const triggerLookup = (value: string) => {
-    if (value.length !== 13 || lastTriggered.current === value) return
-    lastTriggered.current = value
+    if (value.length !== 13) return
     setProductId('')
     onProductId(value)
   }
@@ -34,7 +32,6 @@ export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, lo
         <input aria-label="商品ID" disabled={busy} value={productId} onChange={(event) => {
           const value = event.target.value
           setProductId(value)
-          if (value.length !== 13) lastTriggered.current = ''
           triggerLookup(value)
         }} onKeyDown={(event) => {
           if (event.key === 'Enter') {

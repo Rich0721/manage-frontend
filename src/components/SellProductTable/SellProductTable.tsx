@@ -27,12 +27,14 @@ function SellProductRow({ item, disabled, onPriceChange, onQuantityChange, onDel
   const commitPrice = () => {
     const value = parsePositiveInteger(priceValue)
     if (value === null) setPriceDraft({ value: String(item.adjustedPrice), source: item.adjustedPrice })
+    else if (value === item.adjustedPrice) setPriceDraft({ value: String(item.adjustedPrice), source: item.adjustedPrice })
     else onPriceChange(value)
   }
 
   const commitQuantity = () => {
     const value = parseQuantity(quantityValue)
     if (value === null) setQuantityDraft({ value: String(item.quantity), source: item.quantity })
+    else if (value === item.quantity) setQuantityDraft({ value: String(item.quantity), source: item.quantity })
     else onQuantityChange(value)
   }
 
@@ -44,7 +46,7 @@ function SellProductRow({ item, disabled, onPriceChange, onQuantityChange, onDel
       <td><input disabled={disabled} aria-label={`調整價格 ${item.product.id}`} inputMode="numeric" value={priceValue} onChange={(event) => setPriceDraft({ value: event.target.value, source: item.adjustedPrice })} onBlur={commitPrice} onKeyDown={(event) => { if (event.key === 'Enter') { event.currentTarget.blur() } }} /></td>
       <td><input disabled={disabled} aria-label={`數量 ${item.product.id}`} inputMode="numeric" value={quantityValue} onChange={(event) => setQuantityDraft({ value: event.target.value, source: item.quantity })} onBlur={commitQuantity} onKeyDown={(event) => { if (event.key === 'Enter') { event.currentTarget.blur() } }} /></td>
       <td>{item.adjustedPrice * item.quantity}</td>
-      <td><Button disabled={disabled} variant="text" className="sell-product-table__delete" aria-label={`刪除商品 ${item.product.id}`} onClick={onDelete}>Delete</Button></td>
+      <td><Button disabled={disabled} variant="text" className="sell-product-table__delete" aria-label={`刪除商品 ${item.product.id}`} onClick={onDelete}><img src="/icon/delete.png" alt="" /></Button></td>
     </tr>
   )
 }

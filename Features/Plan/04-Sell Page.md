@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Awaiting Review**（簡易測試修正範圍）。原 TASK-001～005 曾通過程式碼審查；本次新增範圍待審核與實作。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Awaiting Code Review**（簡易測試修正範圍）。原 TASK-001～005 曾通過程式碼審查；本次修正已完成開發，待複審。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
 
 ### 簡易測試修正範圍（2026-10-20）
 
@@ -47,10 +47,10 @@
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-002 | 訂單 API Service 與型別／部署代理 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
-| TASK-003 | 商品資訊表格 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
-| TASK-004 | 金額資訊與輸入 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
-| TASK-005 | 販售頁協調與結帳 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
+| TASK-002 | 訂單 API Service 與型別／部署代理 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
+| TASK-003 | 商品資訊表格 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
+| TASK-004 | 金額資訊與輸入 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
+| TASK-005 | 販售頁協調與結帳 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
 
 ## V. Technical Stack / System Design
 
@@ -141,3 +141,7 @@ TASK-001 對同一登入狀態的 Session 失效處理加入冪等保護，新�
 ### Code Review 複審結論（2026-10-20）
 
 TASK-001 的 Session 失效處理對同一登入狀態具冪等性，並行兩筆販售查詢 401 的整合測試驗證只顯示一次提示且清除 Session。TASK-005 的一般查詢失敗、送出期間防重複及清空後晚到回應測試均覆蓋前次 Issue，未發現新的計畫符合性問題。Reviewer 重跑 `src/App.test.tsx` 與 `src/pages/SellPage.test.tsx`：2 個檔案、34 項通過；Programmer 已記錄全套 282 項測試、Lint 與 Build 通過。TASK-001、005 的 Review Status 更新為 `RESOLVED`、Implementation Status 更新為 `DONE`。桌面／窄畫面及 Figma 視覺核對、真實後端整合仍未驗證。
+
+### Programmer Plan Update Handoff（2026-10-20）
+
+TASK-002～005 已完成簡易測試修正：相同 ID 連續貼上可逐次查詢並合併數量；商品行未實際變動時保留整單調整價；刪除按鈕使用既有圖示；Vite 與 nginx 增加 `/sellController` 代理。定向測試 3 個檔案、35 項通過；全套測試 26 個檔案、286 項通過；Lint、Build 與 `git diff --check` 通過。本機無 Docker 指令，尚未驗證 nginx 容器；真實後端訂單整合及視覺核對仍待執行。四項 Task 標記 `DEVELOPED DONE`，交由 Code Reviewer 複審。

@@ -17,7 +17,7 @@ npm ci
 npm run dev
 ```
 
-開發伺服器預設將 `/userController` 與 `/productController` 代理至 `http://localhost:8000`。需要使用其他後端時，可在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會保留原始 URI，例如 `/userController/register` 與 `/productController/getProducts?productId=all`。
+開發伺服器預設將 `/userController`、`/productController` 與 `/sellController` 代理至 `http://localhost:8000`。需要使用其他後端時，可在啟動 Vite 前設定 `API_UPSTREAM` 為可連線的 `http(s)://host:port` origin；不能包含路徑、帳密、query 或 hash。Vite 會保留原始 URI，例如 `/userController/register`、`/productController/getProducts?productId=all` 與 `/sellController/sellProduct`。
 
 PowerShell 範例：
 
@@ -39,7 +39,7 @@ npm run lint
 
 ## nginx 部署
 
-專案以 Docker 多階段建置 Vite 靜態檔，再由 nginx 提供前端頁面。`nginx/default.conf.template` 讓前端路由重新整理時回到 `index.html`，並將 `/userController/` 與 `/productController/` 請求轉發至後端，保留原始 API 路徑及 HTTP headers。
+專案以 Docker 多階段建置 Vite 靜態檔，再由 nginx 提供前端頁面。`nginx/default.conf.template` 讓前端路由重新整理時回到 `index.html`，並將 `/userController/`、`/productController/` 與 `/sellController/` 請求轉發至後端，保留原始 API 路徑及 HTTP headers。
 
 ```sh
 docker build -t manage-frontend .

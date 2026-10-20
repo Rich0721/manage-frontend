@@ -6,4 +6,5 @@
 .sell-product-table td { background: #c6f8d0; }
 .sell-product-table td input { box-sizing: border-box; width: 96px; padding: 6px 8px; border: 1px solid #999; border-radius: 4px; text-align: right; }
 .sell-product-table__delete { color: #b42318; }
+.sell-product-table__delete img { display: block; width: 20px; height: 20px; object-fit: contain; }
 .sell-product-table__empty { padding: 32px; color: #555; text-align: center; }

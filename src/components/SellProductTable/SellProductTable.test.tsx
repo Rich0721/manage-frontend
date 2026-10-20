@@ -11,6 +11,15 @@ const items: SellLineItem[] = [{
 }]
 
 describe('SellProductTable', () => {
+  it('keeps unchanged row values without reporting an edit and displays the delete icon', () => {
+    const onChange = vi.fn()
+    render(<SellProductTable items={items} onChange={onChange} />)
+    fireEvent.blur(screen.getByRole('textbox', { name: '調整價格 1000000000001' }))
+    fireEvent.blur(screen.getByRole('textbox', { name: '數量 1000000000001' }))
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: '刪除商品 1000000000001' }).querySelector('img')).toHaveAttribute('src', '/icon/delete.png')
+  })
+
   it('shows read-only product details and reports valid price and quantity edits', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

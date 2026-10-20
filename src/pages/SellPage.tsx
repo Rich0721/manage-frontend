@@ -55,6 +55,10 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
   }, [])
 
   const replaceItems = (next: SellLineItem[]) => {
+    if (next.length === itemsRef.current.length && next.every((item, index) => {
+      const previous = itemsRef.current[index]
+      return previous.product.id === item.product.id && previous.adjustedPrice === item.adjustedPrice && previous.quantity === item.quantity
+    })) return
     itemsRef.current = next
     setItems(next)
     setAdjustedTotal(String(lineTotal(next)))

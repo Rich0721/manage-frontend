@@ -46,6 +46,47 @@ async function scanProduct(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('SellPage', () => {
+  it('merges two identical pasted IDs and preserves the adjusted unit price', async () => {
+    getProductMock.mockResolvedValue(product)
+    renderSellPage()
+    const input = screen.getByRole('textbox', { name: '商品ID' })
+    fireEvent.change(input, { target: { value: product.id } })
+    await screen.findByRole('row', { name: new RegExp(product.id) })
+    const price = screen.getByRole('textbox', { name: `調整價格 ${product.id}` })
+    fireEvent.change(price, { target: { value: '150' } })
+    fireEvent.blur(price)
+    fireEvent.change(input, { target: { value: product.id } })
+    await waitFor(() => expect(screen.getByRole('textbox', { name: `數量 ${product.id}` })).toHaveValue('2'))
+    expect(price).toHaveValue('150')
+    expect(getProductMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('preserves the order total after unchanged or invalid row input and recalculates on a real edit', async () => {
+    const user = userEvent.setup()
+    getProductMock.mockResolvedValue(product)
+    renderSellPage()
+    await scanProduct(user)
+    const adjustedTotal = screen.getByRole('textbox', { name: '整單調整價格' })
+    await user.clear(adjustedTotal)
+    await user.type(adjustedTotal, '400')
+    fireEvent.blur(adjustedTotal)
+    const price = screen.getByRole('textbox', { name: `調整價格 ${product.id}` })
+    const quantity = screen.getByRole('textbox', { name: `數量 ${product.id}` })
+    fireEvent.blur(price)
+    fireEvent.blur(quantity)
+    expect(adjustedTotal).toHaveValue('400')
+    fireEvent.change(price, { target: { value: '100' } })
+    fireEvent.blur(price)
+    fireEvent.change(quantity, { target: { value: '1' } })
+    fireEvent.blur(quantity)
+    fireEvent.change(price, { target: { value: 'abc' } })
+    fireEvent.blur(price)
+    expect(adjustedTotal).toHaveValue('400')
+    fireEvent.change(quantity, { target: { value: '2' } })
+    fireEvent.blur(quantity)
+    expect(adjustedTotal).toHaveValue('200')
+  })
+
   it('looks up a 13-character product ID, merges repeats, and preserves the adjusted unit price', async () => {
     const user = userEvent.setup()
     getProductMock.mockResolvedValue(product)

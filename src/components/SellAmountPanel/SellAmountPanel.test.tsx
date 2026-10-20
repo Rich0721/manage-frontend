@@ -22,6 +22,18 @@ function setup(overrides: Partial<ComponentProps<typeof SellAmountPanel>> = {}) 
 }
 
 describe('SellAmountPanel', () => {
+  it('looks up the same ID on each separate paste without duplicating an Enter lookup', () => {
+    const props = setup()
+    const input = screen.getByRole('textbox', { name: '商品ID' })
+    fireEvent.change(input, { target: { value: '1000000000001' } })
+    expect(input).toHaveValue('')
+    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.change(input, { target: { value: '1000000000001' } })
+    expect(props.onProductId).toHaveBeenCalledTimes(2)
+    expect(props.onProductId).toHaveBeenNthCalledWith(1, '1000000000001')
+    expect(props.onProductId).toHaveBeenNthCalledWith(2, '1000000000001')
+  })
+
   it('submits a product lookup once after 13 characters and displays the total read-only', async () => {
     const user = userEvent.setup()
     const props = setup()
