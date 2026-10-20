@@ -1,6 +1,6 @@
 # TASK-004 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -37,3 +37,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-20）
 
 `SellAmountPanel.test.tsx` 補上 0、負數、非數字整單調整價還原與不呼叫 callback 測試，並直接驗證結帳 callback 及查詢期間停用結帳。完整測試套件 279 項通過，Lint 通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-20 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。`SellAmountPanel.test.tsx` 已覆蓋 0、負數、小數、非數字整單價格還原與非法輸入不通知 Page，並直接驗證結帳 callback、空清單及查詢中 disabled 狀態。原 Review Issue 已解決。採用 Programmer 提供的全套 279 項通過、Lint 與 Build 通過結果，本次未重跑。

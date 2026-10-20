@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Development Complete / Awaiting Code Review**。五項 Review Fix 已於 2026-10-20 完成並通過測試、Lint 與 Build，等待 Code Reviewer 複審。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Code Review Partially Passed / Awaiting Review Fix**。2026-10-20 複審後 TASK-002～004 通過；TASK-001、005 尚有待修正問題，詳見對應 Review 紀錄。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
 
 ## II. Requirement Summary
 
@@ -36,11 +36,11 @@
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
-| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
-| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
-| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
-| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
 
 ## V. Technical Stack / System Design
 
@@ -119,3 +119,7 @@
 ### Programmer Review Fix Handoff（2026-10-20）
 
 五項 Task 已完成 Review Fix，狀態更新為 `DEVELOPED DONE`，Review Status 維持 `OPEN` 等待複審。掃碼查詢改為各自追蹤並允許並行完成，清空／卸載時取消全部待處理查詢；查詢期間停用結帳，確認視窗與送出期間鎖定商品清單，避免訂單快照外的變更被成功回應清除。商品表格使用商品 ID 作為 key，行內草稿依外部價格／數量更新同步。補足 App 販售頁 Session 401／登出取消測試、訂單服務逾時／協定／HTTP 測試、表格／整單非法輸入及結帳互動測試。驗證：`npm.cmd test -- --run`（26 個檔案、279 項通過）、`npm.cmd run lint` 通過、`npm.cmd run build` 通過。視覺與真實後端整合仍待環境可用後驗證。
+
+### Code Review 複審（2026-10-20）
+
+TASK-002、003、004 的原 Review Issue 已解決，Review Status 更新為 `RESOLVED`，Implementation Status 更新為 `DONE`。TASK-001 的單筆販售查詢 401／登出測試已補齊，但並行查詢同時回傳 401 時，Session 失效回呼可能重複顯示提示；TASK-005 的一般查詢失敗、清空／待處理查詢及真正送出期間防重複回歸仍未覆蓋。兩項維持 Review Status `OPEN`、Implementation Status `REVIEW FIX`。已核對 Programmer 提供的全套 279 項測試、Lint 與 Build 通過紀錄；本次複審未修改或重跑程式與測試。視覺及真實後端整合仍未驗證。

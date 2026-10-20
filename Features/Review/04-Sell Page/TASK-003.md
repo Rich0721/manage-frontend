@@ -1,6 +1,6 @@
 # TASK-003 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -38,3 +38,7 @@ Status: OPEN。待 Programmer 修正並補測後複審。
 ## Programmer Fix Handoff（2026-10-20）
 
 `SellProductTable` 使用商品 ID 作為行 key，並以來源值衍生顯示草稿，讓外部掃碼合併數量後草稿同步且保留未提交的調價。補上負數、小數、非數字數量還原測試及行更新期間草稿／焦點保留測試。完整測試套件 279 項通過，Lint 通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-20 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。`SellProductTable.tsx:67` 已用商品 ID 作為 key；行內草稿依目前商品值決定顯示，重掃更新數量時可保留未提交的調價，數量輸入同步顯示新值。表格測試直接驗證負數、小數、非數字還原及行更新時焦點／草稿保留；頁面測試驗證重掃數量及合計。原兩項 Review Issue 已解決。採用 Programmer 提供的全套 279 項通過、Lint 與 Build 通過結果，本次未重跑。

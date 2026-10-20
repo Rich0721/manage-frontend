@@ -1,6 +1,6 @@
 # TASK-002 Code Review
 
-Status: OPEN
+Status: RESOLVED
 
 ## Task ID
 
@@ -37,3 +37,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-20）
 
 `src/services/sell-service.test.tsx` 新增 503 HTTP、有效 JSON 缺少訂單欄位、非法明細及 30 秒逾時案例，逾時使用 fake timers 並確認分類為 `timeout`。完整測試套件 279 項通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-20 複審
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。已核對 `sell-service.test.tsx`：503、必要欄位缺失與明細格式錯誤皆拒絕成功回應，fake timers 推進 30 秒後驗證 `timeout`，並保留既有 200／401／400／網路／主動取消及 payload 測試。服務程式的分類與檢查符合本 Task；原 Review Issue 已解決。採用 Programmer 提供的全套 279 項通過、Lint 與 Build 通過結果，本次未重跑。

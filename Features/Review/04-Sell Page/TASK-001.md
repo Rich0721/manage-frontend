@@ -37,3 +37,19 @@ Status: OPEN。待 Programmer 補測後複審。
 ## Programmer Fix Handoff（2026-10-20）
 
 `src/App.test.tsx` 新增販售頁查詢 401 案例，驗證 Session 清除、返回登入表單及授權提示只顯示一次；新增從販售頁登出時取消待處理商品查詢的案例。相關測試包含於完整測試套件 279 項通過結果。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。
+
+## 2026-10-20 複審
+
+Review Status：`OPEN`；Implementation Status：`REVIEW FIX`。原 Review Issue 的單筆 401 與販售頁登出測試已補足；複審發現以下並行 Session 失效問題。
+
+### Review Issue（Session 回歸）
+
+`src/pages/SellPage.tsx:63-94` 允許多筆查詢並行，每筆 401 均呼叫 `onSessionExpired`；`src/App.tsx:57-64` 每次呼叫都清除 Session 並執行 `window.alert`，沒有阻止同一登入狀態的重複處理。若兩筆待處理查詢同時回傳 401，在頁面卸載生效前可顯示兩次「使用者未授權」。現有 `src/App.test.tsx:171-187` 只讓一筆查詢回傳 401，無法驗證此情境。
+
+### Expected Behavior / Suggested Area To Fix
+
+同一登入狀態的並行 401 只清除一次 Session、只顯示一次提示並返回登入頁。檢查 `App` 的 Session 失效處理與販售頁並行請求的錯誤路徑，補一項由 App 進入販售頁、兩筆查詢同時失效的整合回歸。
+
+### Resolution
+
+Status: OPEN。待 Programmer 修正後複審。
