@@ -7,7 +7,17 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Code Review Passed**。TASK-001～005 均已通過程式碼審查。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Awaiting Review**（簡易測試修正範圍）。原 TASK-001～005 曾通過程式碼審查；本次新增範圍待審核與實作。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+
+### 簡易測試修正範圍（2026-10-20）
+
+- **Requirement Type**：第 1、2、4 項為 Bug / Behavior Correction；第 3 項為刪除操作的呈現調整。以下增補以使用者本次簡易測試回饋為依據，原需求文件與既有 Gherkin 尚未同步。
+- **TASK-004／005，連續貼上同一 ID**：`SellAmountPanel` 的 `lastTriggered` 只在收到非 13 碼的 `onChange` 時清除；觸發查詢後程式清空欄位，不會再有該事件，因此第二次貼上同一 13 碼值被忽略。修改 `src/components/SellAmountPanel/SellAmountPanel.tsx` 的去重／輸入清空流程，使每次獨立貼上或掃描同一 ID 都各觸發一次查詢，單次輸入事件及隨後 Enter 不重複觸發。`src/pages/SellPage.tsx` 保留同 ID 合併數量、既有調整單價與並行查詢處理。測試 `SellAmountPanel.test.tsx`、`SellPage.test.tsx` 增加連續貼上相同 ID、每次查詢一次、數量累加及單價保留案例。
+- **TASK-003／005，無實際變更時保留 `totalDiscount`**：目前商品行失焦時即使 `adjustedPrice` 或 `quantity` 與既有值相同，仍呼叫 `onChange`；`SellPage.replaceItems` 隨即把整單調整價重設為商品合計。修改 `src/components/SellProductTable/SellProductTable.tsx`，有效但相同的值不送出商品行變更；`src/pages/SellPage.tsx` 的清單更新邊界亦應只在清單內容確實變動時重算整單價。無效輸入仍還原、合法的實際改價／改量／刪行／新增商品仍依原計畫重算；`orderItems.discount`、`quantity`、`totalAmount` 與 `totalDiscount` 的 API 語意不變。測試 `SellProductTable.test.tsx`、`SellPage.test.tsx` 覆蓋調整整單價格後，商品行未改而失焦、輸入相同值及非法值時保留整單價格，並驗證實際改動後重算。
+- **TASK-003，Delete icon**：`public/icon/delete.png` 已存在。修改 `src/components/SellProductTable/SellProductTable.tsx` 與 `.css`，以 `/icon/delete.png` 顯示刪除圖示，保留 button、商品 ID 的可存取名稱、停用狀態與原刪除事件；測試 `SellProductTable.test.tsx` 驗證圖示來源及點擊行為。無需下載 Figma 資產。
+- **TASK-002／部署設定，訂單 API 代理**：`src/services/sell-service.ts` 已向 `/sellController/sellProduct` 發送請求；`nginx/default.conf.template` 目前只代理 user/product controller，訂單 POST 落入 `location /` 的靜態頁面處理。新增 `/sellController/` 代理，沿用既有 `proxy_pass ${API_UPSTREAM}` 與轉送 headers，保留原始 URI。`vite.config.ts` 開發代理也缺 `/sellController`，需同步新增。更新 `README.md` 代理說明；驗證開發環境與 nginx 容器中 POST 到達相同後端路徑及 header，並確認前端不再取得 SPA HTML／405。`Dockerfile` 與訂單 service 無須調整。
+- **影響邊界**：不更改後端 API、資料庫、訂單 payload 格式、其他頁面或新增依賴。此修正需以定向互動測試、全套測試、lint、build 及實際可連線的後端代理驗證；真實後端整合結果須另行記錄，不以 mock 測試代替。
+- **Task Status**：受影響的 TASK-002、003、004、005 標記為 `PLAN UPDATED`，待本修正範圍完成 Review 後交 Programmer 實作；原有完成與複審紀錄保留作歷史記錄。
 
 ## II. Requirement Summary
 
@@ -37,10 +47,10 @@
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-002 | 訂單 API Service 與型別／部署代理 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
+| TASK-003 | 商品資訊表格 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
+| TASK-004 | 金額資訊與輸入 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
+| TASK-005 | 販售頁協調與結帳 | MODIFY | 2026-10-20 | PLAN UPDATED | — | — |
 
 ## V. Technical Stack / System Design
 
