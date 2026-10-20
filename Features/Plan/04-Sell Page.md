@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Awaiting Code Review**（簡易測試修正範圍）。原 TASK-001～005 曾通過程式碼審查；本次修正已完成開發，待複審。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Code Review Passed**（簡易測試修正範圍）。TASK-002～005 已完成本次複審；nginx 容器、真實訂單整合及桌面／窄畫面視覺核對仍未執行。
 
 ### 簡易測試修正範圍（2026-10-20）
 
@@ -17,7 +17,7 @@
 - **TASK-003，Delete icon**：`public/icon/delete.png` 已存在。修改 `src/components/SellProductTable/SellProductTable.tsx` 與 `.css`，以 `/icon/delete.png` 顯示刪除圖示，保留 button、商品 ID 的可存取名稱、停用狀態與原刪除事件；測試 `SellProductTable.test.tsx` 驗證圖示來源及點擊行為。無需下載 Figma 資產。
 - **TASK-002／部署設定，訂單 API 代理**：`src/services/sell-service.ts` 已向 `/sellController/sellProduct` 發送請求；`nginx/default.conf.template` 目前只代理 user/product controller，訂單 POST 落入 `location /` 的靜態頁面處理。新增 `/sellController/` 代理，沿用既有 `proxy_pass ${API_UPSTREAM}` 與轉送 headers，保留原始 URI。`vite.config.ts` 開發代理也缺 `/sellController`，需同步新增。更新 `README.md` 代理說明；驗證開發環境與 nginx 容器中 POST 到達相同後端路徑及 header，並確認前端不再取得 SPA HTML／405。`Dockerfile` 與訂單 service 無須調整。
 - **影響邊界**：不更改後端 API、資料庫、訂單 payload 格式、其他頁面或新增依賴。此修正需以定向互動測試、全套測試、lint、build 及實際可連線的後端代理驗證；真實後端整合結果須另行記錄，不以 mock 測試代替。
-- **Task Status**：受影響的 TASK-002、003、004、005 標記為 `PLAN UPDATED`，待本修正範圍完成 Review 後交 Programmer 實作；原有完成與複審紀錄保留作歷史記錄。
+- **Task Status（規劃時）**：受影響的 TASK-002、003、004、005 曾標記為 `PLAN UPDATED`；本次已完成開發與審查，最新狀態見下表。原有完成與複審紀錄保留作歷史記錄。
 
 ## II. Requirement Summary
 
@@ -47,10 +47,10 @@
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
 | TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
-| TASK-002 | 訂單 API Service 與型別／部署代理 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-003 | 商品資訊表格 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-004 | 金額資訊與輸入 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
-| TASK-005 | 販售頁協調與結帳 | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | — |
+| TASK-002 | 訂單 API Service 與型別／部署代理 | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-003 | 商品資訊表格 | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-004 | 金額資訊與輸入 | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
+| TASK-005 | 販售頁協調與結帳 | MODIFY | 2026-10-20 | DONE | 2026-10-20 | 2026-10-20 |
 
 ## V. Technical Stack / System Design
 
@@ -145,3 +145,7 @@ TASK-001 的 Session 失效處理對同一登入狀態具冪等性，並行兩�
 ### Programmer Plan Update Handoff（2026-10-20）
 
 TASK-002～005 已完成簡易測試修正：相同 ID 連續貼上可逐次查詢並合併數量；商品行未實際變動時保留整單調整價；刪除按鈕使用既有圖示；Vite 與 nginx 增加 `/sellController` 代理。定向測試 3 個檔案、35 項通過；全套測試 26 個檔案、286 項通過；Lint、Build 與 `git diff --check` 通過。本機無 Docker 指令，尚未驗證 nginx 容器；真實後端訂單整合及視覺核對仍待執行。四項 Task 標記 `DEVELOPED DONE`，交由 Code Reviewer 複審。
+
+### Code Review 結論（2026-10-20，簡易測試修正）
+
+TASK-002～005 符合本次 Plan Delta，相關 Review Status 均為 `RESOLVED`，Implementation Status 更新為 `DONE`。Reviewer 重跑 `SellAmountPanel`、`SellProductTable`、`SellPage` 測試，3 個檔案 35 項通過；Programmer 已提供全套 286 項、Lint、Build 通過紀錄。Vite 開發代理經無認證空資料 POST 驗證，收到後端 Uvicorn 400 及缺少 `Uid` 的訊息，確認已轉發。nginx 容器因本機無 Docker 未驗證；真實訂單整合與桌面／窄畫面視覺核對亦未完成。

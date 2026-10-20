@@ -41,3 +41,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## 2026-10-20 複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`。`SellAmountPanel.test.tsx` 已覆蓋 0、負數、小數、非數字整單價格還原與非法輸入不通知 Page，並直接驗證結帳 callback、空清單及查詢中 disabled 狀態。原 Review Issue 已解決。採用 Programmer 提供的全套 279 項通過、Lint 與 Build 通過結果，本次未重跑。
+
+## 2026-10-20 簡易測試修正審查
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。移除跨輸入事件保留的相同 ID 去重狀態；達 13 碼後欄位清空，下一次獨立貼上可再次觸發，Enter 不重複觸發已完成的查詢。Panel 測試驗證兩次相同 ID 各呼叫一次。Reviewer 重跑相關 3 個測試檔，共 35 項通過。未發現新問題。

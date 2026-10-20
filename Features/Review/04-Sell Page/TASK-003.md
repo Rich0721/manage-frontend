@@ -42,3 +42,7 @@ Status: OPEN。待 Programmer 修正並補測後複審。
 ## 2026-10-20 複審
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`。`SellProductTable.tsx:67` 已用商品 ID 作為 key；行內草稿依目前商品值決定顯示，重掃更新數量時可保留未提交的調價，數量輸入同步顯示新值。表格測試直接驗證負數、小數、非數字還原及行更新時焦點／草稿保留；頁面測試驗證重掃數量及合計。原兩項 Review Issue 已解決。採用 Programmer 提供的全套 279 項通過、Lint 與 Build 通過結果，本次未重跑。
+
+## 2026-10-20 簡易測試修正審查
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。價格與數量欄位失焦時，相同有效值不再通知 Page；非法值仍還原，實際變更仍通知更新。刪除按鈕使用既有 `/icon/delete.png`，保留商品 ID 的可存取名稱及原點擊、停用行為。表格與頁面測試覆蓋相同值、非法值與實際改動；Reviewer 重跑相關 3 個測試檔，共 35 項通過。未發現新問題。

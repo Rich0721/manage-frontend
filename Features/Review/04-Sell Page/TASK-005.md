@@ -65,3 +65,7 @@ Status: OPEN。待 Programmer 補測後複審。
 ## 2026-10-20 複審結論
 
 Review Status：`RESOLVED`；Implementation Status：`DONE`。一般網路查詢失敗測試驗證錯誤提示、既有商品與整單調整金額保留；送出期間測試從實際頁面結帳按鈕再次操作並確認 API 只呼叫一次；清空測試驗證列表與金額重置、查詢取消及晚到回應被忽略。Reviewer 重跑 App 與 SellPage 定向測試，共 34 項通過。前次三項測試缺口已補足，未發現新的實作問題。
+
+## 2026-10-20 簡易測試修正審查
+
+Review Status：`RESOLVED`；Implementation Status：`DONE`。`replaceItems` 僅在商品 ID、調整單價或數量確實改變時重設整單調整價；連續相同 ID 查詢仍合併數量並保留商品調整單價。頁面測試覆蓋兩次相同 ID 貼上、整單調整後商品行無變更失焦、非法輸入及實際改量。Reviewer 重跑相關 3 個測試檔，共 35 項通過。未發現新問題。
