@@ -1,0 +1,29 @@
+flowchart TD
+    %% Nodes
+    StartPoint(進入商品販售頁面)
+    EndPoint(完成商品販售)
+    EnterProductId(輸入商品編號)
+    SearchProduct(搜尋商品)
+    IsProductFound{商品是否存在}
+    ProductNotFoundMessage(商品不存在)
+    DisplayProductDetails(顯示商品詳細資訊)
+    UpdateProductPrice(更新商品價格)
+    CreateOrder(送出訂單)
+    IsOrderCreated{訂單是否建立}
+    OrderNotCreatedMessage(訂單建立失敗)
+    OrderCreatedMessage(訂單建立成功)
+
+    StartPoint --> EnterProductId
+    EnterProductId --> SearchProduct
+    SearchProduct --> IsProductFound
+    IsProductFound -->|是| DisplayProductDetails
+    IsProductFound -->|否| ProductNotFoundMessage
+    ProductNotFoundMessage --> EnterProductId
+    DisplayProductDetails --> UpdateProductPrice
+    UpdateProductPrice --> CreateOrder
+    CreateOrder --> IsOrderCreated
+    IsOrderCreated -->|是| OrderCreatedMessage
+    IsOrderCreated -->|否| OrderNotCreatedMessage
+    OrderCreatedMessage --> EndPoint
+    OrderNotCreatedMessage --> EndPoint
+    
