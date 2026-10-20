@@ -34,3 +34,7 @@ TASK-003
 ## Resolution
 
 Status: OPEN。待 Programmer 修正並補測後複審。
+
+## Programmer Fix Handoff（2026-10-20）
+
+`SellProductTable` 使用商品 ID 作為行 key，並以來源值衍生顯示草稿，讓外部掃碼合併數量後草稿同步且保留未提交的調價。補上負數、小數、非數字數量還原測試及行更新期間草稿／焦點保留測試。完整測試套件 279 項通過，Lint 通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。

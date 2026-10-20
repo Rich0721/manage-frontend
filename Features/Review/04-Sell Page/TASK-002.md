@@ -33,3 +33,7 @@ TASK-002
 ## Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-20）
+
+`src/services/sell-service.test.tsx` 新增 503 HTTP、有效 JSON 缺少訂單欄位、非法明細及 30 秒逾時案例，逾時使用 fake timers 並確認分類為 `timeout`。完整測試套件 279 項通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。

@@ -33,3 +33,7 @@ TASK-001
 ## Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-20）
+
+`src/App.test.tsx` 新增販售頁查詢 401 案例，驗證 Session 清除、返回登入表單及授權提示只顯示一次；新增從販售頁登出時取消待處理商品查詢的案例。相關測試包含於完整測試套件 279 項通過結果。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。

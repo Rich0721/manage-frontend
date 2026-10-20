@@ -35,3 +35,7 @@ TASK-005
 ## Resolution
 
 Status: OPEN。待 Programmer 修正並補測後複審。
+
+## Programmer Fix Handoff（2026-10-20）
+
+商品查詢不再互相取消，以每筆 AbortController 與世代值管理完成、清空及卸載；交錯回應會合併至最新清單，清空／離頁會取消所有待處理查詢。查詢進行中停用結帳；確認或送出期間停用掃碼、清單編輯、刪除與清空，確保送出快照與成功後清單一致。`SellPage.test.tsx` 新增不同商品反序完成、同商品快速重掃、404 保留、查詢／建立 401、送出防重複與鎖定清單測試；App 測試驗證登出取消待處理查詢及訂單請求。完整測試套件 279 項通過，Lint 與 Build 通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。

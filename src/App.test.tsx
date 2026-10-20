@@ -3,7 +3,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import App from './App'
-import { addProduct, deleteProduct, getProducts, ProductServiceError, updateProduct } from './services/product-service'
+import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from './services/product-service'
+import { createOrder } from './services/sell-service'
 import { AuthServiceError, loginUser, logoutUser } from './services/auth-service'
 
 vi.mock('./services/product-service', () => ({
@@ -19,11 +20,17 @@ vi.mock('./services/auth-service', () => ({
   logoutUser: vi.fn(),
   loginUser: vi.fn(),
 }))
+vi.mock('./services/sell-service', () => ({
+  SellServiceError: class SellServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
+  createOrder: vi.fn(),
+}))
 
 const session = { uid: 'u1', authorization: 'token', userName: 'Tester' }
 const getProductsMock = vi.mocked(getProducts)
 const addProductMock = vi.mocked(addProduct)
 const deleteProductMock = vi.mocked(deleteProduct)
+const getProductMock = vi.mocked(getProduct)
+const createOrderMock = vi.mocked(createOrder)
 const updateProductMock = vi.mocked(updateProduct)
 const loginMock = vi.mocked(loginUser)
 const logoutMock = vi.mocked(logoutUser)
@@ -34,6 +41,8 @@ afterEach(() => {
   getProductsMock.mockReset()
   addProductMock.mockReset()
   deleteProductMock.mockReset()
+  getProductMock.mockReset()
+  createOrderMock.mockReset()
   updateProductMock.mockReset()
   loginMock.mockReset()
   logoutMock.mockReset()
@@ -157,6 +166,66 @@ describe('App session flow', () => {
     expect(updateProductMock).not.toHaveBeenCalled()
     expect(window.alert).toHaveBeenCalledOnce()
     expect(window.alert).toHaveBeenCalledWith('使用者未授權')
+  })
+
+  it('clears the session and returns to login when a sell lookup returns 401', async () => {
+    const user = userEvent.setup()
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    getProductMock.mockRejectedValue(new ProductServiceError('unauthorized', 'expired'))
+    vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    render(<App />)
+    await screen.findByText('目前無產品')
+
+    await user.click(screen.getByRole('button', { name: '商品販售' }))
+    await user.type(screen.getByRole('textbox', { name: '商品ID' }), '1000000000001')
+
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(sessionStorage.getItem('manage-frontend.auth-session')).toBeNull()
+    expect(getProductMock).toHaveBeenCalledOnce()
+    expect(window.alert).toHaveBeenCalledExactlyOnceWith('使用者未授權')
+  })
+
+  it('cancels a pending sell lookup when logging out from the sell page', async () => {
+    const user = userEvent.setup()
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    let finishLogout!: () => void
+    logoutMock.mockReturnValue(new Promise<void>((resolve) => { finishLogout = resolve }))
+    getProductMock.mockReturnValue(new Promise(() => undefined))
+    render(<App />)
+    await screen.findByText('目前無產品')
+    await user.click(screen.getByRole('button', { name: '商品販售' }))
+    await user.type(screen.getByRole('textbox', { name: '商品ID' }), '1000000000001')
+    await waitFor(() => expect(getProductMock).toHaveBeenCalledOnce())
+    const lookupSignal = getProductMock.mock.calls[0]?.[2]
+
+    await user.click(screen.getByRole('button', { name: '登出' }))
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(lookupSignal?.aborted).toBe(true)
+    await act(async () => finishLogout())
+  })
+
+  it('cancels a pending order request when logging out from the sell page', async () => {
+    const user = userEvent.setup()
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    getProductMock.mockResolvedValue({ id: '1000000000001', name: 'Item', label_names: '', cost: 10, price: 100, stock: 5 })
+    createOrderMock.mockReturnValue(new Promise(() => undefined))
+    render(<App />)
+    await screen.findByText('目前無產品')
+
+    await user.click(screen.getByRole('button', { name: '商品販售' }))
+    await user.type(screen.getByRole('textbox', { name: '商品ID' }), '1000000000001')
+    await screen.findByRole('row', { name: /1000000000001/ })
+    await user.click(screen.getByRole('button', { name: '結帳' }))
+    await user.click(screen.getByRole('button', { name: '確認' }))
+    await waitFor(() => expect(createOrderMock).toHaveBeenCalledOnce())
+    const orderSignal = createOrderMock.mock.calls[0]?.[2]
+
+    await user.click(screen.getByRole('button', { name: '登出' }))
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(orderSignal?.aborted).toBe(true)
   })
 
   it.each(['http', 'network'] as const)('keeps the session after a non-401 %s product failure', async (kind) => {

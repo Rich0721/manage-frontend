@@ -47,6 +47,18 @@ describe('SellAmountPanel', () => {
     expect(props.onAdjustedTotalChange).toHaveBeenCalledOnce()
   })
 
+  it.each(['0', '-1', 'abc'])('restores invalid adjusted total %s without notifying the page', async (value) => {
+    const user = userEvent.setup()
+    const props = setup()
+    const input = screen.getByRole('textbox', { name: '整單調整價格' })
+    await user.clear(input)
+    await user.type(input, value)
+    fireEvent.blur(input)
+
+    expect(input).toHaveValue('300')
+    expect(props.onAdjustedTotalChange).not.toHaveBeenCalled()
+  })
+
   it('disables amount and checkout controls when there are no products and wires the buttons', async () => {
     const user = userEvent.setup()
     const props = setup({ totalAmount: 0, adjustedTotal: '0', disabled: true })
@@ -54,5 +66,18 @@ describe('SellAmountPanel', () => {
     expect(screen.getByRole('button', { name: '結帳' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: '清空' }))
     expect(props.onClear).toHaveBeenCalledOnce()
+    expect(props.onCheckout).not.toHaveBeenCalled()
+  })
+
+  it('wires checkout', async () => {
+    const user = userEvent.setup()
+    const props = setup()
+    await user.click(screen.getByRole('button', { name: '結帳' }))
+    expect(props.onCheckout).toHaveBeenCalledOnce()
+  })
+
+  it('disables checkout while a product lookup is pending', () => {
+    setup({ lookupBusy: true })
+    expect(screen.getByRole('button', { name: '結帳' })).toBeDisabled()
   })
 })

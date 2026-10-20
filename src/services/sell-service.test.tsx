@@ -41,8 +41,21 @@ describe('createOrder', () => {
     await expect(createOrder(session, orderInput, new AbortController().signal)).rejects.toMatchObject({ kind: 'http', message: 'Bad request' })
   })
 
+  it('classifies unexpected HTTP status as an HTTP error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 503 })))
+    await expect(createOrder(session, orderInput, new AbortController().signal)).rejects.toMatchObject({ kind: 'http' })
+  })
+
   it('rejects invalid order response data', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{bad json', { status: 200 })))
+    await expect(createOrder(session, orderInput, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
+  })
+
+  it.each([
+    ['missing totalDiscount', { orderId: 'o1', totalAmount: 300, orderItems: orderInput.orderItems }],
+    ['invalid order item', { orderId: 'o1', totalAmount: 300, totalDiscount: 400, orderItems: [{ productId: 'p1', quantity: 0, price: 200, discount: 150 }] }],
+  ])('rejects valid JSON with %s', async (_label, info) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ body: { info } }), { status: 200 })))
     await expect(createOrder(session, orderInput, new AbortController().signal)).rejects.toMatchObject({ kind: 'protocol' })
   })
 
@@ -61,5 +74,18 @@ describe('createOrder', () => {
     await Promise.resolve()
     controller.abort()
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+  })
+
+  it('reports the service timeout separately from caller cancellation', async () => {
+    vi.useFakeTimers()
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), { once: true })
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const pending = createOrder(session, orderInput, new AbortController().signal)
+    const timedOut = expect(pending).rejects.toMatchObject({ kind: 'timeout' })
+
+    await vi.advanceTimersByTimeAsync(30_000)
+    await timedOut
   })
 })

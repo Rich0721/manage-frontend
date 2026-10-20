@@ -33,3 +33,7 @@ TASK-004
 ## Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-20）
+
+`SellAmountPanel.test.tsx` 補上 0、負數、非數字整單調整價還原與不呼叫 callback 測試，並直接驗證結帳 callback 及查詢期間停用結帳。完整測試套件 279 項通過，Lint 通過。Review Status 維持 `OPEN`，等待 Code Reviewer 複審。

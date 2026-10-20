@@ -56,4 +56,31 @@ describe('SellProductTable', () => {
     await user.click(screen.getByRole('button', { name: '刪除商品 1000000000001' }))
     expect(onChange).toHaveBeenLastCalledWith([])
   })
+
+  it.each(['-1', '1.5', 'abc'])('restores invalid quantity %s without changing the row', async (value) => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(<SellProductTable items={items} onChange={onChange} />)
+    const quantity = screen.getByRole('textbox', { name: '數量 1000000000001' })
+    await user.clear(quantity)
+    await user.type(quantity, value)
+    fireEvent.blur(quantity)
+
+    expect(quantity).toHaveValue('1')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('keeps row input state mounted when price and quantity change', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const { rerender } = render(<SellProductTable items={items} onChange={onChange} />)
+    const price = screen.getByRole('textbox', { name: '調整價格 1000000000001' })
+    await user.clear(price)
+    await user.type(price, '150')
+    const revised = [{ ...items[0], quantity: 2 }]
+    rerender(<SellProductTable items={revised} onChange={onChange} />)
+
+    expect(screen.getByRole('textbox', { name: '調整價格 1000000000001' })).toHaveValue('150')
+    expect(screen.getByRole('textbox', { name: '調整價格 1000000000001' })).toHaveFocus()
+  })
 })

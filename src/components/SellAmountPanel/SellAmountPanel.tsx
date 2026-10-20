@@ -8,6 +8,7 @@ interface SellAmountPanelProps {
   adjustedTotal: string
   disabled: boolean
   busy: boolean
+  lookupBusy?: boolean
   message: string
   onProductId: (productId: string) => void
   onAdjustedTotalChange: (value: string) => void
@@ -15,7 +16,7 @@ interface SellAmountPanelProps {
   onClear: () => void
 }
 
-export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, message, onProductId, onAdjustedTotalChange, onCheckout, onClear }: SellAmountPanelProps) {
+export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, lookupBusy = false, message, onProductId, onAdjustedTotalChange, onCheckout, onClear }: SellAmountPanelProps) {
   const [productId, setProductId] = useState('')
   const [adjustedTotalDraft, setAdjustedTotalDraft] = useState(adjustedTotal)
   const lastTriggered = useRef('')
@@ -30,7 +31,7 @@ export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, me
   return (
     <aside className="sell-amount-panel" aria-label="金額資訊">
       <label className="sell-amount-panel__field">商品ID
-        <input aria-label="商品ID" value={productId} onChange={(event) => {
+        <input aria-label="商品ID" disabled={busy} value={productId} onChange={(event) => {
           const value = event.target.value
           setProductId(value)
           if (value.length !== 13) lastTriggered.current = ''
@@ -56,7 +57,7 @@ export function SellAmountPanel({ totalAmount, adjustedTotal, disabled, busy, me
       </label>
       {message ? <p role="alert" className="sell-amount-panel__message">{message}</p> : null}
       <div className="sell-amount-panel__actions">
-        <Button disabled={disabled || busy} onClick={onCheckout}>結帳</Button>
+        <Button disabled={disabled || busy || lookupBusy} onClick={onCheckout}>結帳</Button>
         <Button variant="secondary" disabled={busy} onClick={onClear}>清空</Button>
       </div>
     </aside>

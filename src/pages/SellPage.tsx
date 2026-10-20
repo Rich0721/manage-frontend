@@ -34,9 +34,9 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
   const [checkoutBusy, setCheckoutBusy] = useState(false)
   const [operationMessage, setOperationMessage] = useState('')
   const [confirmationOpen, setConfirmationOpen] = useState(false)
-  const lookupControllerRef = useRef<AbortController | null>(null)
+  const lookupControllersRef = useRef(new Set<AbortController>())
+  const lookupGenerationRef = useRef(0)
   const checkoutControllerRef = useRef<AbortController | null>(null)
-  const lookupRequestIdRef = useRef(0)
   const checkoutInProgressRef = useRef(false)
   const activeRef = useRef(true)
   const hasItems = items.length > 0
@@ -44,9 +44,12 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
 
   useEffect(() => {
     activeRef.current = true
+    const lookupControllers = lookupControllersRef.current
     return () => {
       activeRef.current = false
-      lookupControllerRef.current?.abort()
+      lookupGenerationRef.current += 1
+      lookupControllers.forEach((controller) => controller.abort())
+      lookupControllers.clear()
       checkoutControllerRef.current?.abort()
     }
   }, [])
@@ -59,15 +62,14 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
 
   const lookupProduct = async (productId: string) => {
     if (productId.length !== 13) return
-    lookupControllerRef.current?.abort()
     const controller = new AbortController()
-    lookupControllerRef.current = controller
-    const requestId = ++lookupRequestIdRef.current
+    const generation = lookupGenerationRef.current
+    lookupControllersRef.current.add(controller)
     setLookupBusy(true)
     setOperationMessage('')
     try {
       const product = await getProduct(session, productId, controller.signal)
-      if (!activeRef.current || requestId !== lookupRequestIdRef.current) return
+      if (!activeRef.current || generation !== lookupGenerationRef.current) return
       const current = itemsRef.current
       const existing = current.find((item) => item.product.id === product.id)
       const next = existing
@@ -76,7 +78,7 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
       replaceItems(next)
       setOperationMessage('')
     } catch (error: unknown) {
-      if (!activeRef.current || requestId !== lookupRequestIdRef.current || (error instanceof DOMException && error.name === 'AbortError')) return
+      if (!activeRef.current || generation !== lookupGenerationRef.current || (error instanceof DOMException && error.name === 'AbortError')) return
       if (error instanceof ProductServiceError && error.kind === 'unauthorized') {
         onSessionExpired('使用者未授權')
         return
@@ -85,15 +87,15 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
         ? '商品不存在'
         : serviceMessage(error, '商品查詢失敗'))
     } finally {
-      if (requestId === lookupRequestIdRef.current) {
-        lookupControllerRef.current = null
-        setLookupBusy(false)
+      lookupControllersRef.current.delete(controller)
+      if (activeRef.current && generation === lookupGenerationRef.current) {
+        setLookupBusy(lookupControllersRef.current.size > 0)
       }
     }
   }
 
   const handleCheckout = async () => {
-    if (!itemsRef.current.length || checkoutInProgressRef.current) return
+    if (!itemsRef.current.length || lookupControllersRef.current.size > 0 || checkoutInProgressRef.current) return
     checkoutInProgressRef.current = true
     setCheckoutBusy(true)
     setConfirmationOpen(false)
@@ -135,15 +137,15 @@ export function SellPage({ session, onLogout, onSessionExpired, onNavigateProduc
         onNavigateSell={() => undefined} onLogout={onLogout}
         onPermissions={() => window.alert('權限管理尚未開放')} />
       <div className="sell-page__content">
-        <SellProductTable items={items} onChange={replaceItems} />
+        <SellProductTable items={items} onChange={replaceItems} disabled={checkoutBusy || confirmationOpen} />
         <SellAmountPanel totalAmount={totalAmount} adjustedTotal={adjustedTotal}
-          disabled={!hasItems} busy={checkoutBusy} message={operationMessage}
+          disabled={!hasItems} busy={checkoutBusy || confirmationOpen} lookupBusy={lookupBusy} message={operationMessage}
           onProductId={(productId) => { void lookupProduct(productId) }}
           onAdjustedTotalChange={(value) => { if (parsePositiveInteger(value) !== null) setAdjustedTotal(value) }}
           onCheckout={() => setConfirmationOpen(true)} onClear={() => {
-            lookupRequestIdRef.current += 1
-            lookupControllerRef.current?.abort()
-            lookupControllerRef.current = null
+            lookupGenerationRef.current += 1
+            lookupControllersRef.current.forEach((controller) => controller.abort())
+            lookupControllersRef.current.clear()
             setLookupBusy(false)
             replaceItems([])
             setOperationMessage('')

@@ -7,7 +7,7 @@
 - Flow：`Features/Document/flows/04-Sell Page/01-Sell Page.mmd`
 - Requirement Type：**New Requirement**。現有應用只有登入與商品管理，沒有販售頁或建立訂單流程。
 - Plan Date：2026-10-20
-- Plan Status：**Code Review Failed / Awaiting Review Fix**。PM 已確認訂單金額彙總、商品行價格與整單調整價格規則；五項 Task 於 2026-10-20 審查後均有待修正問題，詳見 `Features/Review/04-Sell Page/`。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
+- Plan Status：**Development Complete / Awaiting Code Review**。五項 Review Fix 已於 2026-10-20 完成並通過測試、Lint 與 Build，等待 Code Reviewer 複審。桌面／窄畫面瀏覽器截圖與 Figma 視覺對照仍未執行。
 
 ## II. Requirement Summary
 
@@ -36,11 +36,11 @@
 
 | Task ID | Component Name | Plan Type | Plan Date | Implentation Status | Development Date | Code Review Date |
 |---|---|---|---|---|---|---|
-| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
-| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
-| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
-| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
-| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | REVIEW FIX | 2026-10-20 | 2026-10-20 |
+| TASK-001 | 頁面切換與 Header | MODIFY | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-002 | 訂單 API Service 與型別 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-003 | 商品資訊表格 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-004 | 金額資訊與輸入 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
+| TASK-005 | 販售頁協調與結帳 | ADD | 2026-10-20 | DEVELOPED DONE | 2026-10-20 | 2026-10-20 |
 
 ## V. Technical Stack / System Design
 
@@ -115,3 +115,7 @@
 ### Code Review（2026-10-20）
 
 五項 Task 審查結果均為 `REVIEW FIX`，Review Status 為 `OPEN`；問題與修正範圍記錄於 `Features/Review/04-Sell Page/TASK-001.md` 至 `TASK-005.md`。主要缺陷為快速掃碼可能遺漏商品，以及訂單送出期間仍可變更清單而導致已提交內容與成功後清空內容不一致。另有明訂測試缺口及商品行 key 與計畫不符。Reviewer 執行 5 個相關測試檔、37 項通過；因沙箱限制，測試在核准的沙箱外執行。未進行桌面／窄畫面與 Figma 視覺核對，也未驗證真實後端整合。
+
+### Programmer Review Fix Handoff（2026-10-20）
+
+五項 Task 已完成 Review Fix，狀態更新為 `DEVELOPED DONE`，Review Status 維持 `OPEN` 等待複審。掃碼查詢改為各自追蹤並允許並行完成，清空／卸載時取消全部待處理查詢；查詢期間停用結帳，確認視窗與送出期間鎖定商品清單，避免訂單快照外的變更被成功回應清除。商品表格使用商品 ID 作為 key，行內草稿依外部價格／數量更新同步。補足 App 販售頁 Session 401／登出取消測試、訂單服務逾時／協定／HTTP 測試、表格／整單非法輸入及結帳互動測試。驗證：`npm.cmd test -- --run`（26 個檔案、279 項通過）、`npm.cmd run lint` 通過、`npm.cmd run build` 通過。視覺與真實後端整合仍待環境可用後驗證。
