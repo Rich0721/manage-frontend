@@ -1,0 +1,9 @@
+.sell-product-table { min-width: 0; overflow: hidden; border-radius: 18px; background: #f8f6bc; }
+.sell-product-table__scroll { overflow-x: auto; }
+.sell-product-table table { width: 100%; min-width: 880px; border-collapse: collapse; }
+.sell-product-table th, .sell-product-table td { padding: 12px 10px; border: 1px solid #b9b9b9; text-align: center; }
+.sell-product-table th { background: rgba(80, 80, 80, .85); color: #fff; font-weight: 600; }
+.sell-product-table td { background: #c6f8d0; }
+.sell-product-table td input { box-sizing: border-box; width: 96px; padding: 6px 8px; border: 1px solid #999; border-radius: 4px; text-align: right; }
+.sell-product-table__delete { color: #b42318; }
+.sell-product-table__empty { padding: 32px; color: #555; text-align: center; }

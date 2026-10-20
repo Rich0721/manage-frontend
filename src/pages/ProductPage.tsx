@@ -14,6 +14,7 @@ interface ProductPageProps {
   session: AuthSession
   onLogout: () => void
   onSessionExpired: (message?: string) => void
+  onNavigateSell?: () => void
 }
 
 type ProductPageResult =
@@ -48,7 +49,7 @@ export function ProductPage(props: ProductPageProps) {
   return <ProductPageContent key={sessionKey} {...props} />
 }
 
-function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPageProps) {
+function ProductPageContent({ session, onLogout, onSessionExpired, onNavigateSell }: ProductPageProps) {
   const [result, setResult] = useState<ProductPageResult | null>(null)
   const [nameSearch, setNameSearch] = useState('')
   const [labelSearch, setLabelSearch] = useState('')
@@ -325,7 +326,7 @@ function ProductPageContent({ session, onLogout, onSessionExpired }: ProductPage
 
   return (
     <main className="product-page">
-      <SiteHeader authenticated activePage="products" onLogout={onLogout} onPermissions={() => window.alert('權限管理尚未開放')} />
+      <SiteHeader authenticated activePage="products" onLogout={onLogout} onPermissions={() => window.alert('權限管理尚未開放')} onNavigateSell={onNavigateSell} />
       <section className="product-page__content" aria-label="商品管理">
         <div className="product-page__toolbar">
           <Button variant="secondary" className="product-page__batch" disabled={fileBusy} onClick={() => uploadInputRef.current?.click()}>批次管理</Button>

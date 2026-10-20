@@ -6,12 +6,17 @@ describe('SiteHeader', () => {
   it('uses shared buttons for permission and logout actions', () => {
     const onPermissions = vi.fn()
     const onLogout = vi.fn()
-    render(<SiteHeader authenticated activePage="products" onPermissions={onPermissions} onLogout={onLogout} />)
+    const onNavigateProducts = vi.fn()
+    const onNavigateSell = vi.fn()
+    render(<SiteHeader authenticated activePage="products" onPermissions={onPermissions} onLogout={onLogout}
+      onNavigateProducts={onNavigateProducts} onNavigateSell={onNavigateSell} />)
 
     expect(screen.getByText('商品管理')).toHaveClass('site-header__active')
     fireEvent.click(screen.getByRole('button', { name: '權限管理' }))
+    fireEvent.click(screen.getByRole('button', { name: '商品販售' }))
     fireEvent.click(screen.getByRole('button', { name: '登出' }))
     expect(onPermissions).toHaveBeenCalledOnce()
+    expect(onNavigateSell).toHaveBeenCalledOnce()
     expect(onLogout).toHaveBeenCalledOnce()
   })
 

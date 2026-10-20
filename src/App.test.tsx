@@ -10,6 +10,7 @@ vi.mock('./services/product-service', () => ({
   ProductServiceError: class ProductServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
   addProduct: vi.fn(),
   deleteProduct: vi.fn(),
+  getProduct: vi.fn(),
   getProducts: vi.fn(),
   updateProduct: vi.fn(),
 }))
@@ -53,6 +54,23 @@ describe('App session flow', () => {
     expect(getProductsMock).toHaveBeenCalledWith(session, expect.any(AbortSignal))
     expect(screen.getByRole('button', { name: '登出' })).toBeInTheDocument()
     expect(loginMock).not.toHaveBeenCalled()
+  })
+
+  it('switches between product management and the sell page while keeping the authenticated session', async () => {
+    const user = userEvent.setup()
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    render(<App />)
+    await screen.findByText('目前無產品')
+
+    await user.click(screen.getByRole('button', { name: '商品販售' }))
+    expect(await screen.findByRole('region', { name: '商品資訊' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '商品販售' })).toHaveClass('site-header__active')
+    expect(screen.getByRole('button', { name: '登出' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '商品管理' }))
+    expect(await screen.findByText('目前無產品')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '商品管理' })).toHaveClass('site-header__active')
   })
 
   it.each([

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { HomePage } from './pages/HomePage'
 import { ProductPage } from './pages/ProductPage'
+import { SellPage } from './pages/SellPage'
 import { AuthServiceError, logoutUser } from './services/auth-service'
 import type { AuthSession } from './types/auth'
 
@@ -29,6 +30,7 @@ function parseSession(value: string | null): AuthSession | null {
 
 function App() {
   const [session, setSession] = useState<AuthSession | null>(null)
+  const [authenticatedPage, setAuthenticatedPage] = useState<'products' | 'sell'>('products')
   const [initialized, setInitialized] = useState(false)
   const logoutInProgressRef = useRef(false)
 
@@ -49,11 +51,13 @@ function App() {
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(next)) }
     catch { window.alert('登入狀態無法保存；重新整理後需要重新登入') }
     setSession(next)
+    setAuthenticatedPage('products')
   }, [])
 
   const handleSessionExpired = useCallback((message?: string) => {
     const cleared = removeStoredSession()
     setSession(null)
+    setAuthenticatedPage('products')
     window.alert(cleared
       ? (message ?? '登入已逾期，請重新登入')
       : `${message ?? '登入已逾期，請重新登入'}；本機登入資料未能清除`)
@@ -65,6 +69,7 @@ function App() {
     const activeSession = session
     const cleared = removeStoredSession()
     setSession(null)
+    setAuthenticatedPage('products')
     const controller = new AbortController()
     let message = cleared ? '' : '本機登入資料未能清除。'
     try { await logoutUser(activeSession, controller.signal) }
@@ -74,6 +79,7 @@ function App() {
         : '登出時發生錯誤，已返回登入頁。'
     } finally {
       setSession(null)
+      setAuthenticatedPage('products')
       logoutInProgressRef.current = false
       if (message) window.alert(message)
     }
@@ -81,7 +87,9 @@ function App() {
 
   if (!initialized) return <main aria-busy="true" />
   return session
-    ? <ProductPage session={session} onLogout={() => { void handleLogout() }} onSessionExpired={handleSessionExpired} />
+    ? authenticatedPage === 'products'
+      ? <ProductPage session={session} onLogout={() => { void handleLogout() }} onSessionExpired={handleSessionExpired} onNavigateSell={() => setAuthenticatedPage('sell')} />
+      : <SellPage session={session} onLogout={() => { void handleLogout() }} onSessionExpired={handleSessionExpired} onNavigateProducts={() => setAuthenticatedPage('products')} />
     : <HomePage initialMode="login" onLoginSuccess={handleLoginSuccess} />
 }
 

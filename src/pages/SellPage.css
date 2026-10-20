@@ -1,0 +1,6 @@
+.sell-page { min-height: 100vh; background: #fff; }
+.sell-page__content { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, .8fr); gap: clamp(16px, 2vw, 32px); width: min(94vw, 1800px); margin: 0 auto; padding: clamp(20px, 3vw, 48px) 0; }
+.sell-page__status { width: min(94vw, 1800px); margin: 0 auto 16px; color: #555; }
+.sell-page__confirmation { margin: 12px 0 24px; text-align: center; font-size: 18px; }
+.sell-page__confirmation-actions { display: flex; justify-content: center; gap: 14px; }
+@media (max-width: 920px) { .sell-page__content { grid-template-columns: 1fr; } }
