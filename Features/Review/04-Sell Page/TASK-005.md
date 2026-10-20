@@ -57,3 +57,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`。原 Issue 1、2 
 ### Resolution
 
 Status: OPEN。待 Programmer 補測後複審。
+
+## Programmer Fix Handoff（2026-10-20，複審修正）
+
+`src/pages/SellPage.test.tsx` 新增一般查詢失敗時顯示錯誤並保留商品清單與調整金額的案例；送出期間驗證頁面結帳按鈕 disabled 且訂單 API 僅呼叫一次；清空操作驗證清單及金額重置、待處理請求取消且晚到回應不會重新加入商品。定向測試 34 項及全套測試 282 項通過；Lint、Build、`git diff --check` 通過。Review Status 維持 `OPEN`，待 Code Reviewer 複審。

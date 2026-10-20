@@ -33,6 +33,7 @@ function App() {
   const [authenticatedPage, setAuthenticatedPage] = useState<'products' | 'sell'>('products')
   const [initialized, setInitialized] = useState(false)
   const logoutInProgressRef = useRef(false)
+  const sessionExpiredRef = useRef(false)
 
   useEffect(() => {
     try {
@@ -48,6 +49,7 @@ function App() {
   }, [])
 
   const handleLoginSuccess = useCallback((next: AuthSession) => {
+    sessionExpiredRef.current = false
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(next)) }
     catch { window.alert('登入狀態無法保存；重新整理後需要重新登入') }
     setSession(next)
@@ -55,6 +57,8 @@ function App() {
   }, [])
 
   const handleSessionExpired = useCallback((message?: string) => {
+    if (sessionExpiredRef.current) return
+    sessionExpiredRef.current = true
     const cleared = removeStoredSession()
     setSession(null)
     setAuthenticatedPage('products')

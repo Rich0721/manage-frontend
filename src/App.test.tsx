@@ -6,6 +6,7 @@ import App from './App'
 import { addProduct, deleteProduct, getProduct, getProducts, ProductServiceError, updateProduct } from './services/product-service'
 import { createOrder } from './services/sell-service'
 import { AuthServiceError, loginUser, logoutUser } from './services/auth-service'
+import type { Product } from './types/auth'
 
 vi.mock('./services/product-service', () => ({
   ProductServiceError: class ProductServiceError extends Error { kind: string; constructor(kind: string, message: string) { super(message); this.kind = kind } },
@@ -183,6 +184,35 @@ describe('App session flow', () => {
     expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
     expect(sessionStorage.getItem('manage-frontend.auth-session')).toBeNull()
     expect(getProductMock).toHaveBeenCalledOnce()
+    expect(window.alert).toHaveBeenCalledExactlyOnceWith('使用者未授權')
+  })
+
+  it('handles concurrent sell lookup 401 responses once for the active session', async () => {
+    const user = userEvent.setup()
+    sessionStorage.setItem('manage-frontend.auth-session', JSON.stringify(session))
+    getProductsMock.mockResolvedValue([])
+    let rejectFirst!: (reason?: unknown) => void
+    let rejectSecond!: (reason?: unknown) => void
+    getProductMock
+      .mockReturnValueOnce(new Promise<Product>((_resolve, reject) => { rejectFirst = reject }))
+      .mockReturnValueOnce(new Promise<Product>((_resolve, reject) => { rejectSecond = reject }))
+    vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    render(<App />)
+    await screen.findByText('目前無產品')
+
+    await user.click(screen.getByRole('button', { name: '商品販售' }))
+    const productIdInput = screen.getByRole('textbox', { name: '商品ID' })
+    await user.type(productIdInput, '1000000000001')
+    await user.type(productIdInput, '1000000000002')
+    expect(getProductMock).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      rejectFirst(new ProductServiceError('unauthorized', 'expired'))
+      rejectSecond(new ProductServiceError('unauthorized', 'expired'))
+      await Promise.resolve()
+    })
+    expect(await screen.findByRole('form', { name: '登入表單' })).toBeInTheDocument()
+    expect(sessionStorage.getItem('manage-frontend.auth-session')).toBeNull()
     expect(window.alert).toHaveBeenCalledExactlyOnceWith('使用者未授權')
   })
 

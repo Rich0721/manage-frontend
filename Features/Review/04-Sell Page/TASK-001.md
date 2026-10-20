@@ -53,3 +53,7 @@ Review Status：`OPEN`；Implementation Status：`REVIEW FIX`。原 Review Issue
 ### Resolution
 
 Status: OPEN。待 Programmer 修正後複審。
+
+## Programmer Fix Handoff（2026-10-20，複審修正）
+
+`src/App.tsx` 對目前 Session 的失效回呼加入冪等保護；登入成功時重置保護狀態。`src/App.test.tsx` 新增兩筆並行販售查詢同時回傳 401 的整合測試，驗證回到登入頁、Session 清除且只顯示一次授權提示。定向測試 34 項及全套測試 282 項通過；Lint、Build、`git diff --check` 通過。Review Status 維持 `OPEN`，待 Code Reviewer 複審。

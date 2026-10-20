@@ -204,6 +204,48 @@ describe('SellPage', () => {
     expect(screen.queryByRole('row', { name: new RegExp(secondProduct.id) })).not.toBeInTheDocument()
   })
 
+  it('shows a general lookup failure and retains existing rows and adjusted amount', async () => {
+    const user = userEvent.setup()
+    getProductMock.mockResolvedValueOnce(product).mockRejectedValueOnce(new ProductServiceError('network', '商品查詢失敗'))
+    renderSellPage()
+    await scanProduct(user)
+    const adjustedTotalInput = screen.getByRole('textbox', { name: '整單調整價格' })
+    await user.clear(adjustedTotalInput)
+    await user.type(adjustedTotalInput, '400')
+    fireEvent.blur(adjustedTotalInput)
+
+    await user.type(screen.getByRole('textbox', { name: '商品ID' }), secondProduct.id)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('商品查詢失敗')
+    expect(screen.getByRole('row', { name: new RegExp(product.id) })).toBeInTheDocument()
+    expect(screen.queryByRole('row', { name: new RegExp(secondProduct.id) })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '總價格' })).toHaveValue('100')
+    expect(screen.getByRole('textbox', { name: '整單調整價格' })).toHaveValue('400')
+  })
+
+  it('clears the cart and ignores a pending lookup that resolves afterward', async () => {
+    const user = userEvent.setup()
+    const pendingLookup = deferred<Product>()
+    getProductMock.mockResolvedValueOnce(product).mockReturnValueOnce(pendingLookup.promise)
+    renderSellPage()
+    await scanProduct(user)
+    await user.type(screen.getByRole('textbox', { name: '商品ID' }), secondProduct.id)
+    const lookupSignal = getProductMock.mock.calls[1]?.[2]
+
+    await user.click(screen.getByRole('button', { name: '清空' }))
+    expect(lookupSignal?.aborted).toBe(true)
+    expect(screen.queryByRole('row', { name: new RegExp(product.id) })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '總價格' })).toHaveValue('0')
+    expect(screen.getByRole('textbox', { name: '整單調整價格' })).toHaveValue('0')
+
+    await act(async () => {
+      pendingLookup.resolve(secondProduct)
+      await pendingLookup.promise
+    })
+    expect(screen.queryByRole('row', { name: new RegExp(secondProduct.id) })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: '總價格' })).toHaveValue('0')
+  })
+
   it('notifies App when a product lookup returns 401', async () => {
     const user = userEvent.setup()
     const onSessionExpired = vi.fn()
@@ -237,10 +279,10 @@ describe('SellPage', () => {
     renderSellPage()
     await scanProduct(user)
     await user.click(screen.getByRole('button', { name: '結帳' }))
-    const confirmation = screen.getByRole('button', { name: '確認' })
-    fireEvent.click(confirmation)
-    fireEvent.click(confirmation)
-
+    fireEvent.click(screen.getByRole('button', { name: '確認' }))
+    const checkoutButton = screen.getByRole('button', { name: '結帳' })
+    expect(checkoutButton).toBeDisabled()
+    await user.click(checkoutButton)
     expect(createOrderMock).toHaveBeenCalledOnce()
     expect(screen.getByRole('textbox', { name: '商品ID' })).toBeDisabled()
     expect(screen.getByRole('textbox', { name: `調整價格 ${product.id}` })).toBeDisabled()
